@@ -1,0 +1,39 @@
+# Web API
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.6
+python-multipart>=0.0.9
+
+# PostgreSQL (pgvector + Apache AGE)
+sqlalchemy>=2.0
+psycopg[binary]>=3.1
+pgvector>=0.3
+
+# Lưu trữ file (SeaweedFS / S3)
+boto3>=1.34
+
+# LLM (chọn một qua LLM_PROVIDER)
+google-genai>=1.30
+anthropic>=0.70
+
+# Đọc bệnh án
+pymupdf>=1.24
+python-docx>=1.1
+pillow>=10.0
+pytesseract>=0.3  # chỉ dùng khi không có LLM và đã cài tesseract-ocr
+
+# ML / DL / RAG
+# PyTorch bản CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4
+scipy>=1.12
+joblib>=1.3
+fastembed>=0.4
+httpx>=0.27
+
+# Thực nghiệm & kiểm thử
+matplotlib>=3.8
+networkx>=3.2
+pytest>=8.0

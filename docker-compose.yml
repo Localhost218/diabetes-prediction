@@ -1,0 +1,56 @@
+# Hạ tầng lưu trữ cho hệ thống chatbot đa tác tử.
+#   docker compose up -d postgres seaweedfs        # chỉ hạ tầng, backend chạy local
+#   docker compose --profile app up -d --build     # chạy toàn bộ, backend phục vụ luôn giao diện tại /chat
+name: astarcare
+
+services:
+  postgres:
+    build: ./docker/postgres
+    image: astarcare-postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-astarcare}
+      POSTGRES_USER: ${POSTGRES_USER:-astarcare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astarcare}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 20
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:3.97
+    # master + volume + filer + S3 gateway trong một tiến trình (đủ cho dev / demo)
+    command: >
+      server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0
+      -master.volumeSizeLimitMB=1024 -volume.max=0
+      -filer -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+    ports:
+      - "8333:8333"   # S3 API
+      - "8888:8888"   # Filer UI
+      - "9333:9333"   # Master UI
+    volumes:
+      - seaweed:/data
+      - ./docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  backend:
+    profiles: ["app"]
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-astarcare}:${POSTGRES_PASSWORD:-astarcare}@postgres:5432/${POSTGRES_DB:-astarcare}
+      S3_ENDPOINT_URL: http://seaweedfs:8333
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_started
+
+
+volumes:
+  pgdata:
+  seaweed:

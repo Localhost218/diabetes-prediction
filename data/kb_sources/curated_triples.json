@@ -1,0 +1,402 @@
+[
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Thừa cân/béo phì",
+  "tail_label": "RiskFactor",
+  "evidence": "Người trưởng thành có BMI ≥ 23 kg/m² (người châu Á) kèm yếu tố nguy cơ cần được sàng lọc.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền sử gia đình ĐTĐ",
+  "tail_label": "RiskFactor",
+  "evidence": "Có bố mẹ, anh chị em ruột mắc đái tháo đường.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tăng huyết áp",
+  "tail_label": "RiskFactor",
+  "evidence": "Tăng huyết áp ≥ 130/80 mmHg hoặc đang điều trị thuốc hạ áp.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Rối loạn lipid máu",
+  "tail_label": "RiskFactor",
+  "evidence": "HDL-C < 35 mg/dL và/hoặc triglycerid > 250 mg/dL.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Ít vận động",
+  "tail_label": "RiskFactor",
+  "evidence": "Ít hoạt động thể lực.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền sử bệnh tim mạch",
+  "tail_label": "RiskFactor",
+  "evidence": "Tiền sử bệnh tim mạch.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Béo bụng",
+  "tail_label": "RiskFactor",
+  "evidence": "Béo bụng khi vòng eo ≥ 90 cm ở nam và ≥ 80 cm ở nữ (IDF, người châu Á).",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Ngưỡng BMI và vòng eo cho người châu Á"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tuổi ≥ 35",
+  "tail_label": "RiskFactor",
+  "evidence": "Mọi người từ 35 tuổi trở lên cần được sàng lọc.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Ai cần được sàng lọc"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Hút thuốc lá",
+  "tail_label": "RiskFactor",
+  "evidence": "Khuyên mọi người bệnh ngừng hút thuốc lá.",
+  "source_doc": "loi-song-dinh-duong",
+  "section": "Thuốc lá và rượu bia"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền đái tháo đường",
+  "tail_label": "RiskFactor",
+  "evidence": "Tiền đái tháo đường làm tăng nguy cơ tiến triển thành đái tháo đường típ 2.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Thừa cân/béo phì",
+  "tail_label": "RiskFactor",
+  "evidence": "Mục tiêu giảm ít nhất 7% cân nặng ban đầu.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose huyết tương lúc đói",
+  "tail_label": "Test",
+  "evidence": "FPG ≥ 126 mg/dL (7,0 mmol/L).",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "HbA1c",
+  "tail_label": "Test",
+  "evidence": "HbA1c ≥ 6,5% (48 mmol/mol).",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Nghiệm pháp dung nạp glucose (OGTT)",
+  "tail_label": "Test",
+  "evidence": "Glucose 2 giờ sau OGTT 75 g ≥ 200 mg/dL.",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose bất kỳ",
+  "tail_label": "Test",
+  "evidence": "Glucose bất kỳ ≥ 200 mg/dL kèm triệu chứng tăng đường huyết.",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose huyết tương lúc đói",
+  "tail_label": "Test",
+  "evidence": "FPG 100–125 mg/dL (5,6–6,9 mmol/L).",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "HbA1c",
+  "tail_label": "Test",
+  "evidence": "HbA1c 5,7–6,4%.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Nghiệm pháp dung nạp glucose (OGTT)",
+  "tail_label": "Test",
+  "evidence": "Glucose 2 giờ sau OGTT 140–199 mg/dL.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh võng mạc ĐTĐ",
+  "tail_label": "Complication",
+  "evidence": "Khám mắt giãn đồng tử hoặc chụp ảnh võng mạc ngay khi chẩn đoán.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh võng mạc đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh thận ĐTĐ",
+  "tail_label": "Complication",
+  "evidence": "Đánh giá uACR và eGFR ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thận đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh thần kinh ngoại biên",
+  "tail_label": "Complication",
+  "evidence": "Tầm soát bệnh thần kinh ngoại biên khi chẩn đoán và hằng năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thần kinh và bàn chân đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh tim mạch xơ vữa",
+  "tail_label": "Complication",
+  "evidence": "Bệnh tim mạch là nguyên nhân tử vong hàng đầu ở người đái tháo đường.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh tim mạch xơ vữa"
+ },
+ {
+  "head": "Bệnh võng mạc ĐTĐ",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Soi đáy mắt / chụp võng mạc",
+  "tail_label": "Test",
+  "evidence": "Khám lại mỗi 1–2 năm nếu chưa có tổn thương; ít nhất mỗi năm nếu đã có.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh võng mạc đái tháo đường"
+ },
+ {
+  "head": "Bệnh thận ĐTĐ",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "uACR và eGFR",
+  "tail_label": "Test",
+  "evidence": "Đánh giá tỷ số albumin/creatinin niệu và eGFR ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thận đái tháo đường"
+ },
+ {
+  "head": "Bệnh thần kinh ngoại biên",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Khám bàn chân (monofilament 10 g)",
+  "tail_label": "Test",
+  "evidence": "Khám bàn chân toàn diện ít nhất mỗi năm, gồm thử cảm giác bằng monofilament 10 g.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thần kinh và bàn chân đái tháo đường"
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Bộ mỡ máu và huyết áp",
+  "tail_label": "Test",
+  "evidence": "Đánh giá yếu tố nguy cơ tim mạch ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh tim mạch xơ vữa"
+ },
+ {
+  "head": "Tăng huyết áp",
+  "head_label": "RiskFactor",
+  "relation": "CAUSES",
+  "tail": "Bệnh tim mạch xơ vữa",
+  "tail_label": "Complication",
+  "evidence": "Huyết áp mục tiêu < 130/80 mmHg ở người đái tháo đường.",
+  "source_doc": "ada-2024-muc-tieu",
+  "section": "Mục tiêu huyết áp"
+ },
+ {
+  "head": "Rối loạn lipid máu",
+  "head_label": "RiskFactor",
+  "relation": "TREATED_BY",
+  "tail": "Statin",
+  "tail_label": "Drug",
+  "evidence": "Người 40–75 tuổi không có bệnh tim mạch xơ vữa: statin cường độ trung bình.",
+  "source_doc": "ada-2024-muc-tieu",
+  "section": "Lipid máu và statin"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Thay đổi lối sống",
+  "tail_label": "Intervention",
+  "evidence": "Ít nhất 150 phút mỗi tuần hoạt động thể lực; giảm ≥ 5% cân nặng.",
+  "source_doc": "loi-song-dinh-duong",
+  "section": "Vận động thể lực"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Metformin",
+  "tail_label": "Drug",
+  "evidence": "Metformin là thuốc nền tảng khi khởi trị.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Metformin"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Insulin",
+  "tail_label": "Drug",
+  "evidence": "Cân nhắc insulin khi HbA1c > 10%, glucose ≥ 300 mg/dL hoặc có dị hóa.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Insulin"
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Đồng vận GLP-1",
+  "tail_label": "Drug",
+  "evidence": "Dùng GLP-1 RA có lợi ích tim mạch, độc lập với HbA1c.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận"
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Ức chế SGLT2",
+  "tail_label": "Drug",
+  "evidence": "Dùng ức chế SGLT2 có lợi ích tim mạch đã chứng minh.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận"
+ },
+ {
+  "head": "Bệnh thận ĐTĐ",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Ức chế SGLT2",
+  "tail_label": "Drug",
+  "evidence": "Ức chế SGLT2 giảm tiến triển bệnh thận mạn (eGFR 20–60 hoặc có albumin niệu).",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận"
+ },
+ {
+  "head": "Metformin",
+  "head_label": "Drug",
+  "relation": "CONTRAINDICATED_IN",
+  "tail": "Suy thận nặng (eGFR < 30)",
+  "tail_label": "Disease",
+  "evidence": "Chống chỉ định khi eGFR < 30; không khởi trị khi eGFR 30–45.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Metformin"
+ },
+ {
+  "head": "Insulin",
+  "head_label": "Drug",
+  "relation": "CAUSES",
+  "tail": "Hạ đường huyết",
+  "tail_label": "Complication",
+  "evidence": "Insulin có nguy cơ hạ đường huyết, cần tự theo dõi đường huyết.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Insulin"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Thay đổi lối sống",
+  "tail_label": "Intervention",
+  "evidence": "Chương trình DPP: giảm ≥ 7% cân nặng, vận động 150 phút/tuần.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "PREVENTED_BY",
+  "tail": "Giảm ≥ 7% cân nặng",
+  "tail_label": "Intervention",
+  "evidence": "Can thiệp lối sống trong DPP giảm khoảng 58% tỷ lệ mới mắc sau 3 năm.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "PREVENTED_BY",
+  "tail": "Vận động 150 phút/tuần",
+  "tail_label": "Intervention",
+  "evidence": "Hoạt động thể lực cường độ trung bình tối thiểu 150 phút mỗi tuần.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Metformin",
+  "tail_label": "Drug",
+  "evidence": "Cân nhắc metformin ở người 25–59 tuổi có BMI ≥ 35, FPG ≥ 110 hoặc HbA1c ≥ 6,0%.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Metformin trong tiền đái tháo đường"
+ }
+]

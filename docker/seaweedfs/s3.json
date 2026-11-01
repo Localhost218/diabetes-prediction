@@ -1,0 +1,11 @@
+{
+  "identities": [
+    {
+      "name": "astarcare_backend",
+      "credentials": [
+        { "accessKey": "astarcare", "secretKey": "astarcare-dev-secret" }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

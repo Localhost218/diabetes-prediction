@@ -1,0 +1,10 @@
+.venv
+.backup
+.env
+**/__pycache__
+frontend/node_modules
+frontend/src-tauri
+data/local_storage
+notebooks
+figures
+data/nhanes/raw
