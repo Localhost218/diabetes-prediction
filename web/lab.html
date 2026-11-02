@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hệ thống thông minh — Thử nghiệm 7 chương</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1c1c1a;--muted:#6b6b66;--line:#e4e3de;--accent:#1d4ed8;--accent-soft:#e8eefc;
+--good:#15803d;--bad:#b91c1c;--warn:#b45309;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1d1d1b;--ink:#eceae4;--muted:#a3a29b;--line:#33322e;
+--accent:#8fb0ff;--accent-soft:#1f2a44;--good:#4ade80;--bad:#f87171;--warn:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:28px 16px 8px;max-width:1080px;margin:auto}h1{font-size:22px;margin:0 0 4px}header p{margin:0;color:var(--muted)}
+nav{display:flex;gap:6px;flex-wrap:wrap;max-width:1080px;margin:14px auto 0;padding:0 16px}
+nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:14px}
+nav button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+main{max-width:1080px;margin:16px auto 40px;padding:0 16px}
+section{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}section.on{display:block}
+h2{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 14px;margin-bottom:14px}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:3px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+textarea{width:100%;min-height:70px;font-family:var(--mono);font-size:13px}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.out{margin-top:16px}.muted{color:var(--muted)}.err{color:var(--bad)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+th{color:var(--muted);font-weight:500}.num{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:10px;background:var(--accent);border-radius:5px;min-width:2px}.bar.pos{background:var(--bad)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:#fde8e8;color:#991b1b}.pill.good{background:#e3f6ea;color:#166534}
+@media (prefers-color-scheme:dark){.pill.bad{background:#3b1d1d;color:#fca5a5}.pill.good{background:#163322;color:#86efac}}
+.imgs{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}.imgs img{width:200px;height:200px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.passage{border-left:3px solid var(--accent);padding:6px 12px;margin:8px 0;background:var(--bg);border-radius:0 8px 8px 0;font-size:14px}
+.answer{white-space:pre-wrap;background:var(--bg);padding:12px;border-radius:8px}
+svg text{fill:var(--muted);font-size:11px}
+footer{max-width:1080px;margin:0 auto 30px;padding:0 16px;color:var(--muted);font-size:13px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Hệ thống thông minh hỗ trợ sàng lọc đái tháo đường</h1>
+  <p>Báo cáo cuối khóa — mỗi thẻ là mô hình đã huấn luyện của một chương. <a href="/">Mở chatbot đa tác tử</a> · <a href="/docs">API (Swagger)</a></p>
+</header>
+<nav role="tablist" id="tabs"></nav>
+<main>
+
+<section id="ch1">
+  <h2>Chương 1 — Ba thế hệ AI trên bộ Pima</h2>
+  <p class="sub">Hệ chuyên gia luật + hệ số chắc chắn (MYCIN) · Perceptron Rosenblatt (1958) · MLP lan truyền ngược (1986). Số 0 ở các cột sinh lý được coi là thiếu.</p>
+  <div class="grid" id="f1"></div>
+  <button class="btn" onclick="run1()">Dự đoán</button>
+  <div class="out" id="o1"></div>
+</section>
+
+<section id="ch2">
+  <h2>Chương 2 — Bảy thuật toán học máy trên NHANES</h2>
+  <p class="sub">13 yếu tố nguy cơ tự khai (để trống = không biết). Mỗi mô hình có ngưỡng Youden riêng chọn trên tập validation.</p>
+  <div class="grid" id="f2"></div>
+  <button class="btn" onclick="run2()">Dự đoán</button>
+  <div class="out" id="o2"></div>
+</section>
+
+<section id="ch3">
+  <h2>Chương 3 — CNN phân độ bệnh võng mạc ĐTĐ</h2>
+  <p class="sub">ResNet-18 học chuyển giao, thang ICDR 0–4, kèm Grad-CAM. Tải ảnh đáy mắt hoặc thử ảnh của tập kiểm tra RetinaMNIST.</p>
+  <div class="row"><input type="file" id="img3" accept="image/*"><button class="btn" onclick="run3()">Phân độ ảnh đã chọn</button></div>
+  <div class="row" id="s3"></div>
+  <div class="out" id="o3"></div>
+</section>
+
+<section id="ch4">
+  <h2>Chương 4 — RNN dự báo đường huyết liên tục</h2>
+  <p class="sub">Nhập chuỗi glucose (mg/dL, cách nhau 15 phút, ≥ 12 điểm). Mô hình hồi quy dự báo 15–60 phút tới; chỉ số TIR/TAR/TBR/CV tính theo đồng thuận quốc tế.</p>
+  <div class="row" id="s4"></div>
+  <textarea id="g4">110, 115, 124, 138, 152, 166, 175, 181, 184, 182, 176, 168</textarea>
+  <div class="row"><label>Giờ của điểm cuối <input id="h4" type="number" min="0" max="23.75" step="0.25" value="9"></label><button class="btn" onclick="run4()">Dự báo</button></div>
+  <div class="out" id="o4"></div>
+</section>
+
+<section id="ch5">
+  <h2>Chương 5 — Đồ thị tri thức và RAG</h2>
+  <p class="sub">So sánh bốn cách truy xuất trên Knowledge Base (ADA 2024, QĐ 5481/QĐ-BYT), hoặc hỏi đáp đầy đủ qua hệ đa tác tử.</p>
+  <div class="row"><input id="q5" style="flex:1;min-width:240px" value="Bệnh thận mạn có albumin niệu nên dùng nhóm thuốc nào?">
+    <select id="m5"><option value="hybrid">Lai (vector + full-text)</option><option value="vector">Vector</option><option value="fulltext">Full-text</option><option value="graphrag">GraphRAG</option></select>
+    <button class="btn" onclick="run5()">Truy xuất</button><button class="btn ghost" onclick="ask5()">Hỏi đáp (LLM)</button></div>
+  <div class="out" id="o5"></div>
+</section>
+
+<section id="ch6">
+  <h2>Chương 6 — GAT trên đồ thị trích dẫn Pubmed-Diabetes</h2>
+  <p class="sub">19.717 bài báo, 44.324 cạnh. GAT phân loại bài báo thành ĐTĐ thực nghiệm / típ 1 / típ 2 và chỉ ra láng giềng có trọng số chú ý cao nhất.</p>
+  <div class="row"><input id="p6" placeholder="PubMed ID (để trống = ngẫu nhiên từ tập kiểm tra)" style="min-width:300px"><button class="btn" onclick="run6()">Phân loại</button></div>
+  <div class="out" id="o6"></div>
+</section>
+
+<section id="ch7">
+  <h2>Chương 7 — Hệ đa tác tử</h2>
+  <p class="sub">Orchestrator · Conversation · Document · Prediction · Knowledge · ConsensusCritic · TreatmentRL · Response, giao tiếp qua MessageBus (FIPA-ACL). Gửi một tin nhắn để xem luồng thông điệp giữa các tác tử.</p>
+  <textarea id="t7">Tôi 58 tuổi nữ, BMI 29, vòng eo 95 cm, bị tăng huyết áp, mỡ máu cao, mẹ bị tiểu đường, ít vận động, đường huyết lúc đói 92 mg/dL.</textarea>
+  <div class="row"><button class="btn" onclick="run7()">Gửi tới hội đồng</button><a href="/">Mở giao diện chatbot đầy đủ →</a></div>
+  <div class="out" id="o7"></div>
+</section>
+
+</main>
+<footer>Phục vụ học tập — không thay thế chẩn đoán của bác sĩ. Nguyễn Tự Kiên · B23DCCN465 · CT01 nhóm 07.</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = p => (p * 100).toFixed(1) + "%";
+const TABS = [["ch1","1 · Lịch sử AI"],["ch2","2 · Học máy"],["ch3","3 · CNN"],["ch4","4 · RNN"],["ch5","5 · KG & RAG"],["ch6","6 · Deep Graph"],["ch7","7 · Đa tác tử"]];
+function show(id){document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id===id));
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.id===id));
+  try{localStorage.setItem("lab-tab",id)}catch(e){}; history.replaceState(null,"","#"+id)}
+TABS.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.dataset.id=id;b.setAttribute("role","tab");b.onclick=()=>show(id);$("tabs").append(b)});
+let start = location.hash.slice(1); try{start = start || localStorage.getItem("lab-tab")}catch(e){}
+show(TABS.some(t=>t[0]===start)?start:"ch1");
+
+async function api(path, opts={}){
+  const r = await fetch(path, opts.body && !(opts.body instanceof FormData) ? {...opts, headers:{"Content-Type":"application/json"}} : opts);
+  const j = await r.json().catch(()=>({detail:r.statusText}));
+  if(!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail));
+  return j;
+}
+function busy(el){el.innerHTML='<p class="muted">Đang xử lý…</p>'}
+function fail(el,e){el.innerHTML=`<p class="err">Lỗi: ${esc(e.message)}</p>`}
+function fields(el, spec){el.innerHTML = spec.map(([k,l,v,t]) => t==="bool"
+  ? `<label>${l}<select id="${k}"><option value="">không rõ</option><option value="1" ${v===1?"selected":""}>có</option><option value="0" ${v===0?"selected":""}>không</option></select></label>`
+  : `<label>${l}<input id="${k}" type="number" step="any" value="${v ?? ""}"></label>`).join("")}
+const val = k => { const v = $(k).value; return v === "" ? null : Number(v) };
+
+// ---------------- Chương 1
+const P1 = [["pregnancies","Số lần mang thai",6],["glucose","Glucose 2h (mg/dL)",148],["blood_pressure","HA tâm trương",72],["skin_thickness","Nếp gấp da (mm)",35],["insulin","Insulin 2h",0],["bmi","BMI",33.6],["pedigree","Chỉ số phả hệ",0.627],["age","Tuổi",50]];
+fields($("f1"), P1);
+async function run1(){const o=$("o1");busy(o);try{
+  const b={};P1.forEach(([k])=>b[k]=val(k)??0);const r=await api("/api/lab/ch1/pima",{method:"POST",body:JSON.stringify(b)});
+  const tag = p => p ? '<span class="pill bad">dương tính</span>' : '<span class="pill good">âm tính</span>';
+  o.innerHTML=`<table><tr><th>Mô hình</th><th>Đầu ra</th><th>Kết luận</th></tr>
+   <tr><td>Hệ chuyên gia (CF ≥ 0,5)</td><td class="num">CF = ${r.expert.cf}</td><td>${tag(r.expert.positive)}</td></tr>
+   <tr><td>Perceptron (dấu của w·x + b)</td><td class="num">${r.perceptron.score}</td><td>${tag(r.perceptron.positive)}</td></tr>
+   <tr><td>MLP 8–16–1</td><td class="num">${pct(r.mlp.probability)}</td><td>${tag(r.mlp.positive)}</td></tr></table>
+   <p><b>Luật đã kích hoạt</b> (CF sau mỗi lần gộp CF = CF₁ + CF₂(1 − CF₁)):</p>
+   <ol>${r.expert.fired.map((f,i)=>`<li>${esc(f[0])} — CF ${f[1]} → ${r.expert.cf_trace[i]}</li>`).join("")||"<li class='muted'>không luật nào</li>"}</ol>
+   ${r.imputed.length?`<p class="muted">Đã điền trung vị cho: ${r.imputed.join(", ")}</p>`:""}`}catch(e){fail(o,e)}}
+
+// ---------------- Chương 2
+const P2 = [["age_years","Tuổi",58],["sex","Giới (1 nam, 0 nữ)",0],["bmi","BMI",29],["waist_cm","Vòng eo (cm)",95],["systolic_bp","HA tâm thu",null],["diastolic_bp","HA tâm trương",null],
+ ["high_bp","Tăng huyết áp",1,"bool"],["high_chol","Mỡ máu cao",1,"bool"],["family_history","Tiền sử gia đình",1,"bool"],["smoker","Hút thuốc",null,"bool"],["phys_activity","Vận động",0,"bool"],["heart_disease","Bệnh tim",null,"bool"],["stroke","Đột quỵ",null,"bool"]];
+fields($("f2"), P2);
+async function run2(){const o=$("o2");busy(o);try{
+  const b={};P2.forEach(([k])=>b[k]=val(k));const r=await api("/api/lab/ch2/nhanes",{method:"POST",body:JSON.stringify(b)});
+  const rows=Object.values(r.models).sort((a,b)=>b.probability-a.probability);
+  o.innerHTML=`<table><tr><th>Mô hình</th><th>AUC test</th><th style="width:40%">Xác suất ĐTĐ</th><th class="num"></th><th>Ngưỡng</th></tr>${rows.map(m=>`<tr><td>${m.name}</td><td class="num">${m.test_roc_auc??""}</td>
+  <td><div class="bar ${m.positive?"pos":""}" style="width:${Math.max(1,m.probability*100)}%"></div></td><td class="num">${pct(m.probability)}</td><td class="num">${m.threshold.toFixed(2)}</td></tr>`).join("")}</table>
+  <p class="muted">Thanh đỏ: vượt ngưỡng Youden của mô hình. Đóng góp lớn nhất (hồi quy logistic, log-odds): ${r.logreg_contributions.map(c=>`${esc(c[0])} ${c[1]>0?"+":""}${c[1]}`).join(" · ")}</p>`}catch(e){fail(o,e)}}
+
+// ---------------- Chương 3
+const GR=["0 – Không DR","1 – Nhẹ","2 – Trung bình","3 – Nặng","4 – Tăng sinh"];
+for(let i=0;i<10;i++){const b=document.createElement("button");b.className="btn ghost";b.textContent=`Mẫu ${i+1} (mức ${Math.floor(i/2)})`;b.onclick=()=>sample3(i);$("s3").append(b)}
+function show3(r, src, truth){
+  $("o3").innerHTML=`<div class="imgs"><figure style="margin:0"><img src="${src}"><figcaption class="muted">Ảnh vào${truth!=null?` — nhãn thật: mức ${truth}`:""}</figcaption></figure>
+  <figure style="margin:0"><img src="data:image/png;base64,${r.gradcam_png}"><figcaption class="muted">Grad-CAM</figcaption></figure>
+  <div style="flex:1;min-width:240px"><p><b>${esc(r.label)}</b> <span class="muted">(${r.latency_ms} ms)</span></p>
+  <table>${r.probabilities.map((p,i)=>`<tr><td>${GR[i]}</td><td style="width:50%"><div class="bar" style="width:${p*100}%"></div></td><td class="num">${pct(p)}</td></tr>`).join("")}</table>
+  <p>${esc(r.advice)}</p></div></div>`}
+async function sample3(i){const o=$("o3");busy(o);try{const s=await api(`/api/lab/ch3/sample/${i}`);
+  const blob=await (await fetch("data:image/png;base64,"+s.image_png)).blob();const fd=new FormData();fd.append("file",blob,"sample.png");
+  show3(await api("/api/lab/ch3/retina",{method:"POST",body:fd}),"data:image/png;base64,"+s.image_png,s.true_grade)}catch(e){fail(o,e)}}
+async function run3(){const f=$("img3").files[0];const o=$("o3");if(!f){o.innerHTML='<p class="err">Hãy chọn một ảnh.</p>';return}
+  busy(o);try{const fd=new FormData();fd.append("file",f);show3(await api("/api/lab/ch3/retina",{method:"POST",body:fd}),URL.createObjectURL(f))}catch(e){fail(o,e)}}
+
+// ---------------- Chương 4
+let S4=[];
+(async()=>{for(let i=0;i<6;i++){try{const s=await api(`/api/lab/ch4/sample/${i}`);S4.push(s);const b=document.createElement("button");b.className="btn ghost";
+  b.textContent=`Bệnh nhân ${s.record} (${s.type})`;b.onclick=()=>{const k=12+Math.floor(Math.random()*60);$("g4").value=s.glucose.slice(0,k).join(", ");$("h4").value=s.hours[k-1];$("g4").dataset.next=JSON.stringify(s.glucose.slice(k,k+4))};$("s4").append(b)}catch(e){}}})();
+function chart4(series, fc, truth){const W=640,H=180,all=series.concat(fc.map(f=>f.glucose_mg_dl),truth||[]),lo=Math.min(60,...all),hi=Math.max(200,...all),n=series.length+4;
+  const X=i=>30+i*(W-40)/(n-1),Y=v=>H-20-(v-lo)/(hi-lo)*(H-30);const path=pts=>pts.map((p,i)=>`${i?"L":"M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  const s=series.map((v,i)=>[i,v]),f=[[series.length-1,series.at(-1)],...fc.map((p,i)=>[series.length+i,p.glucose_mg_dl])],t=truth&&truth.length?[[series.length-1,series.at(-1)],...truth.map((v,i)=>[series.length+i,v])]:null;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Chuỗi glucose và dự báo"><rect x="30" y="${Y(180)}" width="${W-40}" height="${Y(70)-Y(180)}" fill="var(--accent-soft)"/>
+  <text x="2" y="${Y(180)+4}">180</text><text x="8" y="${Y(70)+4}">70</text><path d="${path(s)}" fill="none" stroke="var(--muted)" stroke-width="1.6"/>
+  ${t?`<path d="${path(t)}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3"/>`:""}<path d="${path(f)}" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+  ${f.slice(1).map(p=>`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3" fill="var(--accent)"/>`).join("")}</svg>`}
+async function run4(){const o=$("o4");busy(o);try{const g=$("g4").value.split(/[\s,;]+/).filter(Boolean).map(Number);
+  const r=await api("/api/lab/ch4/forecast",{method:"POST",body:JSON.stringify({glucose:g,last_hour:val("h4")})});
+  const truth=$("g4").dataset.next?JSON.parse($("g4").dataset.next):null;delete $("g4").dataset.next;
+  o.innerHTML=(r.forecast?chart4(g.slice(-24),r.forecast,truth)+`<p class="muted">Xám: chuỗi vào · Xanh: dự báo (${r.forecast_model})${truth?" · Đứt nét: giá trị thật":""} · Dải: 70–180 mg/dL</p>
+  <table><tr><th>Sau</th>${r.forecast.map(f=>`<th class="num">${f.minutes} phút</th>`).join("")}</tr><tr><td>Dự báo (mg/dL)</td>${r.forecast.map(f=>`<td class="num">${f.glucose_mg_dl}</td>`).join("")}</tr>
+  ${truth?`<tr><td>Thật</td>${truth.map(v=>`<td class="num">${v}</td>`).join("")}</tr>`:""}</table>`:`<p class="muted">${esc(r.forecast_note)}</p>`)+
+  `<p>TIR ${r.tir_percentage}% · TAR ${r.tar_percentage}% · TBR ${r.tbr_percentage}% · CV ${r.cv_variability_percentage}% · trung bình ${r.mean_glucose_mg_dl} mg/dL (HbA1c ước tính ${r.estimated_hba1c}%) — <b>${esc(r.trajectory_status)}</b></p>`}catch(e){fail(o,e)}}
+
+// ---------------- Chương 5
+async function run5(){const o=$("o5");busy(o);try{const r=await api("/api/lab/ch5/search",{method:"POST",body:JSON.stringify({query:$("q5").value,mode:$("m5").value,k:5})});
+  o.innerHTML=`<p class="muted">${r.mode} · ${r.latency_ms} ms</p>${r.graph?`<p><b>Thực thể nhận ra:</b> ${r.graph.entities.map(esc).join(", ")||"—"}</p><p class="muted">${r.graph.edges.map(esc).join("<br>")}</p>`:""}
+  ${r.results.map((p,i)=>`<div class="passage"><b>${i+1}. ${esc(p.title)} — ${esc(p.heading)}</b> <span class="pill">${p.via}${p.score!=null?" · "+p.score:""}</span><br>${esc(p.content)}</div>`).join("")}`}catch(e){fail(o,e)}}
+async function ask5(){const o=$("o5");busy(o);try{const r=await api("/api/lab/ch5/ask",{method:"POST",body:JSON.stringify({question:$("q5").value})});
+  o.innerHTML=`<p class="muted">Ý định: ${r.intent} · ${r.latency_s} s</p><div class="answer">${esc(r.answer)}</div><p><b>Nguồn:</b></p><ul>${r.citations.map(c=>`<li>${esc(c.title)} — ${esc(c.section)}</li>`).join("")}</ul>`}catch(e){fail(o,e)}}
+
+// ---------------- Chương 6
+async function run6(){const o=$("o6");busy(o);try{const id=$("p6").value.trim();const r=await api("/api/lab/ch6/paper"+(id?`?pid=${encodeURIComponent(id)}`:""));
+  const ok=r.true_label===r.predicted_label;
+  o.innerHTML=`<p><b>PubMed <a href="${r.pubmed_url}" target="_blank" rel="noopener">${r.paper_id}</a></b> ${r.in_test_set?'<span class="pill">tập kiểm tra</span>':""} · bậc ${r.degree}</p>
+  <p>Nhãn thật: <b>${esc(r.true_label)}</b> · Dự đoán: <b>${esc(r.predicted_label)}</b> <span class="pill ${ok?"good":"bad"}">${ok?"đúng":"sai"}</span></p>
+  <table>${Object.entries(r.probabilities).map(([k,p])=>`<tr><td>${esc(k)}</td><td style="width:50%"><div class="bar" style="width:${p*100}%"></div></td><td class="num">${pct(p)}</td></tr>`).join("")}</table>
+  <p class="muted">Từ khóa TF-IDF nổi bật: ${r.top_terms.map(esc).join(", ")}</p>
+  <p><b>Láng giềng có trọng số chú ý cao nhất</b> (tầng GAT 1, trung bình 8 đầu):</p>
+  <table><tr><th>Bài báo</th><th>Nhãn</th><th class="num">α</th></tr>${r.neighbors.map(n=>`<tr><td><a href="https://pubmed.ncbi.nlm.nih.gov/${n.paper_id}/" target="_blank" rel="noopener">${n.paper_id}</a></td><td>${esc(n.label)}</td><td class="num">${n.attention}</td></tr>`).join("")||"<tr><td colspan=3 class='muted'>không có láng giềng</td></tr>"}</table>`}catch(e){fail(o,e)}}
+
+// ---------------- Chương 7
+async function run7(){const o=$("o7");busy(o);try{const t0=performance.now();const r=await api("/api/chat",{method:"POST",body:JSON.stringify({text:$("t7").value})});
+  const d=r.bot_message.data||{},c=d.consensus||{},tr=d.transcript||[];
+  o.innerHTML=`<p class="muted">${((performance.now()-t0)/1000).toFixed(1)} s · ${tr.length} thông điệp · ${c.debate_rounds??0} vòng tranh biện · mức nguy cơ: <b>${esc(c.risk_label||"—")}</b></p>
+  <div class="answer">${esc(r.bot_message.text)}</div>
+  ${tr.length?`<p><b>Luồng thông điệp giữa các tác tử</b></p><table><tr><th>#</th><th>Gửi</th><th>Nhận</th><th>Performative</th><th>Loại</th><th class="num">ms</th></tr>
+  ${tr.map((m,i)=>`<tr><td>${i+1}</td><td>${m.sender}</td><td>${m.receiver}</td><td><span class="pill ${m.performative==="CHALLENGE"?"bad":""}">${m.performative}</span></td><td>${m.msg_type}</td><td class="num">${m.elapsed_ms??""}</td></tr>`).join("")}</table>`:""}`}catch(e){fail(o,e)}}
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 # PyTorch bản CPU (nhẹ hơn nhiều so với bản CUDA mặc định)
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY . .

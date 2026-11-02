@@ -1,0 +1,336 @@
+\chapter{Các kỹ thuật học máy cơ bản}
+\label{chap:ml}
+
+Học máy là ``lõi dự đoán'' của PredictionAgent. Chương này trình bày nền tảng chung (bài toán học, hàm mất mát, tối ưu, đánh giá) và các thuật toán cổ điển: hồi quy tuyến tính, hồi quy logistic, KNN, Naive Bayes, cây quyết định, rừng ngẫu nhiên, gradient boosting, SVM, K-means và PCA. Thực nghiệm dùng dữ liệu thật của khảo sát NHANES với 13 đặc trưng mà người dùng chatbot có thể tự khai. Mục tiêu là so sánh tám bộ phân loại, bốn mô hình hồi quy và một thuật toán gom cụm trên cùng giao thức đánh giá.
+
+\section{Bài toán học và quy trình xây dựng mô hình}
+
+Theo Mitchell, một chương trình \emph{học} từ kinh nghiệm $E$ đối với nhiệm vụ $T$ và thước đo $P$ nếu hiệu năng trên $T$, đo bằng $P$, tăng theo $E$. Trong học có giám sát, ta có tập $\mathcal D=\{(\mathbf x_i, y_i)\}_{i=1}^n$ lấy mẫu độc lập từ một phân phối $p(\mathbf x, y)$ chưa biết, và tìm hàm $f_\theta$ cực tiểu \emph{rủi ro thực nghiệm} có điều chuẩn:
+\begin{equation}
+\hat\theta = \arg\min_\theta\ \frac1n \sum_{i=1}^n \ell\big(f_\theta(\mathbf x_i), y_i\big) + \lambda\, \Omega(\theta).
+\label{eq:erm}
+\end{equation}
+Hồi quy dùng $\ell$ là sai số bình phương. Phân loại dùng entropy chéo hoặc hàm hinge. $\Omega$ thường là chuẩn $L_2$ (Ridge) hoặc $L_1$ (Lasso). Ngoài học có giám sát còn có học không giám sát (gom cụm, giảm chiều), học bán giám sát (Chương 6) và học tăng cường (TreatmentRLAgent ở Chương 7).
+
+Quy trình xây dựng một mô hình gồm sáu bước: (1) xác định bài toán và thước đo; (2) thu thập, làm sạch dữ liệu; (3) chia tập train/validation/test; (4) tiền xử lý (điền khuyết, chuẩn hóa, mã hóa) — \emph{chỉ học tham số tiền xử lý trên tập train}; (5) huấn luyện và chọn siêu tham số trên validation; (6) đánh giá một lần trên test rồi triển khai. Việc dùng tập test để chọn mô hình làm kết quả lạc quan giả tạo, gọi là \emph{rò rỉ dữ liệu}.
+
+\section{Tối ưu hóa bằng hạ gradient}
+
+Khi \eq{eq:erm} không có nghiệm đóng, ta lặp $\theta_{t+1} = \theta_t - \eta \nabla_\theta J(\theta_t)$. Hạ gradient ngẫu nhiên (SGD) ước lượng gradient trên một lô nhỏ $B$, nên mỗi bước rẻ hơn và có nhiễu giúp thoát điểm yên ngựa. Adam \cite{kingma2015} duy trì trung bình động của gradient $\mathbf m_t$ và của bình phương gradient $\mathbf v_t$:
+\begin{equation}
+\begin{gathered}
+\mathbf m_t = \beta_1\mathbf m_{t-1} + (1-\beta_1)\mathbf g_t, \\
+\mathbf v_t = \beta_2\mathbf v_{t-1} + (1-\beta_2)\mathbf g_t^2, \\
+\theta_{t+1} = \theta_t - \eta\,\frac{\hat{\mathbf m}_t}{\sqrt{\hat{\mathbf v}_t}+\epsilon},
+\end{gathered}
+\label{eq:adam}
+\end{equation}
+với $\hat{\mathbf m}_t = \mathbf m_t/(1-\beta_1^t)$, $\hat{\mathbf v}_t = \mathbf v_t/(1-\beta_2^t)$ là hai bản hiệu chỉnh độ chệch. Adam được dùng cho mọi mô hình học sâu ở các chương 3–6.
+
+\section{Các thuật toán}
+
+\subsection{Hồi quy tuyến tính}
+
+Mô hình $\hat y = \mathbf w^\top \mathbf x + b$, cực tiểu $\sum(y_i-\hat y_i)^2$, có nghiệm đóng $\hat{\mathbf w} = (\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y$. Thêm điều chuẩn $L_2$ (Ridge) cho nghiệm $(\mathbf X^\top\mathbf X+\lambda\mathbf I)^{-1}\mathbf X^\top\mathbf y$, ổn định khi các đặc trưng tương quan (ví dụ BMI và vòng eo). Khi đặc trưng đã chuẩn hóa z-score, $w_j$ là mức thay đổi của $y$ khi $x_j$ tăng một độ lệch chuẩn, nên đọc được trực tiếp.
+
+\subsection{Hồi quy logistic}
+
+Cho phân loại nhị phân, mô hình ước lượng xác suất $p(y{=}1\mid\mathbf x)=\sigma(\mathbf w^\top\mathbf x+b)$ và cực tiểu entropy chéo:
+\begin{equation}
+\begin{gathered}
+J(\mathbf w) = -\frac1n\sum_{i=1}^n\big[y_i\log p_i + (1-y_i)\log(1-p_i)\big] + \frac{\lambda}{2}\|\mathbf w\|^2, \\
+\nabla_{\mathbf w}J = \frac1n \mathbf X^\top(\mathbf p-\mathbf y) + \lambda\mathbf w .
+\end{gathered}
+\label{eq:logreg}
+\end{equation}
+$J$ lồi nên có cực tiểu toàn cục duy nhất. Trong y khoa, $e^{w_j}$ là \emph{tỉ số chênh} (odds ratio, OR): odds mắc bệnh nhân lên $e^{w_j}$ lần khi $x_j$ tăng một đơn vị, ở đây là một độ lệch chuẩn. Mở rộng sang $K$ lớp, ta thay sigmoid bằng softmax $p_k = e^{z_k}/\sum_j e^{z_j}$, đây cũng là lớp ra của mọi mạng phân loại ở các chương sau.
+
+\subsection{K láng giềng gần nhất}
+
+KNN \cite{cover1967} không có pha huấn luyện. Với một điểm mới, thuật toán tìm $k$ điểm gần nhất theo khoảng cách Euclid trên dữ liệu đã chuẩn hóa, rồi bỏ phiếu. Phiếu có thể đánh trọng số $1/d$ theo khoảng cách. $k$ nhỏ cho biên quyết định gồ ghề, phương sai lớn và dễ quá khớp. $k$ lớn cho biên trơn hơn nhưng độ chệch tăng. Chi phí dự đoán là $O(nd)$ cho mỗi điểm, và hiệu quả giảm khi số chiều tăng, do ``lời nguyền số chiều''.
+
+\subsection{Naive Bayes}
+
+Áp dụng định lý Bayes với giả định các đặc trưng độc lập có điều kiện theo lớp:
+\begin{equation}
+p(y\mid\mathbf x) \propto p(y)\prod_{j=1}^d p(x_j\mid y), \qquad p(x_j\mid y=c) = \mathcal N(x_j;\ \mu_{jc}, \sigma^2_{jc}) \ \text{(bản Gauss)}.
+\label{eq:nb}
+\end{equation}
+Mô hình học rất nhanh, nhưng giả định độc lập bị vi phạm nặng khi đặc trưng tương quan (BMI với vòng eo, huyết áp tâm thu với tâm trương). Kết quả là xác suất bị đẩy về 0 hoặc 1, hiệu chuẩn kém. Thực nghiệm dưới đây sẽ cho thấy rõ điều này.
+
+\subsection{Cây quyết định và các phương pháp tổ hợp}
+
+Cây quyết định chia không gian đặc trưng thành các hình hộp bằng chuỗi câu hỏi ``$x_j \le t$?''. Tại mỗi nút, thuật toán CART chọn cặp $(j,t)$ cực đại mức giảm độ hỗn tạp. Độ hỗn tạp đo bằng chỉ số Gini $G = 1-\sum_k p_k^2$ hoặc entropy $H=-\sum_k p_k\log p_k$, với $p_k$ là tỉ lệ lớp $k$ trong nút. Cây dễ giải thích, xử lý được tương tác phi tuyến và không cần chuẩn hóa. Đổi lại, cây sâu quá khớp mạnh, và một thay đổi nhỏ trong dữ liệu có thể đổi cả cây.
+
+\emph{Rừng ngẫu nhiên} \cite{breiman2001} huấn luyện $B$ cây trên các mẫu bootstrap. Tại mỗi lần chia, cây chỉ xét một tập con ngẫu nhiên $\sqrt d$ đặc trưng, rồi lấy trung bình dự đoán của các cây. Nếu các cây có phương sai $\sigma^2$ và tương quan $\rho$, phương sai của trung bình là $\rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$. Việc chọn đặc trưng ngẫu nhiên làm giảm $\rho$, nhờ đó giảm phương sai mà không tăng độ chệch.
+
+\emph{Gradient boosting} \cite{friedman2001} xây cây \emph{tuần tự}: cây thứ $m$ khớp với gradient âm (``phần dư giả'') của hàm mất mát đối với dự đoán hiện tại, $F_m = F_{m-1} + \nu\, h_m$, với $\nu$ là tốc độ học. Bản HistGradientBoosting (giống LightGBM \cite{ke2017}) rời rạc hóa đặc trưng thành 255 thùng. Nhờ vậy huấn luyện nhanh, và bản này xử lý giá trị thiếu tự nhiên bằng cách học hướng đi cho NaN tại mỗi nút. Đây là mô hình ML chạy trong chatbot.
+
+\subsection{Máy vector hỗ trợ}
+
+SVM \cite{cortes1995} tìm siêu phẳng có \emph{lề} lớn nhất. Với dữ liệu không tách được, ta thêm biến chùng $\xi_i$:
+\begin{equation}
+\min_{\mathbf w,b,\boldsymbol\xi}\ \frac12\|\mathbf w\|^2 + C\sum_{i}\xi_i \quad\text{s.t.}\quad y_i(\mathbf w^\top\phi(\mathbf x_i)+b)\ge 1-\xi_i,\ \xi_i\ge 0 .
+\label{eq:svm}
+\end{equation}
+Bài toán đối ngẫu chỉ phụ thuộc vào tích vô hướng, nên thay được bằng hàm nhân $K(\mathbf x,\mathbf x')=\exp(-\gamma\|\mathbf x-\mathbf x'\|^2)$ (RBF). Hàm quyết định là $f(\mathbf x)=\sum_{i\in SV}\alpha_i y_i K(\mathbf x_i,\mathbf x)+b$, chỉ gồm các \emph{vector hỗ trợ}. $C$ điều khiển mức phạt vi phạm lề, $\gamma$ điều khiển độ ``cục bộ'' của nhân. Tham số \texttt{class\_weight} nhân $C$ theo nghịch đảo tần suất lớp để bù lệch lớp. SVM không trả về xác suất. Xác suất được hiệu chuẩn thêm bằng phương pháp Platt \cite{platt1999}. Hồi quy vector hỗ trợ (SVR) dùng hàm mất mát $\epsilon$-không nhạy: sai số nhỏ hơn $\epsilon$ không bị phạt.
+
+\subsection{Gom cụm K-means và giảm chiều PCA}
+
+K-means \cite{lloyd1982} cực tiểu tổng bình phương khoảng cách tới tâm cụm, $\sum_{k}\sum_{\mathbf x\in C_k}\|\mathbf x-\boldsymbol\mu_k\|^2$ (inertia). Thuật toán lặp hai bước tới khi hội tụ: gán mỗi điểm vào tâm gần nhất, rồi cập nhật tâm bằng trung bình các điểm. Chọn $k$ bằng ``khuỷu tay'' của inertia hoặc hệ số silhouette \cite{rousseeuw1987}, $s=(b-a)/\max(a,b)$, với $a$ là khoảng cách trung bình tới các điểm cùng cụm và $b$ là khoảng cách trung bình tới cụm gần nhất khác. PCA chiếu dữ liệu lên các vector riêng ứng với trị riêng lớn nhất của ma trận hiệp phương sai, giữ lại phương sai nhiều nhất. Ở đây PCA dùng để trực quan hóa cụm trên mặt phẳng.
+
+\subsection{Quá khớp, thiếu khớp và điều chuẩn}
+
+Sai số kỳ vọng phân rã thành $\text{độ chệch}^2 + \text{phương sai} + \text{nhiễu}$. Mô hình quá đơn giản thì thiếu khớp: sai số train và test cùng cao. Mô hình quá phức tạp thì quá khớp: train rất tốt, test kém. Các núm điều chỉnh gồm $k$ của KNN, độ sâu cây, $C$ và $\gamma$ của SVM, $\lambda$ của Ridge, số cây và tốc độ học của boosting. Mục \ref{sec:ch2-results} vẽ đường cong train/validation theo $k$ và theo độ sâu để thấy rõ đánh đổi này.
+
+\subsection{Thước đo đánh giá}
+
+Với phân loại nhị phân, từ ma trận nhầm lẫn (TP, FP, TN, FN) ta có độ nhạy (recall) $= \frac{TP}{TP+FN}$, độ đặc hiệu $=\frac{TN}{TN+FP}$, độ chính xác (precision, PPV) $=\frac{TP}{TP+FP}$ và $F_1 = \frac{2PR}{P+R}$. Các thước đo này phụ thuộc vào ngưỡng. Ở đây ngưỡng được chọn trên validation theo chỉ số Youden $J=\text{độ nhạy}+\text{độ đặc hiệu}-1$ \cite{youden1950}. ROC-AUC đo khả năng xếp hạng, không phụ thuộc ngưỡng: đó là xác suất một ca dương được chấm điểm cao hơn một ca âm ngẫu nhiên. PR-AUC (average precision) nhạy hơn khi lớp dương hiếm; mốc ngẫu nhiên của nó bằng tỉ lệ dương. Điểm Brier $\frac1n\sum(p_i-y_i)^2$ đo độ hiệu chuẩn của xác suất, quan trọng khi chatbot nói ``nguy cơ 34\%''. Với hồi quy, ta dùng RMSE, MAE và $R^2 = 1-\frac{\sum(y-\hat y)^2}{\sum(y-\bar y)^2}$.
+
+\section{Dữ liệu NHANES 2011–2018}
+
+\textbf{NHANES} (National Health and Nutrition Examination Survey) là khảo sát sức khỏe quốc gia của CDC Hoa Kỳ \cite{nhanes}. Mỗi chu kỳ hai năm, khảo sát kết hợp phỏng vấn, khám thực thể và xét nghiệm máu trên mẫu đại diện dân số.
+
+\begin{itemize}
+  \item \textbf{Nguồn}: \weburl{https://wwwn.cdc.gov/nchs/nhanes/}. Script \texttt{scripts/fetch\_nhanes.py} tải 40 tệp XPT của 4 chu kỳ 2011–2018 (các mô-đun DEMO, BMX, BPX, BPQ, DIQ, GHB, GLU, MCQ, PAQ, SMQ), ghép theo mã người \texttt{SEQN} và lọc người ≥ 20 tuổi.
+  \item \textbf{Kích thước}: 20.646 người × 22 cột (tệp CSV 2,4 MB). Bốn chu kỳ gần cân bằng: 5.034 / 5.371 / 5.198 / 5.043 người. Có 2.630 người gốc Á, dùng để đánh giá nhóm con gần với người Việt.
+  \item \textbf{Nhãn}: ĐTĐ theo ADA \cite{ada2024}. Một người được gán nhãn ĐTĐ khi \emph{đã được bác sĩ chẩn đoán} (3.142 người), \emph{hoặc} HbA1c ≥ 6,5\%, \emph{hoặc} glucose lúc đói ≥ 126 mg/dL. Trong số đó có 943 người \emph{chưa từng được chẩn đoán} nhưng có xét nghiệm vượt ngưỡng. Tổng tỉ lệ dương là 19,8\%; tỉ lệ tiền ĐTĐ là 34,3\%.
+  \item \textbf{Đặc trưng} (13): tuổi, giới, BMI, vòng eo, huyết áp tâm thu và tâm trương (trung bình các lần đo), tăng huyết áp, rối loạn mỡ máu, tiền sử gia đình, hút thuốc, vận động, bệnh tim, đột quỵ. HbA1c và glucose \emph{không} được đưa vào đặc trưng, vì nhãn được định nghĩa từ chính chúng (rò rỉ nhãn). Trong chatbot, xét nghiệm do KnowledgeAgent đối chiếu ngưỡng; mô hình ML ước lượng nguy cơ từ các yếu tố nguy cơ.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Năm mẫu đầu của bộ NHANES đã xử lý (một số cột)}
+\label{tab:nhanes-head}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}rrrrrrrrrr@{}}
+\toprule
+\textbf{SEQN} & \textbf{Tuổi} & \textbf{Nam} & \textbf{BMI} & \textbf{Eo} & \textbf{HA tâm thu} & \textbf{THA} & \textbf{GĐ} & \textbf{HbA1c} & \textbf{ĐTĐ} \\
+\midrule
+62161 & 22 & 1 & 23,3 & 81,0 & 110,7 & 0 & 1 & 5,1 & 0 \\
+62164 & 44 & 0 & 23,2 & 80,1 & 118,0 & 0 & 0 & 4,9 & 0 \\
+62169 & 21 & 1 & 20,1 & 69,6 & 124,7 & 0 & 0 & 5,4 & 0 \\
+62172 & 43 & 0 & 33,3 & 120,4 & 102,0 & 0 & 1 & 5,6 & 0 \\
+62174 & 80 & 1 & 33,9 & 116,5 & 97,0 & 1 & -- & 5,0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Thống kê mô tả các biến liên tục của NHANES}
+\label{tab:nhanes-desc}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+\textbf{Biến} & \textbf{Số đo} & \textbf{TB} & \textbf{ĐLC} & \textbf{Min} & \textbf{Trung vị} & \textbf{Max} \\
+\midrule
+Tuổi (năm) & 20.646 & 50,2 & 17,6 & 20 & 50 & 80 \\
+BMI (kg/m²) & 20.255 & 29,4 & 7,1 & 13,4 & 28,2 & 86,2 \\
+Vòng eo (cm) & 19.416 & 99,7 & 16,6 & 55,5 & 98,3 & 177,9 \\
+HA tâm thu (mmHg) & 19.769 & 125,0 & 18,7 & 64,7 & 122,0 & 238,0 \\
+HbA1c (\%) & 20.413 & 5,82 & 1,13 & 3,5 & 5,5 & 17,8 \\
+Glucose đói (mg/dL) & 9.827 & 111,2 & 37,6 & 21 & 101 & 479 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch2_nhanes_eda}{Tỉ lệ ĐTĐ theo tuổi, phân bố BMI theo nhãn và tỉ lệ thiếu dữ liệu}
+
+\figw[0.62\linewidth]{ch2_nhanes_corr}{Ma trận tương quan Pearson giữa các đặc trưng và nhãn}
+
+\textbf{Nhận xét.} (i) Tỉ lệ ĐTĐ tăng mạnh theo tuổi, từ 2,4\% ở nhóm 20–29 lên 23,7\% ở nhóm 50–59, rồi chững lại quanh 34–36\% từ 60 tuổi. Tuổi vì thế là yếu tố mạnh nhất, khớp với khuyến cáo sàng lọc mọi người từ 35 tuổi của ADA. (ii) Phân bố BMI của nhóm ĐTĐ dịch phải nhưng chồng lấn lớn: BMI đơn lẻ không đủ để phân loại. (iii) Dữ liệu thiếu ít (vòng eo 6,0\%, huyết áp 4,3\%, BMI 1,9\%) nhưng có thật. Người dùng chatbot còn thiếu nhiều hơn thế, nên các pipeline được thiết kế để chịu được giá trị thiếu. (iv) BMI và vòng eo tương quan rất mạnh (r = 0,91); tăng huyết áp tương quan với tuổi (r = 0,43). Tương quan với nhãn chỉ ở mức yếu đến vừa (tuổi 0,31; tăng huyết áp 0,28; vòng eo 0,27; tiền sử gia đình 0,23; BMI 0,21): không có đặc trưng ``thần kỳ'', và đây là bài toán khó hơn Pima nhiều vì không có glucose. (v) Glucose lúc đói chỉ có ở 9.827 người (mẫu con nhịn đói buổi sáng), đây là đặc điểm thiết kế của NHANES.
+
+\section{Cài đặt}
+
+Dữ liệu được chia 70/10/20 phân tầng theo nhãn với \texttt{random\_state=42}, cho 14.451 / 2.065 / 4.130 người. Phép chia này trùng với script huấn luyện của chatbot, nên tập kiểm tra cũng là tập dùng ở Chương 7. Với các mô hình không xử lý được NaN, pipeline gồm \texttt{SimpleImputer} (trung vị, thêm cột chỉ báo ``bị thiếu'') rồi \texttt{StandardScaler}. Gradient boosting nhận NaN trực tiếp. Mọi bước tiền xử lý nằm trong \texttt{Pipeline} của scikit-learn \cite{pedregosa2011}, nên tham số chỉ được học trên tập train (\coderef{lst:ch2-pipe}).
+
+\begin{code}{Tám bộ phân loại và pipeline tiền xử lý (\texttt{lab/ch2\_ml.py}, rút gọn)}
+\label{lst:ch2-pipe}
+\begin{minted}{python}
+def imputed(model):
+    """Điền trung vị + cột chỉ báo thiếu, chuẩn hóa z-score, rồi tới mô hình."""
+    return make_pipeline(SimpleImputer(strategy="median", add_indicator=True), StandardScaler(), model)
+
+classifiers = {
+    "logreg": imputed(LogisticRegression(max_iter=3000, C=1.0)),
+    "knn":    imputed(KNeighborsClassifier(n_neighbors=51, weights="distance")),
+    "nb":     imputed(GaussianNB()),
+    "tree":   imputed(DecisionTreeClassifier(max_depth=6, min_samples_leaf=40)),
+    "rf":     imputed(RandomForestClassifier(400, min_samples_leaf=10, n_jobs=-1)),
+    "gbdt":   HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05),  # tự xử lý NaN
+    "svm":    imputed(SVC(C=1.0, gamma=0.01, class_weight="balanced", probability=True)),
+    "mlp":    imputed(MLPClassifier((64, 32), alpha=1e-3, early_stopping=True)),
+}
+for key, model in classifiers.items():
+    model.fit(X_tr, y_tr)
+    thr = best_threshold(y_val, score(model, X_val))   # ngưỡng Youden chọn trên validation
+    p = score(model, X_te)                              # đánh giá một lần trên test
+\end{minted}
+\end{code}
+
+Siêu tham số chọn trên validation: $k$ của KNN theo đường cong ở \figref{fig:ch2_bias_variance}, độ sâu cây, và $(C,\gamma,\text{class\_weight})$ của SVM theo \tabref{tab:svm-grid}. Một chi tiết kỹ thuật quan trọng: với SVM, các chỉ số xếp hạng được tính trên \texttt{decision\_function} chứ không dùng \texttt{predict\_proba}. Lý do là bộ hiệu chuẩn Platt của scikit-learn được khớp bằng kiểm định chéo nội bộ, nên có thể đảo thứ tự xếp hạng so với mô hình chính.
+
+\begin{table}[H]
+\centering
+\caption{Dò siêu tham số SVM (RBF) trên tập validation}
+\label{tab:svm-grid}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}cccrc@{}}
+\toprule
+$C$ & \textbf{class\_weight} & $\gamma$ & \textbf{Số vector hỗ trợ} & \textbf{AUC validation} \\
+\midrule
+1 & không & scale & 5.707 & 0,788 \\
+1 & balanced & scale & 8.101 & 0,830 \\
+0,1 & balanced & scale & 8.711 & 0,835 \\
+\textbf{1} & \textbf{balanced} & \textbf{0,01} & \textbf{8.289} & \textbf{0,838} \\
+10 & balanced & 0,01 & 8.019 & 0,830 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Không có trọng số lớp, SVM tối ưu hàm hinge trên dữ liệu 80/20 nên ``bỏ cuộc'' với lớp dương ở vùng chồng lấn, và AUC chỉ đạt 0,788. Bù lệch lớp đưa AUC lên 0,830. Giảm $\gamma$ để nhân RBF ``rộng'' hơn còn tăng thêm, lên 0,838. Hơn 8.000 trên 14.451 điểm là vector hỗ trợ, cho thấy biên giữa hai lớp rất nhiễu. Điều này cũng giải thích vì sao SVM có thời gian huấn luyện (24 giây) và suy luận lâu nhất.
+
+\section{Kết quả và nhận xét}
+\label{sec:ch2-results}
+
+\subsection{Phân loại}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả phân loại ĐTĐ trên tập kiểm tra NHANES (4.130 người, ngưỡng Youden)}
+\label{tab:ch2-results}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccccr@{}}
+\toprule
+\textbf{Mô hình} & \textbf{ROC-AUC} & \textbf{PR-AUC} & \textbf{Brier} & \textbf{F1} & \textbf{Nhạy} & \textbf{Đặc hiệu} & \textbf{Huấn luyện} \\
+\midrule
+Hồi quy logistic & 0,817 & 0,515 & 0,125 & 0,525 & 0,767 & 0,715 & 0,03 s \\
+KNN ($k$=51) & 0,812 & 0,514 & 0,125 & 0,525 & 0,660 & 0,790 & 0,02 s \\
+Naive Bayes Gauss & 0,775 & 0,391 & 0,209 & 0,489 & 0,756 & 0,670 & 0,02 s \\
+Cây quyết định (sâu 6) & 0,785 & 0,444 & 0,133 & 0,504 & 0,712 & 0,725 & 0,04 s \\
+Rừng ngẫu nhiên & \textbf{0,823} & \textbf{0,528} & \textbf{0,123} & \textbf{0,540} & 0,726 & 0,763 & 0,65 s \\
+Gradient Boosting & 0,820 & 0,527 & \textbf{0,123} & 0,531 & 0,723 & 0,753 & 0,20 s \\
+SVM (RBF) & 0,821 & 0,505 & 0,178 & 0,510 & 0,818 & 0,658 & 24,1 s \\
+MLP (64–32) & 0,821 & 0,527 & 0,124 & 0,515 & \textbf{0,837} & 0,651 & 1,53 s \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch2_roc_pr}{Đường ROC và Precision–Recall của tám mô hình trên tập kiểm tra}
+
+\textbf{Nhận xét.} Năm mô hình mạnh (RF, MLP, SVM, GBDT, LR) nằm trong khoảng 0,817–0,823 AUC. Chênh lệch 0,006 nhỏ hơn độ lệch chuẩn 0,005–0,006 của kiểm định chéo 5 phần trên tập train (LR 0,826 ± 0,006; GBDT 0,830 ± 0,006). Có thể kết luận: \emph{với 13 yếu tố nguy cơ tự khai, độ khó của bài toán đã chạm trần thông tin}. Phần còn lại nằm ở glucose và HbA1c vốn không được dùng. Mức AUC ≈ 0,82 tương đương các thang điểm sàng lọc dựa trên NHANES trong y văn.
+
+Hai mô hình yếu rõ rệt đều do vi phạm giả định. Naive Bayes giả định độc lập có điều kiện, nhưng BMI–vòng eo và hai chỉ số huyết áp tương quan mạnh nên bằng chứng bị ``đếm hai lần''. Xác suất bị đẩy về hai cực, thể hiện ở Brier tệ nhất (0,209) và ngưỡng Youden chỉ 0,002. Cây đơn lẻ sâu 6 có phương sai cao và biên quyết định bậc thang. Rừng ngẫu nhiên lấy trung bình 400 cây như vậy và tăng AUC từ 0,785 lên 0,823, minh họa trực tiếp công thức giảm phương sai.
+
+Ở ngưỡng Youden, các mô hình có điểm vận hành khác nhau. MLP và SVM nghiêng về độ nhạy (0,84 và 0,82), còn KNN nghiêng về độ đặc hiệu. Trong sàng lọc, bỏ sót người bệnh (FN) nguy hiểm hơn báo động nhầm (FP), nên ngưỡng có thể hạ thêm. Đó là quyết định lâm sàng chứ không phải kỹ thuật. Xác suất của các mô hình ngoài NB và SVM được hiệu chuẩn tốt (Brier ≈ 0,123–0,125, so với 0,159 của dự đoán hằng số 0,198).
+
+\figw{ch2_bias_variance}{Đánh đổi độ chệch – phương sai: AUC train và validation theo $k$ của KNN và độ sâu cây}
+
+\figref{fig:ch2_bias_variance} cho thấy đánh đổi độ chệch – phương sai rất rõ. Với $k=1$, KNN ``thuộc lòng'' tập train (AUC 0,9995) nhưng chỉ đạt 0,640 trên validation. Đường validation đạt đỉnh 0,824 ở $k=51$ rồi đi ngang. Cây quyết định cũng vậy: AUC validation tăng tới 0,807 ở độ sâu 6. Ở độ sâu 16, train đạt 0,987 còn validation tụt xuống 0,659. Cây không giới hạn độ sâu đạt 1,000 trên train và 0,617 trên validation.
+
+\figw{ch2_tree}{Ba tầng đầu của cây quyết định: câu hỏi đầu tiên là tuổi, sau đó là tuổi (nhánh trẻ) và tiền sử gia đình (nhánh lớn tuổi)}
+
+\figw{ch2_importance_cm}{Độ quan trọng hoán vị của các đặc trưng (Gradient Boosting) và ma trận nhầm lẫn}
+
+\textbf{Giải thích mô hình.} Ba cách nhìn độc lập cho cùng một thứ tự. Thứ nhất, câu hỏi gốc của cây là ``tuổi ≤ 49,5?''. Nhánh trẻ hỏi tiếp ``tuổi ≤ 37,5?'', nhánh lớn tuổi hỏi tiền sử gia đình (\figref{fig:ch2_tree}). Thứ hai, độ quan trọng hoán vị của GBDT, tức mức giảm AUC khi xáo trộn một cột, xếp tuổi đầu tiên (0,107), rồi vòng eo (0,046) và tiền sử gia đình (0,041); các đặc trưng còn lại dưới 0,01. Thứ ba, tỉ số chênh của hồi quy logistic trên một độ lệch chuẩn là: tuổi OR = 1,93, tiền sử gia đình 1,78, vòng eo 1,56, rối loạn mỡ máu 1,25, tăng huyết áp 1,23, BMI chỉ 1,10. Vòng eo quan trọng hơn BMI khi có mặt cả hai, đúng với kiến thức y khoa rằng béo bụng (mỡ nội tạng) phản ánh đề kháng insulin tốt hơn. Đây cũng là lý do chatbot hỏi thêm vòng eo. Vận động có OR = 0,87 < 1, tức là yếu tố bảo vệ. Ma trận nhầm lẫn của GBDT trên 4.130 người: 591 TP, 226 FN, 819 FP, 2.494 TN.
+
+\subsection{Hồi quy HbA1c}
+
+\begin{table}[H]
+\centering
+\caption{Dự đoán HbA1c (\%) từ 13 yếu tố nguy cơ (20.413 người có HbA1c, chia 80/20)}
+\label{tab:ch2-reg}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Mô hình} & \textbf{RMSE (\%)} & \textbf{MAE (\%)} & \textbf{$R^2$} \\
+\midrule
+Dự đoán bằng trung bình (đối chứng) & 1,072 & 0,636 & 0,000 \\
+Hồi quy tuyến tính & 0,984 & 0,569 & 0,155 \\
+Ridge ($\alpha$=10) & 0,984 & 0,569 & 0,155 \\
+SVR (RBF, $\epsilon$=0,1; 8.000 mẫu) & 1,000 & \textbf{0,515} & 0,128 \\
+Rừng ngẫu nhiên & \textbf{0,981} & 0,558 & \textbf{0,161} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw[0.85\linewidth]{ch2_regression}{HbA1c dự đoán so với thực tế: mô hình co về trung bình}
+
+$R^2$ chỉ đạt 0,16. Yếu tố nguy cơ giải thích được khoảng 16\% phương sai của HbA1c, phù hợp với kết luận ``chạm trần thông tin'' ở trên. \figref{fig:ch2_regression} cho thấy hiện tượng co về trung bình: mọi dự đoán nằm trong khoảng 5–7\%, trong khi HbA1c thật trải tới 14\%. Đuôi phải dài chủ yếu là người ĐTĐ đang điều trị. SVR có MAE tốt nhất nhưng RMSE tệ nhất. Hàm mất mát $\epsilon$-không nhạy tương tự trung vị nên khớp tốt phần đông người bình thường và bỏ qua các ca cực trị, trong khi RMSE phạt nặng các ca này. Hệ số hồi quy tuyến tính trên một độ lệch chuẩn: tuổi +0,18\%, tiền sử gia đình +0,18\%, vòng eo +0,11\%, mỡ máu +0,10\%, vận động −0,06\%. Thứ tự này trùng với bài toán phân loại. Kết luận thực tiễn: \emph{không thể thay xét nghiệm HbA1c bằng mô hình}. Mô hình chỉ giúp quyết định \emph{ai} nên đi xét nghiệm.
+
+\subsection{Gom cụm không giám sát}
+
+\figw{ch2_kmeans}{Chọn $k$ bằng inertia và silhouette; bốn cụm chiếu trên hai thành phần chính}
+
+Gom cụm K-means được chạy trên 5 biến liên tục (tuổi, BMI, vòng eo, hai chỉ số huyết áp) đã chuẩn hóa, \emph{không dùng nhãn}. Silhouette cao nhất ở $k=4$ (0,260), khuỷu tay của inertia cũng ở quanh đây. Hai thành phần chính giữ 69\% phương sai. Điểm đáng chú ý là các cụm học không giám sát lại có ý nghĩa lâm sàng (\tabref{tab:ch2-km}). Cụm 0 gồm người trẻ, gầy, huyết áp thấp, tỉ lệ ĐTĐ chỉ 4,4\%. Ba cụm còn lại là ba ``kiểu hình'' nguy cơ khác nhau: béo phì nặng ở tuổi trung niên, tăng huyết áp, và cao tuổi. Tỉ lệ ĐTĐ của ba cụm này cao gấp 5–7 lần cụm 0.
+
+\begin{table}[H]
+\centering
+\caption{Hồ sơ trung bình của bốn cụm K-means và tỉ lệ ĐTĐ (nhãn không dùng khi gom cụm)}
+\label{tab:ch2-km}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}clrrrrrc@{}}
+\toprule
+\textbf{Cụm} & \textbf{Diễn giải} & \textbf{Số người} & \textbf{Tuổi} & \textbf{BMI} & \textbf{Eo} & \textbf{HA tâm thu} & \textbf{Tỉ lệ ĐTĐ} \\
+\midrule
+0 & Trẻ, khỏe & 7.038 & 35,6 & 25,3 & 88,0 & 112,1 & 4,4\% \\
+1 & Béo phì nặng & 3.825 & 45,7 & 39,3 & 122,2 & 124,9 & 27,2\% \\
+2 & Tăng huyết áp & 3.849 & 58,4 & 27,9 & 98,2 & 145,6 & 22,2\% \\
+3 & Cao tuổi & 4.139 & 68,8 & 28,1 & 100,3 & 126,6 & 31,3\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\subsection{So sánh tổng hợp}
+
+\begin{table}[H]
+\centering
+\caption{So sánh định tính các thuật toán trong bối cảnh hệ thống}
+\label{tab:ch2-compare}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.8cm}L{2.2cm}L{2.0cm}Y@{}}
+\toprule
+\textbf{Thuật toán} & \textbf{Dễ giải thích} & \textbf{Chịu dữ liệu thiếu} & \textbf{Vai trò trong hệ thống} \\
+\midrule
+Hồi quy logistic & Cao (OR) & Cần điền & Đối chứng; giải thích yếu tố nguy cơ \\
+KNN & Trung bình & Cần điền & Không dùng (chậm khi dữ liệu lớn) \\
+Naive Bayes & Cao & Tự nhiên & Không dùng (hiệu chuẩn kém) \\
+Cây quyết định & Rất cao & Cần điền & Minh họa luật cho người dùng \\
+Rừng ngẫu nhiên & Thấp & Cần điền & Mô hình dự phòng \\
+Gradient Boosting & Thấp (cần SHAP/occlusion) & Tự nhiên & \textbf{Mô hình ML của PredictionAgent} \\
+SVM & Thấp & Cần điền & Không dùng (chậm, xác suất kém) \\
+MLP & Thấp & Cần điền + cờ thiếu & \textbf{Mô hình DL của PredictionAgent} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+PredictionAgent dùng hai mô hình bổ sung cho nhau: GBDT (tự xử lý NaN, nhanh) và MLP PyTorch (128–64–32, có cờ thiếu dữ liệu cho từng đặc trưng). Cả hai được huấn luyện với kỹ thuật tăng cường ``che ngẫu nhiên 40\% đặc trưng không bắt buộc'' để mô phỏng người dùng chỉ khai một phần. Trên cùng tập kiểm tra, bản production đạt AUC 0,817 (GBDT) và 0,829 (MLP). Khi bị che 40\% đặc trưng, AUC chỉ giảm còn 0,802 và 0,809. Trên nhóm người gốc Á (561 người), AUC đạt 0,833 và 0,850. Trung bình hai mô hình là 0,827. Khi hai mô hình lệch nhau ≥ 15 điểm phần trăm (xảy ra ở 8\% số ca), ConsensusCriticAgent mở chất vấn (Chương 7).
+
+\section{Triển khai}
+
+Endpoint \api{POST /api/lab/ch2/nhanes} nhận 13 đặc trưng; trường nào để trống được coi là thiếu. Endpoint trả về xác suất ĐTĐ của bảy mô hình đã huấn luyện (tệp \texttt{data/models/ch2\_classic.joblib}, nén 3 MB), cùng ngưỡng Youden của từng mô hình và đóng góp của từng đặc trưng theo hồi quy logistic. Trên trang \api{/lab}, thẻ ``Chương 2'' vẽ biểu đồ cột so sánh bảy xác suất. Người dùng thấy ngay các mô hình mạnh đồng thuận còn Naive Bayes thì cực đoan. Mô hình production (GBDT + MLP) được dùng trong luồng chat tại \api{/api/chat}.
+
+\begin{code}{Gọi endpoint Chương 2 (rút gọn)}
+\label{lst:ch2-api}
+\begin{minted}{bash}
+curl -s https://agent.nits.io.vn/api/lab/ch2/nhanes -H 'Content-Type: application/json' \
+  -d '{"age_years":58,"sex":0,"bmi":29,"waist_cm":95,"high_bp":1,"high_chol":1,"family_history":1}'
+\end{minted}
+\end{code}
+
+\section{Tiểu kết chương 2}
+
+Chương 2 trình bày khung chung của học máy: cực tiểu rủi ro thực nghiệm có điều chuẩn, tối ưu bằng gradient, và đánh giá bằng thước đo phù hợp với bài toán. Thực nghiệm trên 20.646 người NHANES cho ba kết luận. (1) Với yếu tố nguy cơ tự khai, các mô hình tốt đều hội tụ về AUC ≈ 0,82. Chọn đặc trưng và dữ liệu quan trọng hơn chọn thuật toán. (2) Giả định của mô hình quyết định thành bại: Naive Bayes thất bại vì đặc trưng tương quan, SVM thất bại khi không xử lý lệch lớp, cây đơn lẻ thất bại vì phương sai cao. (3) Tuổi, vòng eo và tiền sử gia đình là ba yếu tố nguy cơ chính. Kết luận này nhất quán giữa cây, độ quan trọng hoán vị và tỉ số chênh, và khớp với hướng dẫn ADA. Mô hình ước lượng được \emph{nguy cơ} nhưng không thay được \emph{xét nghiệm}. Ở các chương sau, hệ thống bổ sung các nguồn dữ liệu khác: ảnh (Chương 3), chuỗi thời gian (Chương 4) và tri thức văn bản (Chương 5).

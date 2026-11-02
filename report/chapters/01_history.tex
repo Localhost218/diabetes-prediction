@@ -1,0 +1,235 @@
+
+\renewcommand{\thetable}{\thechapter.\arabic{table}}\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\chapter{Lịch sử phát triển của trí tuệ nhân tạo}
+\label{chap:history}
+
+Chương này tóm lược gần tám thập kỷ phát triển của AI. Mục tiêu là chỉ ra rằng mỗi cách tiếp cận ra đời để khắc phục giới hạn của cách tiếp cận trước. Phần thực nghiệm cuối chương tái hiện dòng lịch sử đó trên một bộ dữ liệu y khoa kinh điển: cùng một bài toán dự đoán đái tháo đường được giải lần lượt bằng hệ chuyên gia luật (thập niên 1970–80), perceptron (1958), ADALINE (1960), mạng nhiều lớp với lan truyền ngược (1986) và các phương pháp học máy thống kê hiện đại.
+
+\section{Khái niệm trí tuệ nhân tạo}
+
+Trí tuệ nhân tạo là ngành khoa học máy tính nghiên cứu cách xây dựng hệ thống thực hiện được những nhiệm vụ vốn đòi hỏi trí thông minh của con người: nhận thức, suy luận, học, lập kế hoạch, giao tiếp và ra quyết định. Russell và Norvig \cite{russell2021} phân loại các định nghĩa AI theo hai trục: \emph{suy nghĩ} hay \emph{hành động}, \emph{giống người} (ví dụ phép thử Turing \cite{turing1950}) hay \emph{hợp lý}. Cách tiếp cận \emph{tác tử hợp lý} được dùng phổ biến nhất: tác tử nhận tri giác từ môi trường và chọn hành động tối đa hóa một thước đo hiệu năng, nên đo đạc và tối ưu được bằng toán học. Đây cũng là khái niệm trung tâm của Chương 7.
+
+AI, học máy (ML) và học sâu (DL) là ba khái niệm lồng nhau. Học máy là nhánh của AI tập trung vào việc học quy luật từ dữ liệu thay vì lập trình tường minh. Học sâu là nhánh của học máy, dùng mạng nơ-ron nhiều lớp để tự học biểu diễn phân cấp. Phần lớn hệ thống hiện nay vẫn là \emph{AI hẹp}, giỏi một nhiệm vụ cụ thể. \emph{AI tổng quát} (AGI) có năng lực ngang con người trên phạm vi rộng vẫn là mục tiêu nghiên cứu.
+
+\section{Các giai đoạn phát triển}
+
+\subsection{Nền tảng tiền đề (trước 1956)}
+
+Ba dòng chảy khoa học hội tụ để tạo nên AI. Thứ nhất là \emph{logic và lý thuyết tính toán}: máy Turing (1936) hình thức hóa khái niệm thuật toán và gợi ra ý tưởng rằng tư duy, nếu là xử lý ký hiệu, có thể cơ giới hóa. Thứ hai là \emph{mô hình nơ-ron}: McCulloch và Pitts (1943) \cite{mcculloch1943} mô tả nơ-ron nhân tạo bằng tổng có trọng số qua một ngưỡng, còn Hebb (1949) đề xuất quy tắc ``cùng kích hoạt thì liên kết mạnh lên''. Thứ ba là \emph{điều khiển học} và máy tính điện tử, cho phép kiểm chứng ý tưởng trên phần cứng thật. Năm 1950, Turing \cite{turing1950} đặt câu hỏi ``Máy có thể suy nghĩ không?'' và đề xuất ``trò chơi bắt chước'', một tiêu chí hành vi thay cho tranh luận trừu tượng về bản chất của tư duy.
+
+\subsection{Khai sinh và thời kỳ lạc quan (1956 – đầu thập niên 1970)}
+
+Hội thảo Dartmouth mùa hè năm 1956 do McCarthy, Minsky, Rochester và Shannon tổ chức \cite{mccarthy1955} đã khai sinh thuật ngữ \emph{Artificial Intelligence}. Hai thập niên sau đó có nhiều chương trình gây ấn tượng: Logic Theorist (1956) chứng minh định lý toán học, LISP (1958) trở thành ngôn ngữ chủ đạo, ELIZA (1966) mô phỏng nhà trị liệu chỉ bằng luật khớp mẫu. Cũng trong giai đoạn này, Rosenblatt (1958) \cite{rosenblatt1958} công bố \emph{perceptron}, mạng nơ-ron một lớp học được trọng số từ dữ liệu, còn Widrow và Hoff (1960) \cite{widrow1960} đề xuất ADALINE với quy tắc học delta, tiền thân trực tiếp của hạ gradient ngày nay. Hướng tiếp cận chủ đạo khi đó là \emph{AI biểu tượng}: tri thức được biểu diễn bằng ký hiệu và luật, còn trí thông minh được xem là quá trình tìm kiếm và suy diễn trên các biểu diễn đó.
+
+\subsection{Mùa đông AI thứ nhất (khoảng 1974 – 1980)}
+
+Các chương trình chạy tốt trên ``thế giới đồ chơi'' nhưng thất bại với bài toán thực vì ba lý do: \emph{bùng nổ tổ hợp} của không gian tìm kiếm, \emph{thiếu tri thức thường thức}, và \emph{giới hạn của mạng một lớp}. Năm 1969, Minsky và Papert \cite{minsky1969} chứng minh perceptron một lớp không biểu diễn được hàm XOR. Khi đó chưa có cách huấn luyện mạng nhiều lớp, nên nghiên cứu mạng nơ-ron gần như đình trệ. Báo cáo Lighthill (1973) \cite{lighthill1973} kết luận AI không đạt các mục tiêu đã hứa, và tài trợ ở Anh và Mỹ bị cắt giảm mạnh.
+
+\subsection{Hệ chuyên gia và mùa đông AI thứ hai (1980 – đầu thập niên 1990)}
+
+AI hồi sinh nhờ \emph{hệ chuyên gia}: tri thức của chuyên gia trong một lĩnh vực hẹp được mã hóa thành luật NẾU–THÌ, kết hợp với một bộ máy suy diễn tiến hoặc lùi. MYCIN (Stanford) chẩn đoán nhiễm trùng máu với khoảng 600 luật. Để xử lý sự không chắc chắn, MYCIN gắn cho mỗi luật một \emph{hệ số chắc chắn} (Certainty Factor – CF) và gộp chúng theo công thức của Shortliffe và Buchanan \cite{shortliffe1975}:
+\begin{equation}
+\mathrm{CF}(H \mid E_1 \wedge E_2) = \mathrm{CF}_1 + \mathrm{CF}_2\,(1 - \mathrm{CF}_1), \qquad \mathrm{CF}_1, \mathrm{CF}_2 \ge 0.
+\label{eq:mycin}
+\end{equation}
+Công thức \eq{eq:mycin} có tính giao hoán và kết hợp, luôn cho kết quả trong $[0,1]$: mỗi bằng chứng mới chỉ ``lấp'' thêm một phần của khoảng còn thiếu. XCON (1980) là thành công thương mại lớn đầu tiên. Cùng thời gian, Rumelhart, Hinton và Williams (1986) \cite{rumelhart1986} phổ biến thuật toán \emph{lan truyền ngược}, cho phép huấn luyện mạng nhiều lớp và giải được bài toán XOR. Tuy vậy hệ chuyên gia sớm bộc lộ giới hạn: thu nhận tri thức tốn kém, cơ sở luật khó bảo trì, hệ thống ``giòn'' trước tình huống ngoài luật. Thị trường máy LISP sụp đổ năm 1987 và mùa đông AI thứ hai bắt đầu.
+
+\subsection{Học máy thống kê (thập niên 1990 – 2000)}
+
+Bài học của hai mùa đông là tri thức thế giới thực quá lớn và mơ hồ để mã hóa thủ công. Trọng tâm vì thế chuyển sang các phương pháp \emph{học từ dữ liệu} có nền tảng xác suất: mạng Bayes (Pearl, 1988), máy vector hỗ trợ (Cortes và Vapnik, 1995) \cite{cortes1995}, rừng ngẫu nhiên (Breiman, 2001) \cite{breiman2001}, boosting \cite{friedman2001}, LSTM (1997) \cite{hochreiter1997} và LeNet-5 (1998) \cite{lecun1998}. Đặc điểm chung của giai đoạn này là hiệu năng phụ thuộc nặng vào \emph{kỹ nghệ đặc trưng} thủ công (SIFT, HOG, TF-IDF).
+
+\subsection{Kỷ nguyên học sâu (2006 – 2019)}
+
+Học sâu dùng mạng nhiều lớp để tự học biểu diễn phân cấp từ dữ liệu thô \cite{goodfellow2016}. Hinton và cộng sự (2006) \cite{hinton2006} khơi lại sự quan tâm bằng tiền huấn luyện từng lớp. ImageNet (2009) \cite{deng2009} cung cấp hàng triệu ảnh gán nhãn. Năm 2012, AlexNet \cite{krizhevsky2012} vô địch ILSVRC với lỗi top-5 khoảng 15,3%, so với khoảng 26,2% của đội thứ hai. Tiếp theo là ResNet (2015) \cite{he2016}, AlphaGo (2016) \cite{silver2016}, và Transformer (2017) \cite{vaswani2017} với cơ chế attention cho phép huấn luyện song song quy mô lớn. Năm 2018, Bengio, Hinton và LeCun nhận giải Turing.
+
+\subsection{Mô hình nền tảng, AI tạo sinh và tác tử (2020 – nay)}
+
+GPT-3 (2020) \cite{brown2020} với 175 tỉ tham số cho thấy mô hình đủ lớn có thể học từ vài ví dụ trong câu lệnh. Tinh chỉnh theo chỉ dẫn và học tăng cường từ phản hồi người dùng \cite{ouyang2022} dẫn tới ChatGPT (2022). Năm 2024, giải Nobel Vật lý và Hóa học lần lượt vinh danh nền tảng mạng nơ-ron (Hopfield, Hinton) và AlphaFold \cite{jumper2021}. Giai đoạn 2025–2026 nổi bật với ba xu hướng. \emph{Mô hình đa phương thức bản địa} xử lý văn bản, ảnh, âm thanh trong cùng một mạng. \emph{Mô hình suy luận} tăng lượng tính toán lúc suy luận để ``nghĩ'' nhiều bước. \emph{AI tác tử} có khả năng lập kế hoạch, dùng công cụ, ghi nhớ và tự sửa lỗi. Khi nhiều tác tử phối hợp, ta có hệ đa tác tử, chủ đề của Chương 7. Đồng thời, \emph{ảo giác} của LLM khiến tri thức tường minh trở lại dưới dạng đồ thị tri thức và RAG (Chương 5).
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt các giai đoạn phát triển chính của trí tuệ nhân tạo}
+\label{tab:ai-eras}
+\small
+\begin{tabularx}{\linewidth}{@{}L{1.7cm}L{2.7cm}YL{3.6cm}@{}}
+\toprule
+\textbf{Giai đoạn} & \textbf{Hướng chủ đạo} & \textbf{Thành tựu tiêu biểu} & \textbf{Hạn chế dẫn tới giai đoạn sau} \\
+\midrule
+1943–1955 & Nền tảng lý thuyết & Nơ-ron McCulloch–Pitts, phép thử Turing & Chưa có phần cứng, chương trình \\
+1956–1974 & AI biểu tượng, tìm kiếm & Dartmouth, Logic Theorist, Perceptron, ADALINE & Bùng nổ tổ hợp; XOR → mùa đông 1 \\
+1980–1987 & Hệ chuyên gia & MYCIN, XCON; lan truyền ngược & Khó thu nhận, bảo trì tri thức → mùa đông 2 \\
+1990–2011 & Học máy thống kê & SVM, rừng ngẫu nhiên, LSTM, LeNet-5 & Phụ thuộc đặc trưng thủ công \\
+2012–2019 & Học sâu & AlexNet, ResNet, AlphaGo, Transformer & Cần nhiều dữ liệu, khó giải thích \\
+2020–2024 & Mô hình nền tảng & GPT-3, ChatGPT, AlphaFold, RAG & Ảo giác, chi phí \\
+2025–nay & Đa phương thức, tác tử & Mô hình suy luận, hệ đa tác tử, GraphRAG & An toàn, quản trị tác tử tự chủ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Những thách thức lớn vẫn còn: thiên lệch dữ liệu, khả năng giải thích, độ tin cậy, quyền riêng tư và khung pháp lý (Đạo luật AI của EU năm 2024; Chiến lược AI quốc gia của Việt Nam, Quyết định 127/QĐ-TTg \cite{qd127}). Trong y tế, các rủi ro này càng nghiêm trọng, nên hệ thống của báo cáo luôn kèm lớp luật an toàn và trích dẫn nguồn.
+
+\section{Thực nghiệm: bốn thế hệ mô hình trên bộ Pima}
+
+\subsection{Dữ liệu}
+
+Bộ \textbf{Pima Indians Diabetes} do Viện Quốc gia về Đái tháo đường, Tiêu hóa và Thận Hoa Kỳ (NIDDK) thu thập. Smith và cộng sự công bố bộ này năm 1988 khi dùng thuật toán ADAP, một mạng dạng perceptron, để dự đoán khởi phát ĐTĐ \cite{smith1988}. Nhờ vậy, bộ dữ liệu này có ý nghĩa lịch sử riêng với chương này.
+
+\begin{itemize}
+  \item \textbf{Nguồn}: UCI Machine Learning Repository, bản sao tại \weburl{https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database}; mã nguồn tải từ \weburl{https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv}.
+  \item \textbf{Kích thước}: 768 phụ nữ gốc Pima ≥ 21 tuổi, 8 đặc trưng số, 1 nhãn; tệp CSV 23 KB.
+  \item \textbf{Nhãn}: 268 người (34,9\%) mắc ĐTĐ trong vòng 5 năm, 500 người không mắc.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Năm mẫu đầu tiên của bộ Pima (số 0 ở cột sinh lý là giá trị thiếu)}
+\label{tab:pima-head}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}rrrrrrrrr@{}}
+\toprule
+\textbf{Mang thai} & \textbf{Glucose} & \textbf{HA} & \textbf{Da} & \textbf{Insulin} & \textbf{BMI} & \textbf{Phả hệ} & \textbf{Tuổi} & \textbf{Nhãn} \\
+\midrule
+6 & 148 & 72 & 35 & 0 & 33,6 & 0,627 & 50 & 1 \\
+1 & 85 & 66 & 29 & 0 & 26,6 & 0,351 & 31 & 0 \\
+8 & 183 & 64 & 0 & 0 & 23,3 & 0,672 & 32 & 1 \\
+1 & 89 & 66 & 23 & 94 & 28,1 & 0,167 & 21 & 0 \\
+0 & 137 & 40 & 35 & 168 & 43,1 & 2,288 & 33 & 1 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw[0.74\linewidth]{ch1_pima_distribution}{Phân bố tám đặc trưng của bộ Pima theo nhãn (mật độ chuẩn hóa)}
+
+\textbf{Nhận xét.} (i) Glucose 2 giờ sau nghiệm pháp là đặc trưng phân tách mạnh nhất: hai phân bố gần như dịch hẳn sang hai phía quanh 140 mg/dL, đúng ngưỡng rối loạn dung nạp glucose của ADA. (ii) Bộ dữ liệu có \emph{giá trị thiếu ẩn}: số 0 không có nghĩa sinh lý nhưng xuất hiện ở insulin (374 dòng, 48,7\%), độ dày nếp da (227 dòng), huyết áp (35), BMI (11) và glucose (5). Nếu không xử lý, mô hình sẽ học sai rằng ``insulin = 0'' là một mức đo. Thực nghiệm thay số 0 bằng trung vị của \emph{tập huấn luyện trong từng lượt kiểm định} để tránh rò rỉ. (iii) Lớp dương chiếm 34,9\%, lệch vừa phải, nên ngoài accuracy cần báo cáo ROC-AUC, F1, độ nhạy và độ đặc hiệu. (iv) Với 768 mẫu, kết quả một lần chia train/test dao động mạnh, nên dùng kiểm định chéo phân tầng 10 phần.
+
+\subsection{Mô hình}
+
+Mỗi mô hình đại diện cho một giai đoạn ở \tabref{tab:ai-eras}. Các mô hình 1 đến 4 được tự cài đặt bằng NumPy để thấy rõ cơ chế.
+
+\textbf{(1) Hệ chuyên gia.} Sáu luật viết tay theo ngưỡng ADA/WHO (\tabref{tab:pima-rules}). Mỗi luật thỏa mãn đóng góp một CF, gộp lại theo \eq{eq:mycin}. Đầu ra là độ tin ``mắc ĐTĐ'', kết luận dương khi CF ≥ 0,5. Hệ không học gì từ dữ liệu, toàn bộ ``tri thức'' nằm trong bảng luật.
+
+\begin{table}[H]
+\centering
+\caption{Cơ sở luật của hệ chuyên gia}
+\label{tab:pima-rules}
+\small
+\begin{tabularx}{\linewidth}{@{}rYc@{}}
+\toprule
+\textbf{\#} & \textbf{Luật (NẾU … THÌ mắc ĐTĐ với độ tin CF)} & \textbf{CF} \\
+\midrule
+R1 & Glucose 2 giờ ≥ 200 mg/dL (ngưỡng chẩn đoán ĐTĐ) & 0,95 \\
+R2 & 140 ≤ glucose 2 giờ < 200 (rối loạn dung nạp glucose) & 0,55 \\
+R3 & BMI ≥ 30 (béo phì) & 0,25 \\
+R4 & Tuổi ≥ 45 & 0,20 \\
+R5 & Chỉ số phả hệ ≥ 0,5 (tiền sử gia đình mạnh) & 0,20 \\
+R6 & Số lần mang thai ≥ 4 & 0,10 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ví dụ với mẫu đầu tiên (glucose 148, BMI 33,6, tuổi 50, phả hệ 0,627, mang thai 6 lần): R2, R3, R4, R5, R6 cùng thỏa mãn. Gộp lần lượt theo \eq{eq:mycin}: $0{,}55 \to 0{,}55 + 0{,}25 \cdot 0{,}45 = 0{,}6625 \to 0{,}73 \to 0{,}784 \to 0{,}806$. Kết luận là dương tính, khớp với nhãn thật.
+
+\textbf{(2) Perceptron Rosenblatt.} Với nhãn $y\in\{-1,+1\}$, mô hình dự đoán $\hat y = \operatorname{sign}(\mathbf w^\top \mathbf x + b)$. Thuật toán học perceptron (PLA) chỉ cập nhật khi phân loại sai:
+\begin{equation}
+\text{nếu } y_i(\mathbf w^\top\mathbf x_i + b) \le 0: \quad \mathbf w \leftarrow \mathbf w + \eta\, y_i \mathbf x_i,\qquad b \leftarrow b + \eta\, y_i .
+\label{eq:pla}
+\end{equation}
+PLA chỉ hội tụ khi dữ liệu tách được tuyến tính, điều Pima không thỏa mãn. Vì vậy cài đặt dùng biến thể ``pocket'': giữ lại bộ trọng số ít lỗi nhất qua 100 epoch.
+
+\textbf{(3) ADALINE.} Widrow–Hoff cực tiểu sai số bình phương của đầu ra \emph{tuyến tính} (trước hàm dấu), $J(\mathbf w) = \tfrac12\sum_i (y_i - \mathbf w^\top\mathbf x_i - b)^2$, bằng hạ gradient:
+\begin{equation}
+\mathbf w \leftarrow \mathbf w + \eta \sum_i \big(y_i - \mathbf w^\top\mathbf x_i - b\big)\,\mathbf x_i .
+\label{eq:adaline}
+\end{equation}
+Khác biệt then chốt so với PLA: hàm mất mát liên tục và lồi, nên luôn hội tụ, kể cả khi dữ liệu không tách được.
+
+\textbf{(4) MLP với lan truyền ngược.} Mạng 8–16–1 là một hàm hợp:
+\begin{equation}
+\hat p = \sigma\!\big(\mathbf W_2^\top\, \sigma(\mathbf W_1^\top \mathbf x + \mathbf b_1) + b_2\big), \qquad \sigma(z) = \frac{1}{1+e^{-z}},
+\label{eq:mlp1}
+\end{equation}
+huấn luyện bằng entropy chéo nhị phân $L=-\frac1n\sum[y\log\hat p+(1-y)\log(1-\hat p)]$. Quy tắc chuỗi cho gradient ở lớp ra là $\boldsymbol\delta_2 = (\hat{\mathbf p} - \mathbf y)/n$. Ở lớp ẩn, gradient được truyền ngược qua $\mathbf W_2$ và nhân với đạo hàm sigmoid: $\boldsymbol\delta_1 = (\boldsymbol\delta_2 \mathbf W_2^\top)\odot \mathbf h \odot (1-\mathbf h)$. \coderef{lst:ch1-mlp} cài đặt đúng các phương trình này.
+
+\textbf{(5) Hồi quy logistic} và \textbf{(6) Gradient Boosting} (scikit-learn \cite{pedregosa2011}) đại diện cho học máy thống kê hiện đại. Chúng được trình bày chi tiết ở Chương 2.
+
+\begin{code}{MLP một lớp ẩn với lan truyền ngược bằng NumPy (\texttt{lab/ch1\_history.py})}
+\label{lst:ch1-mlp}
+\begin{minted}{python}
+def fit(self, X, y):
+    y = y.reshape(-1, 1).astype(float)
+    for _ in range(self.epochs):
+        h = sigmoid(X @ self.W1 + self.b1)                 # lan truyền xuôi: lớp ẩn
+        p = sigmoid(h @ self.W2 + self.b2)                 # lớp ra: xác suất mắc ĐTĐ
+        d2 = (p - y) / n                                   # ∂L/∂z2 (sigmoid + entropy chéo)
+        d1 = (d2 @ self.W2.T) * h * (1 - h)                # quy tắc chuỗi qua lớp ẩn
+        self.W2 -= self.lr * (h.T @ d2 + self.l2 * self.W2)
+        self.b2 -= self.lr * d2.sum(0)
+        self.W1 -= self.lr * (X.T @ d1 + self.l2 * self.W1)
+        self.b1 -= self.lr * d1.sum(0)
+\end{minted}
+\end{code}
+
+\subsection{Kết quả và nhận xét}
+
+\tabref{tab:ch1-results} và \figref{fig:ch1_comparison} tổng hợp kết quả kiểm định chéo 10 phần.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả kiểm định chéo phân tầng 10 phần trên Pima (trung bình ± độ lệch chuẩn)}
+\label{tab:ch1-results}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Mô hình (năm)} & \textbf{Accuracy} & \textbf{ROC-AUC} & \textbf{F1} & \textbf{Độ nhạy} & \textbf{Độ đặc hiệu} \\
+\midrule
+Hệ chuyên gia, luật + CF & 0,750 ± 0,041 & 0,795 ± 0,047 & 0,595 & 0,530 & 0,868 \\
+Perceptron (1958) & 0,706 ± 0,061 & 0,749 ± 0,062 & 0,564 & 0,564 & 0,782 \\
+ADALINE (1960) & 0,767 ± 0,027 & \textbf{0,837} ± 0,049 & 0,624 & 0,556 & 0,880 \\
+MLP lan truyền ngược (1986) & 0,763 ± 0,034 & 0,835 ± 0,049 & 0,624 & 0,568 & 0,868 \\
+Hồi quy logistic & 0,767 ± 0,025 & \textbf{0,837} ± 0,050 & 0,623 & 0,556 & 0,880 \\
+Gradient Boosting & \textbf{0,768} ± 0,052 & 0,834 ± 0,054 & \textbf{0,648} & \textbf{0,616} & 0,850 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw[0.78\linewidth]{ch1_comparison}{So sánh sáu mô hình đại diện các giai đoạn lịch sử trên Pima}
+
+
+Có bốn nhận xét chính.
+
+\emph{Thứ nhất}, hệ chuyên gia chỉ với sáu luật đạt AUC 0,795, cao hơn perceptron học từ dữ liệu. Tri thức y khoa cô đọng (ngưỡng glucose của ADA) rất mạnh, và đây là lý do các ngưỡng này vẫn còn trong hệ thống hiện đại dưới dạng KnowledgeAgent và Safety Guardrail (Chương 7). Tuy vậy, độ nhạy chỉ đạt 0,53: luật cứng bỏ sót những người có glucose dưới ngưỡng nhưng tổ hợp nhiều yếu tố nguy cơ. Đó chính là tính ``giòn'' của hệ chuyên gia.
+
+\emph{Thứ hai}, perceptron là mô hình yếu nhất và có phương sai lớn nhất (độ lệch chuẩn của độ nhạy là 0,16). Số lỗi mỗi epoch của PLA không giảm đơn điệu: thuật toán chỉ phản ứng với mẫu sai nên ``nhảy'' liên tục khi dữ liệu không tách được tuyến tính, trong khi hàm mất mát của ADALINE và MLP giảm mượt.
+
+\emph{Thứ ba}, ADALINE với cùng một mô hình tuyến tính nhưng có hàm mất mát liên tục đã tăng AUC từ 0,749 lên 0,837. Đây là bài học quan trọng nhất của chương: \emph{cách tối ưu quan trọng không kém kiến trúc}. ADALINE ngang bằng hồi quy logistic, vì cả hai đều là mô hình tuyến tính được tối ưu bằng gradient.
+
+\emph{Thứ tư}, MLP và Gradient Boosting không vượt được mô hình tuyến tính trên 768 mẫu. Quan hệ giữa các đặc trưng và nhãn ở Pima gần tuyến tính, còn dữ liệu quá ít để mô hình phi tuyến phát huy. Gradient Boosting cho F1 và độ nhạy cao nhất nhưng phương sai lớn. Kết quả này khớp với các báo cáo thường thấy, khoảng 76–78\% accuracy trên Pima, và với con số 76\% của ADAP năm 1988 \cite{smith1988}.
+
+
+\textbf{Bài toán XOR.} Trên bốn điểm của XOR, perceptron chỉ đạt 50\% (2/4 điểm) dù huấn luyện bao lâu. Đây đúng là phản ví dụ của Minsky và Papert. MLP 2–4–1 huấn luyện bằng lan truyền ngược đạt 100\%, với xác suất đầu ra $(0{,}000;\ 0{,}999;\ 0{,}999;\ 0{,}001)$. Hai lớp nơ-ron tạo ra hai siêu phẳng, và tổ hợp của chúng tách được vùng ``chéo'' mà một siêu phẳng không làm nổi. Thí nghiệm nhỏ này tóm tắt bước chuyển từ mùa đông AI thứ nhất sang thời kỳ hồi sinh của mạng nơ-ron năm 1986.
+
+\section{Triển khai}
+
+Endpoint \api{POST /api/lab/ch1/pima} nhận tám chỉ số của một người. Nó trả về kết luận của hệ chuyên gia kèm danh sách luật đã kích hoạt và CF sau mỗi bước gộp, cùng điểm của perceptron và xác suất của MLP. Các mô hình được huấn luyện trên toàn bộ 768 mẫu và nạp từ tệp \texttt{data/models/ch1\_pima.joblib}. Trên trang \api{/lab} (thẻ ``Chương 1''), người dùng nhập chỉ số và thấy ngay ba ``thế hệ'' mô hình cho kết quả khác nhau ra sao trên cùng một ca.
+
+\begin{code}{Gọi endpoint Chương 1 và kết quả trả về (rút gọn)}
+\label{lst:ch1-api}
+\begin{minted}{bash}
+curl -s https://agent.nits.io.vn/api/lab/ch1/pima -H 'Content-Type: application/json' \
+  -d '{"pregnancies":6,"glucose":148,"blood_pressure":72,"skin_thickness":35,
+       "insulin":0,"bmi":33.6,"pedigree":0.627,"age":50}'
+# {"expert": {"cf": 0.8056, "positive": true,
+#             "fired": [["Glucose 2h 140–199 (rối loạn dung nạp)", 0.55], ["BMI ≥ 30 (béo phì)", 0.25], ...],
+#             "cf_trace": [0.55, 0.6625, 0.73, 0.784, 0.8056]},
+#  "perceptron": {"score": 0.0274, "positive": true},
+#  "mlp": {"probability": 0.7058, "positive": true}, "imputed": ["insulin"]}
+\end{minted}
+\end{code}
+
+\section{Tiểu kết chương 1}
+
+Lịch sử AI là chuỗi chu kỳ giữa kỳ vọng và thực tế. AI biểu tượng mạnh về suy luận nhưng bất lực trước sự phức tạp của thế giới thực. Hệ chuyên gia thành công thương mại nhưng vấp nút thắt thu nhận tri thức. Học máy thống kê và học sâu chuyển trọng tâm sang học từ dữ liệu. Thực nghiệm trên Pima tái hiện đúng dòng chảy đó: luật chuyên gia giàu tri thức nhưng cứng nhắc; perceptron học được nhưng bất ổn và không giải được XOR; ADALINE cho thấy sức mạnh của tối ưu gradient; lan truyền ngược mở khóa mô hình phi tuyến. Hệ thống ở các chương sau không loại bỏ giai đoạn nào. Nó kết hợp luật tường minh (ngưỡng ADA, guardrail) với các mô hình học từ dữ liệu, mỗi loại ở đúng chỗ mạnh của mình.

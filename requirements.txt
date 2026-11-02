@@ -25,9 +25,10 @@ pytesseract>=0.3  # chỉ dùng khi không có LLM và đã cài tesseract-ocr
 # ML / DL / RAG
 # PyTorch bản CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch>=2.2
+torchvision>=0.17  # ResNet-18 (Chương 3)
 numpy>=1.26
 pandas>=2.2
-scikit-learn>=1.4
+scikit-learn==1.9.1  # khớp phiên bản đã pickle data/models/ch2_classic.joblib
 scipy>=1.12
 joblib>=1.3
 fastembed>=0.4

@@ -4,8 +4,8 @@ Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification trên
   - DL: mạng nơ-ron MLP (PyTorch)
   Cả hai huấn luyện trên cùng dữ liệu từ PostgreSQL (mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
   độ lệch giữa chúng là căn cứ để hội đồng chất vấn.
-  - RNN Temporal (Chương 4): chỉ chạy khi có chuỗi đo glucose (≥ 5 lần)
-  - CNN Vision (Chương 3): chỉ chạy khi có đặc trưng ảnh đáy mắt
+  - RNN Temporal (Chương 4): chỉ số CGM khi có chuỗi đo glucose (≥ 5 lần), dự báo 15–60 phút bằng LSTM/GRU khi ≥ 12 lần
+  - CNN Vision (Chương 3): ResNet-18 phân độ bệnh võng mạc khi có ảnh đáy mắt
 Không tự sinh dữ liệu giả cho CNN/RNN khi người dùng không cung cấp.
 """
 
@@ -58,7 +58,6 @@ class PredictionAgent(BaseAgent):
 
         if profile.glucose_history and len(profile.glucose_history) >= 5:
             rnn = self.rnn_temporal.analyze_glucose_trajectory(profile.glucose_history)
-            rnn["forecast_note"] = "Dự báo điểm kế tiếp từ RNN chưa huấn luyện, chỉ mang tính minh họa"
             result["rnn_temporal"] = rnn
         else:
             result["rnn_temporal"] = {"skipped": True, "reason": "Không có chuỗi đo glucose (cần ≥ 5 lần đo)"}

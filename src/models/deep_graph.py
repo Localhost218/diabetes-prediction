@@ -1,151 +1,113 @@
 """
-Chương 6: Học sâu trên Đồ thị (Deep Graph Learning / Graph Neural Networks - GNN)
-Ứng dụng Graph Convolutional Network (GCN) và Graph Attention Network (GAT)
-trong Bài toán Dự đoán Liên kết Bệnh lý Đồng mắc (Comorbidity Link Prediction).
-Công thức lan truyền GCN chuẩn Kipf & Welling:
-    H^(l+1) = ReLU( \tilde{D}^(-1/2) \tilde{A} \tilde{D}^(-1/2) H^(l) W^(l) )
+Chương 6: Học sâu trên đồ thị — phân loại y văn về đái tháo đường trên đồ thị trích dẫn Pubmed-Diabetes.
+
+Mạng chú ý trên đồ thị (GAT, Veličković 2018) cài bằng PyTorch thuần, huấn luyện ở lab/ch6_gnn.py
+(data/models/ch6_gat.pt + ch6_pubmed_graph.npz). Dùng để gán nhãn "ĐTĐ thực nghiệm / típ 1 / típ 2"
+cho tài liệu y văn trước khi đưa vào Knowledge Base, kèm các bài báo láng giềng có trọng số chú ý cao nhất.
 """
 
+from functools import lru_cache
+from typing import Any, Dict, Optional
+
 import numpy as np
-from typing import Dict, List, Any
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from src.config import BASE_DIR
+
+MODEL_PATH = BASE_DIR / "data" / "models" / "ch6_gat.pt"
+GRAPH_PATH = BASE_DIR / "data" / "models" / "ch6_pubmed_graph.npz"
+CLASSES = ["ĐTĐ thực nghiệm (động vật)", "ĐTĐ típ 1", "ĐTĐ típ 2"]
 
 
-COMORBIDITY_NODES = [
-    "Patient",
-    "Type2_Diabetes",
-    "Hypertension",
-    "Diabetic_Nephropathy",
-    "Diabetic_Retinopathy",
-    "Dyslipidemia",
-    "Coronary_Heart_Disease",
-    "Metabolic_Syndrome"
-]
+class GATLayer(nn.Module):
+    """α_vu = softmax_u(LeakyReLU(a_srcᵀ W h_u + a_dstᵀ W h_v)); h_v' = ‖_k Σ_u α^k_vu W^k h_u."""
+
+    def __init__(self, d, h, heads, concat=True, p=0.6):
+        super().__init__()
+        self.W = nn.Linear(d, h * heads, bias=False)
+        self.a_src = nn.Parameter(torch.empty(1, heads, h))
+        self.a_dst = nn.Parameter(torch.empty(1, heads, h))
+        nn.init.xavier_uniform_(self.a_src)
+        nn.init.xavier_uniform_(self.a_dst)
+        self.heads, self.h, self.concat, self.p = heads, h, concat, p
+        self.bias = nn.Parameter(torch.zeros(h * heads if concat else h))
+
+    def forward(self, x, edge_index):
+        n = x.shape[0]
+        src, dst = edge_index
+        z = self.W(x).view(n, self.heads, self.h)
+        e = F.leaky_relu((z * self.a_src).sum(-1)[src] + (z * self.a_dst).sum(-1)[dst], 0.2)
+        e_max = torch.full((n, self.heads), -1e9).index_reduce_(0, dst, e, "amax", include_self=True)
+        ex = torch.exp(e - e_max[dst])
+        denom = torch.zeros(n, self.heads).index_add_(0, dst, ex)
+        alpha = ex / (denom[dst] + 1e-16)
+        self.alpha = alpha.detach()
+        alpha = F.dropout(alpha, self.p, self.training)
+        out = torch.zeros(n, self.heads, self.h).index_add_(0, dst, alpha[..., None] * z[src])
+        out = out.reshape(n, -1) if self.concat else out.mean(1)
+        return out + self.bias
 
 
-class DeepGraphComorbidityGNN:
-    """Mạng Nơ-ron Đồ thị (GCN) dự đoán mức độ rủi ro liên kết bệnh đồng mắc."""
+class GAT(nn.Module):
+    def __init__(self, d=500, h=8, c=3, heads=8, p=0.6):
+        super().__init__()
+        self.g1 = GATLayer(d, h, heads, True, p)
+        self.g2 = GATLayer(h * heads, c, 8, False, p)
+        self.p = p
 
-    def __init__(self, node_dim: int = 8, hidden_dim: int = 16):
-        self.nodes = COMORBIDITY_NODES
-        self.num_nodes = len(self.nodes)
-        self.node_to_idx = {name: i for i, name in enumerate(self.nodes)}
+    def forward(self, x, g):
+        x = F.dropout(x, self.p, self.training)
+        x = F.elu(self.g1(x, g["edge_index"]))
+        return self.g2(F.dropout(x, self.p, self.training), g["edge_index"])
 
-        # Khởi tạo ma trận kề gốc giữa các bệnh lý dựa trên dịch tễ y khoa
-        self.adj = np.zeros((self.num_nodes, self.num_nodes), dtype=np.float64)
-        # Các liên kết y học giữa các bệnh lý
-        edges = [
-            ("Type2_Diabetes", "Hypertension", 0.85),
-            ("Type2_Diabetes", "Diabetic_Nephropathy", 0.90),
-            ("Type2_Diabetes", "Diabetic_Retinopathy", 0.92),
-            ("Type2_Diabetes", "Dyslipidemia", 0.80),
-            ("Type2_Diabetes", "Coronary_Heart_Disease", 0.78),
-            ("Type2_Diabetes", "Metabolic_Syndrome", 0.95),
-            ("Hypertension", "Coronary_Heart_Disease", 0.88),
-            ("Hypertension", "Diabetic_Nephropathy", 0.82),
-            ("Dyslipidemia", "Coronary_Heart_Disease", 0.85),
-            ("Metabolic_Syndrome", "Hypertension", 0.90),
-        ]
-        for src, dst, w in edges:
-            i, j = self.node_to_idx[src], self.node_to_idx[dst]
-            self.adj[i, j] = w
-            self.adj[j, i] = w
 
-        # Khởi tạo trọng số các lớp GCN
-        rng = np.random.default_rng(42)
-        self.W0 = rng.normal(0, np.sqrt(2.0 / node_dim), (node_dim, hidden_dim))
-        self.W1 = rng.normal(0, np.sqrt(2.0 / hidden_dim), (hidden_dim, 8))
+class PubmedGraphClassifier:
+    def __init__(self):
+        data = np.load(GRAPH_PATH, allow_pickle=False)
+        self.ids = [str(i) for i in data["ids"]]
+        self.index = {p: i for i, p in enumerate(self.ids)}
+        self.y, self.vocab = data["y"], [str(v) for v in data["vocab"]]
+        self.X = torch.tensor(data["X"].astype(np.float32))
+        E = data["E"]
+        n = len(self.ids)
+        src = np.concatenate([E[0], E[1], np.arange(n)])
+        dst = np.concatenate([E[1], E[0], np.arange(n)])
+        self.edge_index = torch.tensor(np.stack([src, dst]), dtype=torch.long)
+        ckpt = torch.load(MODEL_PATH, map_location="cpu")
+        self.test_idx = set(ckpt["test_idx"].tolist())
+        self.model = GAT()
+        self.model.load_state_dict(ckpt["state"])
+        self.model.eval()
+        with torch.no_grad():
+            self.prob = F.softmax(self.model(self.X, {"edge_index": self.edge_index}), 1).numpy()
+        # trọng số chú ý của tầng 1 (trung bình 8 đầu) cho từng cạnh u → v
+        self.alpha = self.model.g1.alpha.mean(1).numpy()
+        self.src, self.dst = src, dst
 
-    def _normalize_adjacency(self, A: np.ndarray) -> np.ndarray:
-        """Chuẩn hóa ma trận kề thêm tự khuyên (Self-loops): D^(-1/2) * (A + I) * D^(-1/2)"""
-        A_tilde = A + np.eye(A.shape[0])
-        d = np.sum(A_tilde, axis=1)
-        d_inv_sqrt = np.zeros_like(d)
-        mask = d > 0
-        d_inv_sqrt[mask] = 1.0 / np.sqrt(d[mask])
-        D_inv_sqrt = np.diag(d_inv_sqrt)
-        return D_inv_sqrt @ A_tilde @ D_inv_sqrt
-
-    def forward(self, patient_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Nạp đặc trưng bệnh nhân vào nút 'Patient', gắn cạnh tạm thời và chạy 2 lớp GCN
-        """
-        # Khởi tạo ma trận đặc trưng nút H (num_nodes x node_dim)
-        H = np.zeros((self.num_nodes, 8), dtype=np.float64)
-
-        # Trích xuất đặc trưng cho nút Patient (chỉ số BMI, Đường huyết, Huyết áp, Tuổi, ...)
-        bmi = float(patient_data.get("BMI", 22.0))
-        glucose = float(patient_data.get("Glucose", 110.0))
-        hba1c = float(patient_data.get("HbA1c", 5.6))
-        bp = float(patient_data.get("HighBP", 0))
-        chol = float(patient_data.get("HighChol", 0))
-        age = float(patient_data.get("Age", 5))
-
-        H[0] = [
-            (bmi - 18.0) / 15.0,
-            (glucose - 70.0) / 150.0,
-            (hba1c - 4.0) / 8.0,
-            bp,
-            chol,
-            (age - 1) / 12.0,
-            float(patient_data.get("FamilyHistory", 0)),
-            float(patient_data.get("Smoker", 0))
-        ]
-
-        # Khởi tạo vector đặc trưng cho các nút bệnh lý khác
-        for i in range(1, self.num_nodes):
-            H[i, i % 8] = 1.0
-
-        # Cập nhật cạnh động từ Patient đến các bệnh lý đã có biểu hiện
-        A_dynamic = self.adj.copy()
-        if glucose >= 126 or hba1c >= 6.5:
-            A_dynamic[0, 1] = A_dynamic[1, 0] = 0.95
-        elif glucose >= 100 or hba1c >= 5.7:
-            A_dynamic[0, 1] = A_dynamic[1, 0] = 0.65
+    def paper(self, pid: Optional[str] = None, seed: Optional[int] = None) -> Dict[str, Any]:
+        if pid is None:
+            rng = np.random.default_rng(seed)
+            i = int(rng.choice(sorted(self.test_idx)))
         else:
-            A_dynamic[0, 1] = A_dynamic[1, 0] = 0.20
-
-        if bp == 1:
-            A_dynamic[0, 2] = A_dynamic[2, 0] = 0.90
-        if chol == 1:
-            A_dynamic[0, 5] = A_dynamic[5, 0] = 0.85
-        if bmi >= 25.0:
-            A_dynamic[0, 7] = A_dynamic[7, 0] = 0.88
-
-        # Lan truyền GCN Lớp 1: H1 = ReLU(A_norm @ H @ W0)
-        A_norm = self._normalize_adjacency(A_dynamic)
-        Z1 = A_norm @ H @ self.W0
-        H1 = np.maximum(0.0, Z1)
-
-        # Lan truyền GCN Lớp 2: H2 = ReLU(A_norm @ H1 @ W1)
-        Z2 = A_norm @ H1 @ self.W1
-        H2 = np.maximum(0.0, Z2)
-
-        # Tính toán xác suất liên kết Comorbidity Link Prediction giữa Patient (node 0) và các bệnh (node j)
-        patient_emb = H2[0]
-        comorbidity_risks = []
-
-        for j in range(1, self.num_nodes):
-            disease_name = self.nodes[j]
-            disease_emb = H2[j]
-            # Tính tương đồng Cosine giữa vector nhúng
-            dot = np.dot(patient_emb, disease_emb)
-            norm = (np.linalg.norm(patient_emb) * np.linalg.norm(disease_emb)) + 1e-8
-            sim = float(dot / norm)
-            # Sigmoid scaling
-            link_prob = float(1.0 / (1.0 + np.exp(-3.5 * (sim - 0.25))))
-
-            comorbidity_risks.append({
-                "comorbidity": disease_name,
-                "risk_score": round(link_prob, 3),
-                "risk_level": "Rất cao" if link_prob >= 0.70 else ("Cao" if link_prob >= 0.45 else "Thấp"),
-                "graph_degree_centrality": round(float(np.sum(A_dynamic[j]) / (self.num_nodes - 1)), 2)
-            })
-
-        comorbidity_risks.sort(key=lambda x: x["risk_score"], reverse=True)
-
+            if pid not in self.index:
+                raise KeyError(pid)
+            i = self.index[pid]
+        mask = (self.dst == i) & (self.src != i)
+        nbrs = sorted(zip(self.src[mask], self.alpha[mask]), key=lambda t: -t[1])[:8]
+        terms = [self.vocab[j] for j in np.argsort(-self.X[i].numpy())[:8] if self.X[i, j] > 0]
         return {
-            "model_type": "2-Layer Spectral Graph Convolutional Network (GCN)",
-            "graph_nodes_count": self.num_nodes,
-            "patient_embedding_norm": round(float(np.linalg.norm(patient_emb)), 3),
-            "predicted_comorbidities": comorbidity_risks
+            "paper_id": self.ids[i], "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{self.ids[i]}/",
+            "in_test_set": i in self.test_idx, "true_label": CLASSES[int(self.y[i])],
+            "predicted_label": CLASSES[int(self.prob[i].argmax())],
+            "probabilities": {c: round(float(p), 4) for c, p in zip(CLASSES, self.prob[i])},
+            "top_terms": terms, "degree": int(mask.sum()),
+            "neighbors": [{"paper_id": self.ids[j], "attention": round(float(a), 4),
+                           "label": CLASSES[int(self.y[j])]} for j, a in nbrs],
         }
+
+
+@lru_cache(maxsize=1)
+def get_pubmed_classifier() -> Optional[PubmedGraphClassifier]:
+    return PubmedGraphClassifier() if MODEL_PATH.exists() and GRAPH_PATH.exists() else None

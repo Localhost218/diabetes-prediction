@@ -1,86 +1,103 @@
 """
-Chương 4: Mạng Nơ-ron Tái phát (Recurrent Neural Network - RNN / LSTM)
-Ứng dụng trong Phân tích Chuỗi thời gian Đường huyết Liên tục (Continuous Glucose Monitoring - CGM)
-Phát hiện:
-  - TIR (Time in Range: 70 - 180 mg/dL - Chuẩn ADA khuyến cáo > 70%)
-  - TAR (Time Above Range: > 180 mg/dL - Nguy cơ tăng đường huyết)
-  - TBR (Time Below Range: < 70 mg/dL - Nguy cơ hạ đường huyết cấp tính)
-  - CV (Coefficient of Variation - Độ biến thiên đường huyết, khuyến cáo < 36%)
+Chương 4: Mạng nơ-ron hồi quy cho chuỗi đường huyết liên tục (CGM).
+
+- Chỉ số CGM theo đồng thuận quốc tế về Time in Range (2019): TIR 70–180 mg/dL > 70%, TBR < 70 mg/dL < 4%,
+  TAR > 180 mg/dL < 25%, CV ≤ 36%.
+- Dự báo glucose sau 15/30/45/60 phút bằng mô hình hồi quy (LSTM/GRU) huấn luyện trên ShanghaiT1DM/T2DM
+  (lab/ch4_rnn.py → data/models/ch4_glucose_rnn.pt). Đầu vào: 12 điểm gần nhất cách nhau 15 phút.
 """
 
+from datetime import datetime
+from functools import lru_cache
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from typing import Dict, Any, List, Optional
+import torch
+import torch.nn as nn
+
+from src.config import BASE_DIR
+
+MODEL_PATH = BASE_DIR / "data" / "models" / "ch4_glucose_rnn.pt"
+
+
+class SeqModel(nn.Module):
+    """Mỗi bước: [glucose chuẩn hóa, sin(giờ), cos(giờ)] → RNN/LSTM/GRU → trạng thái ẩn cuối → Linear(horizon).
+    Dự báo phần chênh so với điểm cuối (residual)."""
+
+    def __init__(self, cell: str = "lstm", hidden: int = 64, layers: int = 1, horizon: int = 4):
+        super().__init__()
+        rnn = {"rnn": nn.RNN, "lstm": nn.LSTM, "gru": nn.GRU}[cell]
+        self.rnn = rnn(3, hidden, num_layers=layers, batch_first=True, dropout=0.2 if layers > 1 else 0.0)
+        self.head = nn.Linear(hidden, horizon)
+
+    def forward(self, x):
+        out, _ = self.rnn(x)
+        return x[:, -1:, 0] + self.head(out[:, -1])
+
+
+class GlucoseForecaster:
+    def __init__(self, path=MODEL_PATH):
+        ckpt = torch.load(path, map_location="cpu", weights_only=False)
+        self.cell, self.mu, self.sd = ckpt["cell"], ckpt["mu"], ckpt["sd"]
+        self.lookback, self.horizon = ckpt["lookback"], ckpt["horizon"]
+        self.model = SeqModel(ckpt["cell"], 64, ckpt["layers"], ckpt["horizon"])
+        self.model.load_state_dict(ckpt["state"])
+        self.model.eval()
+
+    def forecast(self, series: List[float], last_hour: float) -> List[float]:
+        """series: ≥ lookback điểm (mg/dL) cách nhau 15 phút; last_hour: giờ của điểm cuối (0–24)."""
+        x = np.asarray(series[-self.lookback:], dtype=np.float32)
+        g = (x - self.mu) / self.sd
+        # như lúc huấn luyện: giờ của điểm cuối được lặp lại ở mọi bước của cửa sổ
+        ang = np.full(self.lookback, 2 * np.pi * (last_hour % 24) / 24)
+        feats = np.stack([g, np.sin(ang), np.cos(ang)], -1)[None].astype(np.float32)
+        with torch.no_grad():
+            out = self.model(torch.from_numpy(feats))[0].numpy() * self.sd + self.mu
+        return [round(float(v), 1) for v in out]
+
+
+@lru_cache(maxsize=1)
+def get_forecaster() -> Optional[GlucoseForecaster]:
+    return GlucoseForecaster() if MODEL_PATH.exists() else None
+
+
+def cgm_metrics(series: List[float]) -> Dict[str, Any]:
+    v = np.asarray(series, dtype=float)
+    mean, cv = float(v.mean()), float(v.std() / max(v.mean(), 1e-6) * 100)
+    tir = float(((v >= 70) & (v <= 180)).mean() * 100)
+    tar, tbr = float((v > 180).mean() * 100), float((v < 70).mean() * 100)
+    if tbr > 4:
+        status = "CẢNH BÁO: thời gian dưới 70 mg/dL > 4% — nguy cơ hạ đường huyết"
+    elif tar > 25 or mean > 160:
+        status = "CẢNH BÁO: thời gian trên 180 mg/dL > 25% — kiểm soát kém"
+    elif cv > 36:
+        status = "BẤT ỔN ĐỊNH: hệ số biến thiên > 36%"
+    else:
+        status = "ỔN ĐỊNH"
+    return {"n_points": int(len(v)), "mean_glucose_mg_dl": round(mean, 1),
+            "estimated_hba1c": round((mean + 46.7) / 28.7, 2),  # công thức eAG (ADAG)
+            "tir_percentage": round(tir, 1), "tar_percentage": round(tar, 1), "tbr_percentage": round(tbr, 1),
+            "cv_variability_percentage": round(cv, 1), "trajectory_status": status}
 
 
 class RNNTemporalEngine:
-    """Mô hình RNN/LSTM dự báo xu hướng chuỗi thời gian đường huyết và phân tích bất ổn định chuyển hóa."""
+    """Giao diện dùng bởi PredictionAgent: chỉ số CGM (tính thật) + dự báo bằng mô hình hồi quy đã huấn luyện."""
 
-    def __init__(self, hidden_dim: int = 32):
-        self.hidden_dim = hidden_dim
-        # Khởi tạo trọng số recurrent cell
-        rng = np.random.default_rng(42)
-        self.W_x = rng.normal(0, 0.2, (1, hidden_dim))
-        self.W_h = rng.normal(0, 0.2, (hidden_dim, hidden_dim))
-        self.b_h = np.zeros(hidden_dim)
-        self.W_out = rng.normal(0, 0.2, (hidden_dim, 1))
-        self.b_out = np.zeros(1)
-
-    def analyze_glucose_trajectory(self, glucose_series: Optional[List[float]] = None, baseline_glucose: float = 120.0) -> Dict[str, Any]:
-        """
-        Nếu người dùng cung cấp chuỗi đường huyết 7-14 ngày gần nhất;
-        Nếu không, sinh chuỗi nội suy thực nghiệm dựa trên baseline_glucose.
-        """
-        rng = np.random.default_rng(42)
-        if glucose_series is None or len(glucose_series) < 5:
-            # Mô phỏng chuỗi 14 ngày đo đường huyết đói và sau ăn
-            n_points = 28
-            trend = np.linspace(0, (baseline_glucose - 100) * 0.25, n_points)
-            noise = rng.normal(0, 14.0, n_points)
-            glucose_series = list(np.clip(baseline_glucose + trend + noise, 55.0, 320.0).round(1))
-
-        series_arr = np.array(glucose_series, dtype=np.float64)
-        mean_glucose = float(np.mean(series_arr))
-        std_glucose = float(np.std(series_arr))
-        cv_percent = float((std_glucose / (mean_glucose + 1e-6)) * 100.0)
-
-        # Tính toán các chỉ số chuẩn ADA CGM
-        in_range_count = np.sum((series_arr >= 70.0) & (series_arr <= 180.0))
-        above_range_count = np.sum(series_arr > 180.0)
-        below_range_count = np.sum(series_arr < 70.0)
-        total_pts = len(series_arr)
-
-        tir = round(float(in_range_count / total_pts * 100.0), 1)
-        tar = round(float(above_range_count / total_pts * 100.0), 1)
-        tbr = round(float(below_range_count / total_pts * 100.0), 1)
-
-        # Chạy RNN Forward Pass để dự báo điểm kế tiếp
-        h_t = np.zeros(self.hidden_dim)
-        norm_series = (series_arr - 100.0) / 50.0
-
-        for val in norm_series:
-            x_in = np.array([[val]])
-            h_t = np.tanh(x_in @ self.W_x + h_t @ self.W_h + self.b_h)[0]
-
-        pred_delta = float((h_t @ self.W_out + self.b_out)[0])
-        forecast_next = round(float(series_arr[-1] + pred_delta * 12.0), 1)
-
-        # Đánh giá cảnh báo
-        alert = "ỔN ĐỊNH"
-        if tbr > 4.0:
-            alert = "CẢNH BÁO NGUY HIỂM: Nguy cơ hạ đường huyết cấp tính (TBR > 4%)"
-        elif tar > 25.0 or mean_glucose > 160.0:
-            alert = "CẢNH BÁO: Đường huyết liên tục ở mức cao (TAR > 25%), kiểm soát kém"
-        elif cv_percent > 36.0:
-            alert = "BẤT ỔN ĐỊNH: Dao động đường huyết quá mức (CV > 36%), nguy cơ biến chứng vi mạch"
-
-        return {
-            "mean_glucose_mg_dl": round(mean_glucose, 1),
-            "estimated_hba1c": round((mean_glucose + 46.7) / 28.7, 2),
-            "tir_percentage": tir,
-            "tar_percentage": tar,
-            "tbr_percentage": tbr,
-            "cv_variability_percentage": round(cv_percent, 1),
-            "forecast_next_glucose": forecast_next,
-            "trajectory_status": alert,
-            "glucose_history_sample": [round(float(x), 1) for x in series_arr[-10:]]
-        }
+    def analyze_glucose_trajectory(self, glucose_series: List[float],
+                                   last_time: Optional[datetime] = None) -> Dict[str, Any]:
+        result = cgm_metrics(glucose_series)
+        result["glucose_history_sample"] = [round(float(x), 1) for x in glucose_series[-10:]]
+        fc = get_forecaster()
+        if fc is None or len(glucose_series) < fc.lookback:
+            result["forecast"] = None
+            result["forecast_note"] = (f"Cần ≥ {fc.lookback if fc else 12} điểm đo cách nhau 15 phút để dự báo"
+                                       if fc else "Chưa có mô hình dự báo (chạy lab/ch4_rnn.py)")
+            return result
+        hour = (last_time or datetime.now()).hour + (last_time or datetime.now()).minute / 60
+        pred = fc.forecast(glucose_series, hour)
+        result["forecast"] = [{"minutes": 15 * (i + 1), "glucose_mg_dl": p} for i, p in enumerate(pred)]
+        result["forecast_next_glucose"] = pred[0]
+        result["forecast_model"] = fc.cell.upper()
+        result["forecast_note"] = ("Dự báo giả định các lần đo cách nhau 15 phút như dữ liệu huấn luyện "
+                                   "(RMSE ≈ 14 mg/dL ở 30 phút trên bệnh nhân chưa gặp)")
+        return result

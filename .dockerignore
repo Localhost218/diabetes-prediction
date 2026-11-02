@@ -8,3 +8,8 @@ data/local_storage
 notebooks
 figures
 data/nhanes/raw
+.venv-gpu
+.git
+lab/data
+report
+*.pdf

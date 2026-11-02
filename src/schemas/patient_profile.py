@@ -80,7 +80,7 @@ class PatientProfile(BaseModel):
     fields: Dict[str, FieldValue] = Field(default_factory=dict)
     glucose_history: Optional[List[float]] = None  # chuỗi glucose (mg/dL) cho RNN
     glucose_history_source: Optional[str] = None
-    fundus_features: Optional[Dict[str, float]] = None  # đặc trưng ảnh đáy mắt cho CNN
+    fundus_features: Optional[Dict[str, Any]] = None  # {"image_b64": ...} ảnh đáy mắt cho CNN
     conflicts: List[Conflict] = Field(default_factory=list)
 
     # ---------- truy cập ----------

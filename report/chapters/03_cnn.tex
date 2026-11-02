@@ -1,0 +1,268 @@
+\chapter{Mạng nơ-ron tích chập (CNN)}
+\label{chap:cnn}
+
+Bệnh võng mạc đái tháo đường (DR) là nguyên nhân hàng đầu gây mù lòa ở người trong độ tuổi lao động. ADA khuyến cáo khám đáy mắt ngay khi chẩn đoán ĐTĐ típ 2 và định kỳ 1–2 năm sau đó \cite{ada2024}. Năm 2016, Gulshan và cộng sự \cite{gulshan2016} cho thấy một CNN có thể phát hiện DR từ ảnh đáy mắt với độ nhạy ngang bác sĩ nhãn khoa. Chương này phân tích cấu trúc của CNN theo từng lớp, gồm phép tích chập, hàm kích hoạt, gộp, chuẩn hóa theo lô, dropout và lớp phân loại. Sau đó chương huấn luyện bốn mô hình phân độ DR trên bộ RetinaMNIST.
+
+\section{Động lực của CNN}
+
+Một ảnh RGB 128×128 có 49.152 giá trị. Nếu nối thẳng vào một lớp kết nối đầy đủ 512 nơ-ron, riêng lớp đầu đã cần 25 triệu trọng số. Quan trọng hơn, cách làm này \emph{bỏ qua cấu trúc không gian}: dịch ảnh sang phải một điểm ảnh, vector đầu vào thay đổi hoàn toàn. CNN dựa trên ba quan sát về ảnh tự nhiên, lấy cảm hứng từ các tế bào thị giác có trường tiếp nhận cục bộ mà Hubel và Wiesel mô tả \cite{hubel1962}:
+\begin{itemize}
+  \item \textbf{Kết nối cục bộ}: một đặc trưng (cạnh mạch máu, chấm xuất huyết) chỉ phụ thuộc vào vùng lân cận nhỏ.
+  \item \textbf{Chia sẻ trọng số}: bộ dò ``vi phình mạch'' hữu ích ở mọi vị trí trên ảnh, nên dùng chung một bộ lọc. Phép tích chập vì thế \emph{đẳng biến với phép tịnh tiến}.
+  \item \textbf{Phân cấp}: cạnh → hình dạng → tổn thương → chẩn đoán. Các lớp sâu tổ hợp đặc trưng của lớp nông.
+\end{itemize}
+LeNet-5 (1998) \cite{lecun1998} là CNN thương mại đầu tiên. AlexNet (2012) \cite{krizhevsky2012} mở ra kỷ nguyên học sâu nhờ ReLU, dropout và GPU.
+
+\section{Các lớp của CNN}
+
+\subsection{Lớp tích chập}
+
+Với đầu vào $\mathbf X\in\mathbb R^{C_{in}\times H\times W}$ và $C_{out}$ bộ lọc $\mathbf K^{(o)}\in\mathbb R^{C_{in}\times k\times k}$, bản đồ đặc trưng đầu ra tại kênh $o$, vị trí $(i,j)$ là:
+\begin{equation}
+\mathbf Y_{o,i,j} = b_o + \sum_{c=1}^{C_{in}}\sum_{u=0}^{k-1}\sum_{v=0}^{k-1} \mathbf K^{(o)}_{c,u,v}\ \mathbf X_{c,\ s i + u - p,\ s j + v - p},
+\label{eq:conv}
+\end{equation}
+với $s$ là bước trượt (stride) và $p$ là số điểm ảnh đệm (padding). Thư viện học sâu thực chất tính \emph{tương quan chéo} (không lật bộ lọc), nhưng vẫn gọi là tích chập. Kích thước đầu ra là
+\begin{equation}
+H_{out} = \left\lfloor \frac{H + 2p - k}{s}\right\rfloor + 1 ,
+\label{eq:convsize}
+\end{equation}
+nên bộ lọc 3×3 với $p=1, s=1$ giữ nguyên kích thước (đệm ``same''). Số tham số là $C_{out}(C_{in}k^2 + 1)$, \emph{không phụ thuộc kích thước ảnh}. Đó là lợi thế quyết định so với MLP.
+
+\textbf{Ví dụ tính tay.} Ảnh xám 4×4 và bộ lọc dò cạnh dọc 3×3, $s=1$, không đệm, cho đầu ra 2×2:
+\[
+\mathbf X=\begin{bmatrix}1&1&0&0\\1&1&0&0\\1&1&0&0\\1&1&0&0\end{bmatrix},\quad
+\mathbf K=\begin{bmatrix}1&0&-1\\1&0&-1\\1&0&-1\end{bmatrix}
+\ \Rightarrow\
+\mathbf Y=\begin{bmatrix}3&3\\3&3\end{bmatrix}.
+\]
+Phần tử $\mathbf Y_{0,0} = (1+1+1)\cdot 1 + (1+1+1)\cdot 0 + (0+0+0)\cdot(-1) = 3$. Bộ lọc phản hồi mạnh ở nơi cường độ chuyển từ sáng sang tối theo chiều ngang, tức là một cạnh dọc. Trong ảnh đáy mắt, các bộ lọc lớp đầu học được tương tự để bắt mép mạch máu và rìa đĩa thị.
+
+\subsection{Hàm kích hoạt}
+
+Nếu không có hàm phi tuyến, chồng nhiều lớp tích chập vẫn chỉ là một phép tuyến tính. ReLU $f(z)=\max(0,z)$ có đạo hàm bằng 1 khi $z>0$, nên tránh được bão hòa gradient của sigmoid và tính rất rẻ. Một số biến thể: Leaky ReLU (độ dốc nhỏ khi $z<0$); hard-swish $z\cdot\mathrm{ReLU6}(z+3)/6$, xấp xỉ rẻ của swish, dùng trong MobileNetV3 \cite{howard2019}.
+
+\subsection{Lớp gộp}
+
+Gộp cực đại (max pooling) 2×2, bước 2, lấy giá trị lớn nhất trong mỗi ô: $\mathbf Y_{c,i,j}=\max_{u,v\in\{0,1\}}\mathbf X_{c,2i+u,2j+v}$. Lớp này giảm một nửa kích thước mỗi chiều, không có tham số, và tạo tính bất biến cục bộ với dịch chuyển nhỏ. Khi lan truyền ngược, gradient chỉ đi qua vị trí đạt cực đại. \emph{Gộp trung bình toàn cục} (GAP) lấy trung bình cả bản đồ $H\times W$ thành một số cho mỗi kênh. GAP thay cho việc ``làm phẳng'' trước lớp phân loại, giảm mạnh số tham số và cho phép đầu vào có kích thước tùy ý.
+
+\subsection{Chuẩn hóa theo lô}
+
+Batch Normalization \cite{ioffe2015} chuẩn hóa từng kênh theo thống kê của lô $\mathcal B$, rồi cho mạng học lại thang đo $\gamma$ và độ dời $\beta$:
+\begin{equation}
+\hat x = \frac{x - \mu_{\mathcal B}}{\sqrt{\sigma^2_{\mathcal B}+\epsilon}},\qquad y = \gamma\hat x + \beta .
+\label{eq:bn}
+\end{equation}
+Khi suy luận, $\mu$ và $\sigma^2$ được thay bằng trung bình động tích lũy lúc huấn luyện. BN giúp dùng được tốc độ học lớn hơn, giảm nhạy cảm với khởi tạo, và có tác dụng điều chuẩn nhẹ. Vì $\beta$ đã đóng vai trò độ lệch, lớp tích chập đứng trước BN không cần bias (\texttt{bias=False}).
+
+\subsection{Dropout, lớp kết nối đầy đủ và softmax}
+
+Dropout \cite{srivastava2014} tắt ngẫu nhiên mỗi nơ-ron với xác suất $p$ khi huấn luyện, buộc mạng không phụ thuộc vào một vài đặc trưng; lúc suy luận dùng toàn bộ mạng. Lớp cuối là một phép biến đổi tuyến tính $\mathbf z = \mathbf W\mathbf h + \mathbf b$ cho ra $K=5$ \emph{logit}, đưa qua softmax $p_k = e^{z_k}/\sum_j e^{z_j}$ để có phân phối xác suất trên 5 mức DR.
+
+\subsection{Hàm mất mát và huấn luyện}
+
+Hàm mất mát là entropy chéo có trọng số lớp và làm mịn nhãn (label smoothing) \cite{szegedy2016}:
+\begin{equation}
+\begin{gathered}
+\mathcal L = -\frac{1}{\sum_i w_{y_i}}\sum_{i} w_{y_i}\sum_{k=1}^{K} \tilde y_{ik}\log p_{ik}, \\
+\tilde y_{ik} = (1-\varepsilon)\,\mathbb 1[k=y_i] + \frac{\varepsilon}{K},\qquad w_c = \frac{N}{K\,N_c}.
+\end{gathered}
+\label{eq:ce}
+\end{equation}
+Trọng số $w_c$ tỉ lệ nghịch với số mẫu của lớp $c$, bù cho lệch lớp nặng của dữ liệu. Làm mịn nhãn với $\varepsilon=0{,}05$ ngăn mô hình quá tự tin. Điều này hợp lý vì ranh giới giữa hai mức DR liền kề vốn không rõ ràng ngay cả với chuyên gia. Gradient của $\mathcal L$ theo logit có dạng rất gọn, $\partial\mathcal L/\partial z_k = p_k - \tilde y_k$ (với một mẫu). Gradient này lan ngược qua các lớp bằng quy tắc chuỗi. Gradient theo bộ lọc tích chập chính là tương quan chéo giữa đầu vào và gradient đầu ra, nên cũng tính được bằng một phép tích chập. Tối ưu bằng AdamW \cite{loshchilov2019}, tức Adam với suy giảm trọng số tách rời, cùng lịch học cosine.
+
+\subsection{Tăng cường dữ liệu và học chuyển giao}
+
+Với vài nghìn ảnh, CNN rất dễ quá khớp. \emph{Tăng cường dữ liệu} tạo biến thể hợp lệ của ảnh ở mỗi epoch. Ảnh đáy mắt không có hướng ``trên–dưới'' cố định, nên lật ngang, lật dọc, xoay ±20° và thay đổi độ sáng/độ tương phản đều giữ nguyên nhãn. \emph{Học chuyển giao} khởi tạo mạng bằng trọng số đã học trên ImageNet \cite{deng2009} (1,28 triệu ảnh). Các lớp đầu đã biết dò cạnh và kết cấu, chỉ cần thay lớp phân loại 1000 lớp bằng lớp 5 lớp rồi tinh chỉnh toàn mạng với tốc độ học nhỏ.
+
+\subsection{Các kiến trúc tiêu biểu}
+
+\begin{table}[H]
+\centering
+\caption{Các kiến trúc CNN tiêu biểu}
+\label{tab:cnn-arch}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.6cm}cL{2.0cm}Y@{}}
+\toprule
+\textbf{Kiến trúc (năm)} & \textbf{Số lớp} & \textbf{Tham số} & \textbf{Ý tưởng chính} \\
+\midrule
+LeNet-5 (1998) \cite{lecun1998} & 7 & 60 nghìn & Conv–pool xen kẽ, đọc chữ số trên séc \\
+AlexNet (2012) \cite{krizhevsky2012} & 8 & 60 triệu & ReLU, dropout, huấn luyện trên GPU \\
+VGG-16 (2014) \cite{simonyan2015} & 16 & 138 triệu & Chỉ dùng conv 3×3 xếp chồng \\
+ResNet (2015) \cite{he2016} & 18–152 & 11–60 triệu & Kết nối tắt $\mathbf y = \mathcal F(\mathbf x) + \mathbf x$ \\
+MobileNetV3 (2019) \cite{howard2019} & -- & 5,4 triệu & Tích chập tách sâu, khối SE, hard-swish \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{ResNet} giải quyết hiện tượng \emph{suy thoái}: mạng sâu hơn lại cho lỗi huấn luyện cao hơn. Mỗi khối học phần dư $\mathcal F(\mathbf x)$ thay vì ánh xạ đầy đủ, và cộng với đầu vào qua kết nối tắt. Đạo hàm $\partial\mathbf y/\partial\mathbf x = \partial\mathcal F/\partial\mathbf x + \mathbf I$ luôn chứa thành phần đơn vị, nên gradient truyền thẳng về các lớp đầu. ResNet-18 gồm một lớp conv 7×7, bốn tầng (mỗi tầng 2 khối cơ sở, mỗi khối 2 conv 3×3 + BN + ReLU, số kênh 64 → 128 → 256 → 512), rồi GAP và FC.
+\textbf{MobileNetV3} tách tích chập chuẩn thành \emph{depthwise} (mỗi kênh một bộ lọc $k\times k$) và \emph{pointwise} (conv 1×1 trộn kênh). Chi phí giảm khoảng $1/C_{out}+1/k^2$ lần. Khối \emph{squeeze-and-excitation} học trọng số cho từng kênh. Kiến trúc này được thiết kế cho thiết bị di động, phù hợp với máy chủ chỉ có CPU.
+
+\subsection{Giải thích bằng Grad-CAM}
+
+Trong y tế, một dự đoán cần đi kèm lý do. Grad-CAM \cite{selvaraju2017} tính tầm quan trọng của kênh $k$ ở lớp tích chập cuối đối với lớp $c$ bằng trung bình gradient, rồi tổng hợp có trọng số các bản đồ đặc trưng:
+\begin{equation}
+\begin{gathered}
+\alpha_k^c = \frac{1}{HW}\sum_{i,j}\frac{\partial z_c}{\partial A^k_{ij}}, \\
+L^c_{\text{Grad-CAM}} = \mathrm{ReLU}\Big(\sum_k \alpha_k^c A^k\Big).
+\end{gathered}
+\label{eq:gradcam}
+\end{equation}
+Bản đồ nhiệt được nội suy về kích thước ảnh và phủ lên ảnh gốc, cho thấy vùng nào ``thuyết phục'' mô hình chọn mức $c$.
+
+\section{Dữ liệu RetinaMNIST}
+
+RetinaMNIST thuộc bộ MedMNIST v2 \cite{yang2023medmnist}, được tạo từ bộ dữ liệu của cuộc thi DeepDRiD (ISBI 2020) \cite{liu2022deepdrid}. Mỗi ảnh đáy mắt được bác sĩ phân độ theo thang quốc tế ICDR \cite{wilkinson2003}: 0 – không DR; 1 – nhẹ (chỉ có vi phình mạch); 2 – trung bình; 3 – nặng; 4 – tăng sinh (tân mạch).
+
+\begin{itemize}
+  \item \textbf{Nguồn}: \weburl{https://medmnist.com}; tệp \texttt{retinamnist\_128.npz} tại Zenodo \weburl{https://zenodo.org/records/10519652}. Giấy phép CC BY 4.0.
+  \item \textbf{Kích thước}: 1.600 ảnh RGB 128×128, chia sẵn 1.080 / 120 / 400 (train/val/test); tệp nén 46 MB.
+  \item \textbf{Định dạng}: mảng \texttt{uint8} dạng $N\times128\times128\times3$, nhãn số nguyên 0–4.
+\end{itemize}
+
+\figw[0.95\linewidth]{ch3_samples}{Ba ảnh mẫu của mỗi mức DR trong RetinaMNIST}
+
+\figw[0.82\linewidth]{ch3_distribution}{Phân bố nhãn theo tập: lớp 0 chiếm 45\%, lớp 4 chỉ 5\%}
+
+\begin{table}[H]
+\centering
+\caption{Số ảnh theo mức DR và trọng số lớp dùng trong hàm mất mát}
+\label{tab:retina-dist}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+\textbf{Tập} & \textbf{Mức 0} & \textbf{Mức 1} & \textbf{Mức 2} & \textbf{Mức 3} & \textbf{Mức 4} & \textbf{Tổng} \\
+\midrule
+Train & 486 & 128 & 206 & 194 & 66 & 1.080 \\
+Validation & 54 & 12 & 28 & 20 & 6 & 120 \\
+Test & 174 & 46 & 92 & 68 & 20 & 400 \\
+\midrule
+Trọng số $w_c$ & 0,44 & 1,69 & 1,05 & 1,11 & 3,27 & \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Nhận xét.} (i) \emph{Lệch lớp nặng}: mức 0 chiếm 45\%, mức 4 (nguy hiểm nhất) chỉ 6\% tập train. Một mô hình luôn đoán ``mức 0'' đã đạt accuracy 43,5\% trên test. Vì vậy cần các thước đo không bị lớp đa số chi phối: macro-F1, và đặc biệt là \emph{Quadratic Weighted Kappa} (QWK) \cite{cohen1968}. QWK là thước đo chuẩn của các cuộc thi DR. Nó phạt sai số theo bình phương khoảng cách giữa hai mức: nhầm mức 4 thành 0 bị phạt 16 lần nặng hơn nhầm 4 thành 3. (ii) Ảnh có \emph{chất lượng không đồng đều}: nhiều ảnh tối, lệch tâm hoặc bị lóa (\figref{fig:ch3_samples}). Kênh xanh dương rất tối (trung bình 0,145 so với 0,395 của kênh đỏ), đặc trưng của ảnh đáy mắt. (iii) Tổn thương của mức 1 (vi phình mạch) chỉ rộng vài điểm ảnh ở độ phân giải gốc. Khi thu về 128×128, nhiều chi tiết bị mất, nên phân biệt mức 0 với mức 1 rất khó ngay từ dữ liệu. (iv) Tập validation chỉ có 120 ảnh (6 ảnh mức 4), nên việc chọn epoch tốt nhất có phương sai lớn.
+
+\section{Cài đặt}
+
+Bốn mô hình dùng chung tăng cường dữ liệu, hàm mất mát \eq{eq:ce}, AdamW, lịch cosine, kích thước lô 32. Epoch tốt nhất được chọn theo QWK trên validation. Huấn luyện chạy trên GPU RTX 3050; độ trễ suy luận được đo trên CPU, giống môi trường deploy.
+
+\textbf{(1) MLP đối chứng} thu ảnh về 64×64, làm phẳng thành 12.288 chiều, rồi qua các lớp 512 → 128 → 5 (ReLU, dropout 0,3). Mô hình này kiểm chứng việc bỏ qua cấu trúc không gian.
+
+\textbf{(2) CNN tự thiết kế} gồm bốn khối \emph{Conv 3×3 → BN → ReLU → MaxPool 2×2} với số kênh 32 → 64 → 128 → 256, tiếp theo là GAP, dropout 0,4 và FC 5 (\coderef{lst:ch3-cnn}). \tabref{tab:cnn-layers} liệt kê kích thước tensor và số tham số qua từng lớp. Theo \eq{eq:convsize}, đệm 1 giữ kích thước sau mỗi conv, còn mỗi lớp gộp giảm một nửa: 128 → 64 → 32 → 16 → 8. Trường tiếp nhận của một nơ-ron sau khối 4 là 46×46 điểm ảnh, đủ bao một vùng tổn thương.
+
+\begin{code}{CNN tự thiết kế (\texttt{lab/ch3\_cnn.py})}
+\label{lst:ch3-cnn}
+\begin{minted}{python}
+def conv_block(c_in, c_out):
+    """Conv 3×3 (đệm 1, giữ kích thước) → BatchNorm → ReLU → MaxPool 2×2 (giảm một nửa)."""
+    return nn.Sequential(nn.Conv2d(c_in, c_out, 3, padding=1, bias=False), nn.BatchNorm2d(c_out),
+                         nn.ReLU(inplace=True), nn.MaxPool2d(2))
+
+class RetinaCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.features = nn.Sequential(conv_block(3, 32), conv_block(32, 64),
+                                      conv_block(64, 128), conv_block(128, 256))
+        self.head = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.Flatten(),
+                                  nn.Dropout(0.4), nn.Linear(256, 5))
+    def forward(self, x):                       # x: [B, 3, 128, 128]
+        return self.head(self.features(x))      # logits: [B, 5]
+
+# entropy chéo có trọng số lớp + làm mịn nhãn, AdamW + lịch cosine
+loss_fn = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.05)
+opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
+\end{minted}
+\end{code}
+
+\begin{table}[H]
+\centering
+\caption{Kích thước tensor và số tham số qua từng lớp của CNN tự thiết kế}
+\label{tab:cnn-layers}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lllr@{}}
+\toprule
+\textbf{Lớp} & \textbf{Cấu hình} & \textbf{Đầu ra} & \textbf{Tham số} \\
+\midrule
+Đầu vào & ảnh RGB đã chuẩn hóa ImageNet & 3×128×128 & 0 \\
+Khối 1 & Conv 3×3, 32 bộ lọc + BN + ReLU + MaxPool & 32×64×64 & 864 + 64 = 928 \\
+Khối 2 & Conv 3×3, 64 + BN + ReLU + MaxPool & 64×32×32 & 18.432 + 128 = 18.560 \\
+Khối 3 & Conv 3×3, 128 + BN + ReLU + MaxPool & 128×16×16 & 73.728 + 256 = 73.984 \\
+Khối 4 & Conv 3×3, 256 + BN + ReLU + MaxPool & 256×8×8 & 294.912 + 512 = 295.424 \\
+GAP + Dropout(0,4) & trung bình mỗi kênh & 256 & 0 \\
+FC + softmax & $256\times5 + 5$ & 5 & 1.285 \\
+\midrule
+\textbf{Tổng} & & & \textbf{390.181} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Số tham số của conv tính theo $C_{out}\cdot C_{in}\cdot 3\cdot 3$, ví dụ khối 2 có $64\cdot32\cdot9 = 18.432$. BN có 2 tham số học ($\gamma, \beta$) cho mỗi kênh. CNN chỉ có 390 nghìn tham số, \emph{ít hơn MLP 16 lần} (6,36 triệu), dù làm việc trên ảnh có độ phân giải gấp 4 lần.
+
+\textbf{(3) ResNet-18} và \textbf{(4) MobileNetV3-Large} được tải trọng số ImageNet từ torchvision. Lớp phân loại được thay bằng \texttt{Dropout(0,3) + Linear(512, 5)} (ResNet) hoặc \texttt{Linear(1280, 5)} (MobileNet), rồi tinh chỉnh toàn mạng 20 epoch với tốc độ học $3\cdot10^{-4}$ và $5\cdot10^{-4}$. Ảnh được chuẩn hóa bằng trung bình và độ lệch chuẩn của ImageNet, điều bắt buộc để trọng số tiền huấn luyện có nghĩa.
+
+\section{Kết quả và nhận xét}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả phân độ DR trên tập kiểm tra RetinaMNIST (400 ảnh)}
+\label{tab:ch3-results}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrccccrr@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Tham số} & \textbf{Acc.} & \textbf{Macro-F1} & \textbf{QWK} & \textbf{AUC} & \textbf{Huấn luyện} & \textbf{CPU/ảnh} \\
+\midrule
+Đoán toàn mức 0 & 0 & 0,435 & 0,121 & 0,000 & 0,500 & -- & -- \\
+MLP (đối chứng) & 6,36 tr & 0,490 & 0,282 & 0,515 & 0,712 & 16 s & 1,0 ms \\
+CNN tự thiết kế & 0,39 tr & 0,470 & 0,346 & 0,557 & 0,731 & 46 s & 5,2 ms \\
+ResNet-18 (chuyển giao) & 11,18 tr & \textbf{0,578} & \textbf{0,482} & 0,700 & \textbf{0,833} & 34 s & 8,7 ms \\
+MobileNetV3-L (chuyển giao) & 4,21 tr & 0,555 & 0,457 & \textbf{0,710} & 0,766 & 40 s & 17,7 ms \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch3_history}{Loss huấn luyện, accuracy và QWK trên validation theo epoch}
+
+\textbf{Học chuyển giao là yếu tố quyết định.} Hai mô hình tiền huấn luyện vượt xa hai mô hình học từ đầu: QWK 0,70–0,71 so với 0,52–0,56, AUC 0,83 so với 0,73. Với 1.080 ảnh, CNN học từ đầu không đủ dữ liệu để học các bộ lọc tốt. ResNet-18 thừa hưởng các bộ lọc cạnh và kết cấu từ 1,28 triệu ảnh ImageNet, nên chỉ cần 4 epoch để đạt QWK tốt nhất trên validation. Kết quả của ResNet-18 (accuracy 0,578, AUC 0,833) cao hơn mốc chuẩn công bố của MedMNIST v2 cho cùng kiến trúc và độ phân giải: accuracy 0,493 và AUC 0,717 \cite{yang2023medmnist}. Khác biệt chủ yếu đến từ học chuyển giao ImageNet, tăng cường dữ liệu và trọng số lớp. Huấn luyện trên GPU không hoàn toàn tất định: chạy lại cùng hạt giống cho accuracy dao động khoảng ±0,03.
+
+\textbf{Accuracy dễ gây hiểu lầm.} MLP đạt accuracy 0,490, \emph{cao hơn} CNN tự thiết kế (0,470), nhưng macro-F1 chỉ 0,282. Ma trận nhầm lẫn cho thấy MLP dồn 345/400 dự đoán vào hai mức 0 và 3, và không bao giờ dự đoán mức 2 (0/92 ảnh mức 2 đúng). CNN phân bố dự đoán đều hơn trên cả 5 mức. Đây là lý do QWK và macro-F1 là thước đo chính.
+
+\textbf{CNN và MLP.} Với ít tham số hơn 16 lần, CNN đạt QWK và macro-F1 cao hơn MLP, nhờ chia sẻ trọng số và kết nối cục bộ. Tuy vậy, CNN đạt QWK 0,70 trên validation nhưng chỉ 0,56 trên test: với 120 ảnh validation, chọn epoch theo QWK là một quá trình nhiễu. Trường hợp này cho thấy tập validation quá nhỏ cũng có thể gây quá khớp ở bước chọn mô hình.
+
+\figw[0.55\linewidth]{ch3_confusion}{Ma trận nhầm lẫn của MobileNetV3-L trên tập kiểm tra (số ảnh và tỉ lệ theo hàng)}
+
+\textbf{Phân tích lỗi.} Ma trận nhầm lẫn của mô hình tốt nhất (\figref{fig:ch3_confusion}) tập trung quanh đường chéo. Trong 178 ảnh dự đoán sai, 131 ảnh lệch một mức (0$\leftrightarrow$1, 1$\leftrightarrow$2, 2$\leftrightarrow$3) và 47 ảnh lệch từ hai mức trở lên. Lỗi lệch một mức là kiểu lỗi mà QWK phạt nhẹ nhất. Mức 4 khó nhất: chỉ 4/20 ảnh đúng, phần lớn bị đoán là mức 3. Hai mức này cùng là DR nặng, đều cần chuyển chuyên khoa, nên trong sàng lọc sai số này ít hậu quả hơn so với bỏ sót bệnh (đoán thành mức 0). ResNet-18 chỉ đoán 2 trên 20 ảnh mức 4 thành mức 0.
+
+\figw{ch3_feature_maps}{Bản đồ đặc trưng sau khối 1 (cạnh, độ sáng) và khối 3 (vùng trừu tượng) của CNN tự thiết kế}
+
+\figw{ch3_gradcam}{Grad-CAM trên tầng \texttt{layer4} của ResNet-18 với một ảnh của mỗi mức DR}
+
+\textbf{Mô hình ``nhìn'' vào đâu?} Sau khối 1, các bản đồ đặc trưng giống ảnh gốc đã lọc: kênh này bắt mép đĩa thị, kênh kia bắt vùng sáng (\figref{fig:ch3_feature_maps}). Sau khối 3 (16×16), biểu diễn đã trừu tượng, mỗi kênh phản hồi một vùng. Grad-CAM của ResNet-18 (\figref{fig:ch3_gradcam}) phần lớn rơi vào bên trong vùng võng mạc, quanh các mạch máu lớn, nơi tổn thương xuất hiện. Tuy nhiên, với một số ảnh, bản đồ nhiệt rơi vào viền tối hoặc vùng lóa, dấu hiệu mô hình còn học cả các yếu tố nhiễu do chất lượng ảnh. Đây là hạn chế cần biết trước khi tin vào dự đoán, và là lý do hệ thống luôn khuyến cáo khám nhãn khoa thay vì kết luận.
+
+\section{Triển khai}
+
+Mô hình triển khai được chọn theo QWK trên \emph{validation}, không theo test, để tránh dùng tập kiểm tra cho việc chọn mô hình. Mô hình đó là ResNet-18 (val QWK 0,762), nặng 45 MB và mất 8,7 ms mỗi ảnh trên CPU (khoảng 150–300 ms cho cả lượt gọi API vì gồm giải mã ảnh và tính Grad-CAM). Endpoint \api{POST /api/lab/ch3/retina} nhận một ảnh JPEG/PNG (multipart). Ảnh được đưa về 128×128 và chuẩn hóa như lúc huấn luyện. Endpoint trả về xác suất 5 mức, mức dự đoán, khuyến cáo theo ADA, và ảnh Grad-CAM (PNG base64). \api{GET /api/lab/ch3/sample/\{i\}} trả về ảnh thứ $i$ của tập kiểm tra cùng nhãn thật, để thử nhanh trên trang \api{/lab}. Trong hệ đa tác tử, PredictionAgent dùng cùng lớp \texttt{CNNRetinopathyEngine} (\texttt{src/models/cnn\_vision.py}) khi hồ sơ có ảnh đáy mắt, gửi kèm dưới dạng base64 qua API đánh giá trực tiếp \api{POST /api/consultation}. Ảnh tải lên trong khung chat hiện vẫn được DocumentAgent đọc như phiếu xét nghiệm; tự nhận diện ảnh đáy mắt là hướng phát triển. Kết quả CNN chỉ là bằng chứng tham khảo, không thay đổi mức nguy cơ ĐTĐ.
+
+\begin{code}{Gọi endpoint Chương 3 với một ảnh đáy mắt}
+\label{lst:ch3-api}
+\begin{minted}{bash}
+curl -s https://agent.nits.io.vn/api/lab/ch3/retina -F "file=@fundus.png"
+# Ảnh mẫu số 8 của tập kiểm tra (nhãn thật: mức 4)
+# {"grade": 3, "label": "3 – Bệnh võng mạc không tăng sinh nặng",
+#  "probabilities": [0.0021, 0.0049, 0.0698, 0.8566, 0.0666],
+#  "advice": "Chuyển bác sĩ nhãn khoa sớm.", "model": "ResNet-18 (ImageNet → RetinaMNIST)",
+#  "gradcam_png": "iVBORw0KGgo...", "latency_ms": 169.0}
+\end{minted}
+\end{code}
+
+\section{Tiểu kết chương 3}
+
+Chương 3 phân tích từng thành phần của CNN: tích chập với chia sẻ trọng số và kết nối cục bộ, ReLU, gộp, chuẩn hóa theo lô, dropout, GAP, softmax và hàm mất mát entropy chéo có trọng số. Tiếp theo là các kiến trúc từ LeNet tới ResNet và MobileNet. Thực nghiệm phân độ DR trên RetinaMNIST cho thấy: (1) CNN dùng ít tham số hơn MLP 16 lần nhưng phân loại tốt hơn nhờ khai thác cấu trúc không gian; (2) với dữ liệu y tế nhỏ, học chuyển giao từ ImageNet là yếu tố quyết định, nâng QWK từ 0,56 lên 0,70–0,71; (3) với dữ liệu lệch lớp, cần dùng QWK và macro-F1 thay cho accuracy; (4) Grad-CAM giúp kiểm tra mô hình có nhìn đúng vùng tổn thương không. Ảnh là dữ liệu tĩnh. Chương 4 chuyển sang dữ liệu có chiều thời gian: chuỗi đo đường huyết liên tục.

@@ -87,7 +87,7 @@ class ConsultationForm(BaseModel):
     phys_activity: Optional[bool] = None
     heart_disease: Optional[bool] = None
     glucose_history: Optional[List[float]] = None
-    fundus_features: Optional[Dict[str, float]] = None
+    fundus_features: Optional[Dict[str, Any]] = None
 
 
 @router.post("/api/consultation")

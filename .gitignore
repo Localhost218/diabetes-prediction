@@ -7,3 +7,39 @@ __pycache__/
 data/local_storage/
 frontend/node_modules/
 data/nhanes/raw/
+.venv-gpu/
+lab/data/
+# LaTeX build artifacts & temporary files
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.lof
+report/*.lot
+report/*.bbl
+report/*.bcf
+report/*.blg
+report/*.run.xml
+report/*.fdb_latexmk
+report/*.fls
+report/*.xdv
+report/*.synctex.gz
+report/*-SAVE-ERROR
+report/build.log
+report/_minted*/
+
+# Logs
+*.log
+
+# Frontend build & cache
+frontend/dist/
+frontend/.vite/
+
+# OS / Editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

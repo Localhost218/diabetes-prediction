@@ -1,0 +1,57 @@
+\unnumberedchapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+
+\section*{1. Kết quả đạt được}
+
+Báo cáo đi qua bảy chủ đề của môn Hệ thống thông minh. Mỗi chủ đề được kiểm chứng bằng một thành phần chạy thật của cùng một hệ thống: chatbot đa tác tử hỗ trợ sàng lọc đái tháo đường, triển khai tại \href{https://\deploydomain}{\texttt{\deploydomain}}. \tabref{tab:summary} tóm tắt dữ liệu, mô hình tốt nhất và kết quả của từng chương.
+
+\begin{table}[H]
+\centering
+\caption{Tổng hợp kết quả thực nghiệm của bảy chương}
+\label{tab:summary}
+\small
+\begin{tabularx}{\linewidth}{@{}cL{3.0cm}L{3.3cm}Y@{}}
+\toprule
+\textbf{Ch.} & \textbf{Dữ liệu} & \textbf{Mô hình tốt nhất} & \textbf{Kết quả chính (so với đối chứng)} \\
+\midrule
+1 & Pima (768) & ADALINE / hồi quy logistic & AUC 0,837; hệ chuyên gia 6 luật đạt 0,795; perceptron 0,749 và thất bại với XOR \\
+2 & NHANES (20.646) & Rừng ngẫu nhiên & AUC 0,823; năm mô hình mạnh chỉ cách nhau 0,006 — trần thông tin của yếu tố nguy cơ \\
+3 & RetinaMNIST (1.600) & ResNet-18 / MobileNetV3 chuyển giao & QWK 0,70–0,71 so với 0,52 (MLP) và 0,56 (CNN học từ đầu) \\
+4 & Shanghai CGM (112 người) & LSTM 2 tầng & RMSE 30 phút 13,7 mg/dL (persistence 19,0); 95,6\% vùng Clarke A \\
+5 & KB ADA + MedQuAD & E5-large; lai + xếp hạng lại & Hit@1 KB tiếng Việt 0,967 (rerank), 0,933 (E5) so với 0,80 (BM25), 0,57 (MiniLM); RAG phủ 95\% dữ kiện, 0\% số liệu không căn cứ \\
+6 & Pubmed-Diabetes (19.717) & GCN (ít nhãn), GraphSAGE (đủ nhãn) & Accuracy 0,780 với 60 nhãn so với 0,702 (MLP cùng tham số); 0,885 có giám sát; GCN sụp từ 6 tầng \\
+7 & NHANES test (400 ca) & Hội đồng đa tác tử & Độ nhạy phát hiện ĐTĐ khi chỉ có FPG 0,945 so với 0,582 (FPG ≥ 126) và 0,659 (ML); luật ADA đúng 100\%; 28 ms/lượt không LLM \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Từ các thực nghiệm có thể rút ra năm bài học chung.
+
+\emph{Thứ nhất, dữ liệu và cách đánh giá quan trọng hơn chọn thuật toán.} Ở Chương 2, tám thuật toán hội tụ về cùng một mức AUC. Ở Chương 3, accuracy xếp MLP trên CNN, trong khi QWK cho thấy điều ngược lại. Ở Chương 4, chia theo bệnh nhân thay vì theo cửa sổ là điều kiện để con số có ý nghĩa.
+
+\emph{Thứ hai, thiên kiến quy nạp phù hợp với cấu trúc dữ liệu tạo nên khác biệt lớn nhất.} Tích chập cho ảnh, hồi quy cho chuỗi, truyền thông điệp cho đồ thị: mỗi kiến trúc thắng mô hình ``phẳng'' ở đúng loại dữ liệu của nó, với ít tham số hơn.
+
+\emph{Thứ ba, tri thức có sẵn rất có giá trị khi dữ liệu nhỏ.} Học chuyển giao từ ImageNet nâng QWK thêm khoảng 0,15. Một bộ 6 luật y khoa đánh bại perceptron. Đồ thị trích dẫn bù cho việc chỉ có 20 nhãn mỗi lớp.
+
+\emph{Thứ tư, mô hình đơn giản là mốc đối chứng không được bỏ qua.} Persistence, hồi quy tuyến tính và BM25 đều mạnh hơn dự kiến, và chỉ những cải thiện vượt được chúng mới thực sự có ý nghĩa.
+
+\emph{Thứ năm, trong y tế, hệ thống tốt là hệ thống biết giới hạn của mình.} Hội đồng tranh biện liệt kê cả bằng chứng (+) lẫn mâu thuẫn (−). Mô hình học được đặt dưới ngưỡng xét nghiệm và Safety Guardrail. LLM chỉ diễn đạt dữ liệu đã có, và mọi câu trả lời đều kèm trích dẫn cùng lời nhắc không thay thế bác sĩ.
+
+\section*{2. Hạn chế}
+
+\begin{itemize}
+  \item Dữ liệu huấn luyện chủ yếu đến từ Hoa Kỳ (NHANES, Pima) và Trung Quốc (Shanghai). Chưa có dữ liệu thật của người Việt Nam; nhóm người gốc Á của NHANES chỉ là phép xấp xỉ.
+  \item RetinaMNIST có độ phân giải thấp (128×128) và chỉ 1.600 ảnh. Mô hình CNN chưa đủ tin cậy để dùng lâm sàng; Grad-CAM cho thấy mô hình đôi khi chú ý vào vùng lóa và viền ảnh.
+  \item Knowledge Base tiếng Việt mới có 10 tài liệu tóm tắt; bộ câu hỏi đánh giá 60 câu do người viết báo cáo tự xây dựng nên có thể thiên về cách diễn đạt của chính tài liệu.
+  \item Dự báo glucose chưa dùng thông tin bữa ăn và insulin, nên sai số tăng nhanh sau 30 phút.
+  \item Đánh giá Chương 7 dựa trên hồ sơ có cấu trúc và tin nhắn sinh từ mẫu câu, chưa có người dùng thật.
+\end{itemize}
+
+\section*{3. Hướng phát triển}
+
+\begin{itemize}
+  \item Thu thập dữ liệu sàng lọc của người Việt (phối hợp cơ sở y tế) để hiệu chỉnh lại mô hình và ngưỡng.
+  \item Thay RetinaMNIST bằng ảnh đáy mắt độ phân giải cao (APTOS, EyePACS), áp dụng mô hình nền tảng thị giác cho ảnh y khoa.
+  \item Dự báo glucose đa biến (bữa ăn, insulin, vận động) bằng Transformer cho chuỗi thời gian; cảnh báo hạ đường huyết sớm.
+  \item Mở rộng KB bằng văn bản gốc của ADA và Bộ Y tế; tự động trích bộ ba bằng LLM có kiểm duyệt; dùng GAT ở Chương 6 để phân loại tài liệu mới trước khi nạp.
+  \item Chuẩn hóa giao tiếp công cụ theo Model Context Protocol \cite{mcp2024}; thêm đăng nhập, phân quyền và nhật ký kiểm toán để đáp ứng yêu cầu bảo vệ dữ liệu sức khỏe.
+\end{itemize}

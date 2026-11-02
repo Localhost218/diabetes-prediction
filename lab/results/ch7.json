@@ -1,0 +1,262 @@
+{
+ "dataset": {
+  "source": "NHANES 2011–2018, tập kiểm tra (20%), có FPG + HbA1c",
+  "n": 400,
+  "diabetes_rate": 0.23,
+  "diagnosed": 69,
+  "undiagnosed": 23,
+  "prediabetes": 173,
+  "head": [
+   {
+    "age_years": 21.0,
+    "sex": 0.0,
+    "bmi": 29.0,
+    "waist_cm": 84.6,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "fasting_glucose": 91.0,
+    "hba1c": 5.2,
+    "diabetes": 0
+   },
+   {
+    "age_years": 36.0,
+    "sex": 1.0,
+    "bmi": 27.4,
+    "waist_cm": 94.7,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "fasting_glucose": 101.0,
+    "hba1c": 5.4,
+    "diabetes": 0
+   },
+   {
+    "age_years": 23.0,
+    "sex": 0.0,
+    "bmi": 17.9,
+    "waist_cm": 66.7,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "fasting_glucose": 82.0,
+    "hba1c": 5.0,
+    "diabetes": 0
+   },
+   {
+    "age_years": 58.0,
+    "sex": 0.0,
+    "bmi": 40.5,
+    "waist_cm": 115.0,
+    "high_bp": 1.0,
+    "family_history": 0.0,
+    "fasting_glucose": 139.0,
+    "hba1c": 7.6,
+    "diabetes": 1
+   },
+   {
+    "age_years": 21.0,
+    "sex": 0.0,
+    "bmi": 33.7,
+    "waist_cm": 101.5,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "fasting_glucose": 97.0,
+    "hba1c": 5.0,
+    "diabetes": 0
+   }
+  ]
+ },
+ "k1": {
+  "n_evaluated": 399,
+  "slot_filling": [
+   {
+    "missing": [
+     "bmi"
+    ],
+    "bmi": 74.8,
+    "age": 57.0
+   }
+  ],
+  "glycemic_accuracy": 1.0,
+  "confirmation_rule_accuracy": 1.0,
+  "truth_counts": {
+   "normal": 137,
+   "prediabetes_range": 191,
+   "diabetes_range": 71
+  },
+  "tier_counts": {
+   "low": 112,
+   "high": 206,
+   "very_high": 71,
+   "moderate": 10
+  },
+  "rounds": {
+   "0": 297,
+   "1": 91,
+   "2": 11
+  },
+  "issues": {
+   "ml_dl_disagree": 30,
+   "verify_diagnostic_criteria": 71,
+   "ml_low_labs_diabetic": 13,
+   "ml_high_labs_normal": 11,
+   "screening_plan": 11
+  },
+  "guardrails": {
+   "priority": 77,
+   "urgent": 11
+  },
+  "plus_mean": 3.7018,
+  "minus_mean": 0.213,
+  "rl_actions": {
+   "0": 358,
+   "2": 25,
+   "1": 5,
+   "3": 11
+  },
+  "latency_ms": {
+   "median": 28.0027,
+   "p95": 42.0691
+  },
+  "messages": {
+   "mean": 12.6817,
+   "min": 12,
+   "max": 18
+  },
+  "performatives": {
+   "REQUEST": 2394,
+   "INFORM": 2394,
+   "CHALLENGE": 136,
+   "RESPONSE": 136
+  },
+  "agent_ms_median": {
+   "ConversationAgent": 0.0,
+   "PredictionAgent": 25.0,
+   "KnowledgeAgent": 24.0,
+   "ConsensusCriticAgent": 0.0,
+   "TreatmentRLAgent": 0.0,
+   "ResponseAgent": 0.0
+  }
+ },
+ "k2": {
+  "n": 399,
+  "prevalence": 0.2281,
+  "knowledge_only_fpg126": {
+   "sensitivity": 0.5824,
+   "specificity": 1.0,
+   "ppv": 1.0,
+   "f1": 0.7361,
+   "positives": 53
+  },
+  "knowledge_only_fpg100": {
+   "sensitivity": 0.8791,
+   "specificity": 0.5195,
+   "ppv": 0.3509,
+   "f1": 0.5016,
+   "positives": 228
+  },
+  "prediction_only_ml30": {
+   "sensitivity": 0.6593,
+   "specificity": 0.8409,
+   "ppv": 0.5505,
+   "f1": 0.6,
+   "positives": 109
+  },
+  "council_high_or_very_high": {
+   "sensitivity": 0.9451,
+   "specificity": 0.4578,
+   "ppv": 0.3399,
+   "f1": 0.5,
+   "positives": 253
+  },
+  "auc": {
+   "fpg": 0.8618,
+   "ml": 0.8546,
+   "council_score": 0.8757
+  },
+  "tier_vs_label": {
+   "low": {
+    "n": 128,
+    "diabetes_rate": 0.0156
+   },
+   "moderate": {
+    "n": 18,
+    "diabetes_rate": 0.1667
+   },
+   "high": {
+    "n": 200,
+    "diabetes_rate": 0.165
+   },
+   "very_high": {
+    "n": 53,
+    "diabetes_rate": 1.0
+   }
+  },
+  "missed_by_fpg_caught_by_council": 33,
+  "missed_by_fpg": 38,
+  "latency_ms_median": 27.5734
+ },
+ "k3": {
+  "regex": {
+   "n": 399,
+   "exact_match": 1.0,
+   "field_accuracy": {
+    "age_years": 1.0,
+    "sex": 1.0,
+    "bmi": 1.0,
+    "waist_cm": 1.0,
+    "systolic_bp": 1.0,
+    "diastolic_bp": 1.0,
+    "family_history": 1.0,
+    "glucose_fasting_mgdl": 1.0,
+    "smoker": 1.0,
+    "high_bp": 1.0
+   },
+   "micro_accuracy": 1.0,
+   "same_tier_as_form": 0.9223,
+   "latency_s_median": 0.0294
+  },
+  "examples": [
+   "Em là nữ, năm nay 21 tuổi, nặng 80 ký cao 1m66, vòng eo 85 cm, huyết áp đo được 103/64, gia đình không ai bị tiểu đường, glucose đói 91 mg/dL.",
+   "Tôi 36 tuổi, nam, chỉ số BMI là 27,4, vòng eo 95 cm, huyết áp đo được 107/71, không hút thuốc, glucose đói 101 mg/dL.",
+   "Mình 23 tuổi, nữ, BMI 17.9, vòng eo 67 cm, huyết áp đo được 103/61, không bị tăng huyết áp, không hút thuốc, glucose đói 82 mg/dL.",
+   "Tôi 58 tuổi, nữ, chỉ số BMI là 40,5, vòng eo 115 cm, huyết áp đo được 110/79, có bị tăng huyết áp, không hút thuốc, sáng nay thử đường máu lúc chưa ăn được 7,7 mmol/l."
+  ],
+  "regex_subset": {
+   "n": 40,
+   "exact_match": 1.0,
+   "field_accuracy": {
+    "age_years": 1.0,
+    "sex": 1.0,
+    "bmi": 1.0,
+    "waist_cm": 1.0,
+    "systolic_bp": 1.0,
+    "diastolic_bp": 1.0,
+    "family_history": 1.0,
+    "glucose_fasting_mgdl": 1.0,
+    "smoker": 1.0,
+    "high_bp": 1.0
+   },
+   "micro_accuracy": 1.0,
+   "same_tier_as_form": 1.0,
+   "latency_s_median": 0.023
+  },
+  "llm": {
+   "n": 40,
+   "exact_match": 1.0,
+   "field_accuracy": {
+    "age_years": 1.0,
+    "sex": 1.0,
+    "bmi": 1.0,
+    "waist_cm": 1.0,
+    "systolic_bp": 1.0,
+    "diastolic_bp": 1.0,
+    "family_history": 1.0,
+    "glucose_fasting_mgdl": 1.0,
+    "smoker": 1.0,
+    "high_bp": 1.0
+   },
+   "micro_accuracy": 1.0,
+   "same_tier_as_form": 1.0,
+   "latency_s_median": 2.1188
+  }
+ }
+}

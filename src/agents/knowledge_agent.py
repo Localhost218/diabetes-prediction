@@ -3,7 +3,6 @@ Tác tử Tri thức (nhánh PDF/Web → KB → RAG → Agent trên sơ đồ)
   - Đối chiếu xét nghiệm với tiêu chuẩn ADA 2024 / QĐ 5481/QĐ-BYT
   - Vector RAG: hybrid search trên pgvector (Chương 5)
   - GraphRAG: duyệt đồ thị tri thức Apache AGE từ các yếu tố nguy cơ của bệnh nhân (Chương 5)
-  - Deep Graph GCN dự báo bệnh đồng mắc (Chương 6) — trọng số chưa huấn luyện, chỉ minh họa
 """
 
 import asyncio
@@ -12,7 +11,6 @@ from typing import Any, Dict, List
 from src.communication.message_bus import AgentMessage, BaseAgent
 from src.knowledge.clinical_criteria import evaluate_glycemia, graph_entities
 from src.knowledge.embedder import get_embedder
-from src.models.deep_graph import DeepGraphComorbidityGNN
 from src.schemas.patient_profile import PatientProfile
 from src.storage.db import session_scope
 from src.storage.graph_store import get_graph_store
@@ -30,7 +28,6 @@ class KnowledgeAgent(BaseAgent):
     def __init__(self, bus):
         super().__init__(bus)
         self.embedder = get_embedder()
-        self.gnn = DeepGraphComorbidityGNN()
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
         if msg.msg_type == "RETRIEVE_EVIDENCE":
@@ -94,14 +91,11 @@ class KnowledgeAgent(BaseAgent):
                 seen.add(p["chunk_id"])
                 merged.append(p)
 
-        gnn = self.gnn.forward(_gnn_input(profile))
         return {
             "glycemia": glycemia,
             "graph_rag": {k: v for k, v in graph.items() if k != "linked_chunks"},
             "passages": merged[:6],
             "citations": _citations(merged[:6]),
-            "deep_graph_gnn": {**gnn, "experimental": True,
-                               "note": "GCN chưa huấn luyện trên dữ liệu thật — chỉ minh họa, không dùng để kết luận"},
         }
 
     def _verify_criteria(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -150,12 +144,3 @@ def _citations(passages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         out.append({"document_id": p["document_id"], "title": p["title"], "section": p["heading"],
                     "source": p["source"], "url": p["url"]})
     return out
-
-
-def _gnn_input(profile: PatientProfile) -> Dict[str, Any]:
-    from src.models.datasets import age_to_group
-    age = profile.get("age_years")
-    return {"BMI": profile.get("bmi", 22.0), "Glucose": profile.get("glucose_fasting_mgdl", 100.0),
-            "HbA1c": profile.get("hba1c_percent", 5.5), "HighBP": int(bool(profile.get("high_bp"))),
-            "HighChol": int(bool(profile.get("high_chol"))), "Age": age_to_group(age) if age else 5,
-            "FamilyHistory": int(bool(profile.get("family_history"))), "Smoker": int(bool(profile.get("smoker")))}

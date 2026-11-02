@@ -1,6 +1,6 @@
 # Hạ tầng lưu trữ cho hệ thống chatbot đa tác tử.
 #   docker compose up -d postgres seaweedfs        # chỉ hạ tầng, backend chạy local
-#   docker compose --profile app up -d --build     # chạy toàn bộ, backend phục vụ luôn giao diện tại /chat
+#   docker compose --profile app up -d --build     # chạy toàn bộ: backend (/, /lab, /docs) + Cloudflare Tunnel
 name: astarcare
 
 services:
@@ -44,12 +44,30 @@ services:
       S3_ENDPOINT_URL: http://seaweedfs:8333
     ports:
       - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      retries: 10
     depends_on:
       postgres:
         condition: service_healthy
       seaweedfs:
         condition: service_started
 
+  # Cloudflare Tunnel: kết nối đi ra tới Cloudflare, không cần mở cổng. Public hostname
+  # agent.nits.io.vn → http://localhost:8000 cấu hình trên Zero Trust dashboard.
+  cloudflared:
+    profiles: ["app"]
+    image: cloudflare/cloudflared:2026.10.7
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Thiếu CLOUDFLARE_TUNNEL_TOKEN trong .env}
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
   pgdata:

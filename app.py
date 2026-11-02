@@ -3,7 +3,7 @@ Diabetes Prediction — Hệ thống Chatbot Đa Tác Tử sàng lọc nguy cơ 
 
     uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
-Giao diện chatbot: http://localhost:8000/   ·   Swagger: http://localhost:8000/docs
+Giao diện chatbot: http://localhost:8000/   ·   Thử nghiệm 7 chương: /lab   ·   Swagger: /docs
 """
 
 import logging
@@ -11,12 +11,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.api import routes_chat, routes_session, routes_system
+from src.api import routes_chat, routes_lab, routes_session, routes_system
 from src.api.deps import get_orchestrator
-from src.config import settings
+from src.config import BASE_DIR, settings
 from src.storage.db import init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -42,6 +42,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "taur
 app.include_router(routes_system.router)
 app.include_router(routes_session.router)
 app.include_router(routes_chat.router)
+app.include_router(routes_lab.router)
+
+
+@app.get("/lab", include_in_schema=False)
+def lab_page():
+    """Trang thử nghiệm mô hình của 7 chương báo cáo."""
+    return FileResponse(BASE_DIR / "web" / "lab.html")
 
 
 @app.get("/chat", include_in_schema=False)

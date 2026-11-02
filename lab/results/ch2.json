@@ -1,0 +1,752 @@
+{
+ "dataset": {
+  "name": "NHANES 2011–2018",
+  "n": 20646,
+  "positive_rate": 0.1979,
+  "n_asian": 2630,
+  "undiagnosed": 943,
+  "diagnosed": 3142,
+  "prediabetes_rate": 0.3427,
+  "cycles": {
+   "2011-2012": 5034,
+   "2013-2014": 5371,
+   "2015-2016": 5198,
+   "2017-2018": 5043
+  },
+  "split": {
+   "train": 14451,
+   "val": 2065,
+   "test": 4130
+  },
+  "missing": {
+   "age_years": 0.0,
+   "sex": 0.0,
+   "bmi": 0.0189,
+   "waist_cm": 0.0596,
+   "systolic_bp": 0.0425,
+   "diastolic_bp": 0.0425,
+   "high_bp": 0.0012,
+   "high_chol": 0.0068,
+   "family_history": 0.0182,
+   "smoker": 0.0008,
+   "phys_activity": 0.0,
+   "heart_disease": 0.0036,
+   "stroke": 0.001
+  },
+  "describe": {
+   "age_years": {
+    "count": 20646.0,
+    "mean": 50.15,
+    "std": 17.62,
+    "min": 20.0,
+    "50%": 50.0,
+    "max": 80.0
+   },
+   "sex": {
+    "count": 20646.0,
+    "mean": 0.49,
+    "std": 0.5,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "bmi": {
+    "count": 20255.0,
+    "mean": 29.36,
+    "std": 7.14,
+    "min": 13.4,
+    "50%": 28.2,
+    "max": 86.2
+   },
+   "waist_cm": {
+    "count": 19416.0,
+    "mean": 99.73,
+    "std": 16.64,
+    "min": 55.5,
+    "50%": 98.3,
+    "max": 177.9
+   },
+   "systolic_bp": {
+    "count": 19769.0,
+    "mean": 125.02,
+    "std": 18.7,
+    "min": 64.67,
+    "50%": 122.0,
+    "max": 238.0
+   },
+   "diastolic_bp": {
+    "count": 19769.0,
+    "mean": 70.73,
+    "std": 12.69,
+    "min": 0.0,
+    "50%": 71.33,
+    "max": 142.0
+   },
+   "high_bp": {
+    "count": 20621.0,
+    "mean": 0.38,
+    "std": 0.48,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "high_chol": {
+    "count": 20505.0,
+    "mean": 0.35,
+    "std": 0.48,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "family_history": {
+    "count": 20270.0,
+    "mean": 0.44,
+    "std": 0.5,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "smoker": {
+    "count": 20629.0,
+    "mean": 0.19,
+    "std": 0.39,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "phys_activity": {
+    "count": 20645.0,
+    "mean": 0.48,
+    "std": 0.5,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "heart_disease": {
+    "count": 20572.0,
+    "mean": 0.08,
+    "std": 0.27,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "stroke": {
+    "count": 20626.0,
+    "mean": 0.04,
+    "std": 0.2,
+    "min": 0.0,
+    "50%": 0.0,
+    "max": 1.0
+   },
+   "hba1c": {
+    "count": 20413.0,
+    "mean": 5.82,
+    "std": 1.13,
+    "min": 3.5,
+    "50%": 5.5,
+    "max": 17.8
+   },
+   "fasting_glucose": {
+    "count": 9827.0,
+    "mean": 111.2,
+    "std": 37.56,
+    "min": 21.0,
+    "50%": 101.0,
+    "max": 479.0
+   }
+  },
+  "head": [
+   {
+    "seqn": 62161,
+    "age_years": 22.0,
+    "sex": 1.0,
+    "bmi": 23.3,
+    "waist_cm": 81.0,
+    "systolic_bp": 110.66666666666667,
+    "high_bp": 0.0,
+    "family_history": 1.0,
+    "hba1c": 5.1,
+    "fasting_glucose": 92.0,
+    "diabetes": 0
+   },
+   {
+    "seqn": 62164,
+    "age_years": 44.0,
+    "sex": 0.0,
+    "bmi": 23.2,
+    "waist_cm": 80.1,
+    "systolic_bp": 118.0,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "hba1c": 4.9,
+    "fasting_glucose": 82.0,
+    "diabetes": 0
+   },
+   {
+    "seqn": 62169,
+    "age_years": 21.0,
+    "sex": 1.0,
+    "bmi": 20.1,
+    "waist_cm": 69.6,
+    "systolic_bp": 124.66666666666667,
+    "high_bp": 0.0,
+    "family_history": 0.0,
+    "hba1c": 5.4,
+    "fasting_glucose": 107.0,
+    "diabetes": 0
+   },
+   {
+    "seqn": 62172,
+    "age_years": 43.0,
+    "sex": 0.0,
+    "bmi": 33.3,
+    "waist_cm": 120.4,
+    "systolic_bp": 102.0,
+    "high_bp": 0.0,
+    "family_history": 1.0,
+    "hba1c": 5.6,
+    "fasting_glucose": 104.0,
+    "diabetes": 0
+   },
+   {
+    "seqn": 62174,
+    "age_years": 80.0,
+    "sex": 1.0,
+    "bmi": 33.9,
+    "waist_cm": 116.5,
+    "systolic_bp": 97.0,
+    "high_bp": 1.0,
+    "family_history": NaN,
+    "hba1c": 5.0,
+    "fasting_glucose": NaN,
+    "diabetes": 0
+   }
+  ]
+ },
+ "classification": {
+  "logreg": {
+   "name": "Hồi quy logistic",
+   "roc_auc": 0.817,
+   "pr_auc": 0.5148,
+   "brier": 0.1248,
+   "accuracy": 0.7254,
+   "f1": 0.5251,
+   "sensitivity": 0.7674,
+   "specificity": 0.7151,
+   "threshold": 0.1871,
+   "fit_s": 0.03,
+   "infer_ms_per_sample": 0.0006,
+   "confusion": [
+    [
+     2369,
+     944
+    ],
+    [
+     190,
+     627
+    ]
+   ]
+  },
+  "knn": {
+   "name": "KNN (k=51)",
+   "roc_auc": 0.8124,
+   "pr_auc": 0.5138,
+   "brier": 0.1249,
+   "accuracy": 0.7642,
+   "f1": 0.5253,
+   "sensitivity": 0.6597,
+   "specificity": 0.7899,
+   "threshold": 0.271,
+   "fit_s": 0.02,
+   "infer_ms_per_sample": 0.0251,
+   "confusion": [
+    [
+     2617,
+     696
+    ],
+    [
+     278,
+     539
+    ]
+   ]
+  },
+  "nb": {
+   "name": "Naive Bayes Gauss",
+   "roc_auc": 0.7753,
+   "pr_auc": 0.3911,
+   "brier": 0.2088,
+   "accuracy": 0.6874,
+   "f1": 0.4891,
+   "sensitivity": 0.7564,
+   "specificity": 0.6704,
+   "threshold": 0.0021,
+   "fit_s": 0.02,
+   "infer_ms_per_sample": 0.0006,
+   "confusion": [
+    [
+     2221,
+     1092
+    ],
+    [
+     199,
+     618
+    ]
+   ]
+  },
+  "tree": {
+   "name": "Cây quyết định (sâu 6)",
+   "roc_auc": 0.7849,
+   "pr_auc": 0.4444,
+   "brier": 0.1329,
+   "accuracy": 0.7225,
+   "f1": 0.5039,
+   "sensitivity": 0.7124,
+   "specificity": 0.725,
+   "threshold": 0.25,
+   "fit_s": 0.04,
+   "infer_ms_per_sample": 0.0005,
+   "confusion": [
+    [
+     2402,
+     911
+    ],
+    [
+     235,
+     582
+    ]
+   ]
+  },
+  "rf": {
+   "name": "Rừng ngẫu nhiên",
+   "roc_auc": 0.8232,
+   "pr_auc": 0.5277,
+   "brier": 0.123,
+   "accuracy": 0.7557,
+   "f1": 0.5403,
+   "sensitivity": 0.7258,
+   "specificity": 0.7631,
+   "threshold": 0.2398,
+   "fit_s": 0.65,
+   "infer_ms_per_sample": 0.016,
+   "confusion": [
+    [
+     2528,
+     785
+    ],
+    [
+     224,
+     593
+    ]
+   ]
+  },
+  "gbdt": {
+   "name": "Gradient Boosting",
+   "roc_auc": 0.8195,
+   "pr_auc": 0.5268,
+   "brier": 0.123,
+   "accuracy": 0.747,
+   "f1": 0.5308,
+   "sensitivity": 0.7234,
+   "specificity": 0.7528,
+   "threshold": 0.2209,
+   "fit_s": 0.2,
+   "infer_ms_per_sample": 0.0012,
+   "confusion": [
+    [
+     2494,
+     819
+    ],
+    [
+     226,
+     591
+    ]
+   ]
+  },
+  "svm": {
+   "name": "SVM (RBF)",
+   "roc_auc": 0.8208,
+   "pr_auc": 0.5052,
+   "brier": 0.1779,
+   "accuracy": 0.6893,
+   "f1": 0.5101,
+   "sensitivity": 0.8176,
+   "specificity": 0.6577,
+   "threshold": 0.4566,
+   "fit_s": 24.11,
+   "infer_ms_per_sample": 0.3077,
+   "confusion": [
+    [
+     2179,
+     1134
+    ],
+    [
+     149,
+     668
+    ]
+   ]
+  },
+  "mlp": {
+   "name": "MLP (64-32)",
+   "roc_auc": 0.8213,
+   "pr_auc": 0.5266,
+   "brier": 0.1235,
+   "accuracy": 0.6877,
+   "f1": 0.5147,
+   "sensitivity": 0.8372,
+   "specificity": 0.6508,
+   "threshold": 0.1463,
+   "fit_s": 1.53,
+   "infer_ms_per_sample": 0.0015,
+   "confusion": [
+    [
+     2156,
+     1157
+    ],
+    [
+     133,
+     684
+    ]
+   ]
+  }
+ },
+ "cv5_train": {
+  "logreg": {
+   "mean": 0.826,
+   "std": 0.0055
+  },
+  "tree": {
+   "mean": 0.806,
+   "std": 0.0047
+  },
+  "gbdt": {
+   "mean": 0.8296,
+   "std": 0.0058
+  }
+ },
+ "knn_k_curve": [
+  {
+   "k": 1,
+   "train_auc": 0.9995,
+   "val_auc": 0.6403
+  },
+  {
+   "k": 3,
+   "train_auc": 0.9302,
+   "val_auc": 0.7237
+  },
+  {
+   "k": 5,
+   "train_auc": 0.8999,
+   "val_auc": 0.7583
+  },
+  {
+   "k": 11,
+   "train_auc": 0.8697,
+   "val_auc": 0.8011
+  },
+  {
+   "k": 21,
+   "train_auc": 0.8512,
+   "val_auc": 0.8212
+  },
+  {
+   "k": 51,
+   "train_auc": 0.8377,
+   "val_auc": 0.8239
+  },
+  {
+   "k": 101,
+   "train_auc": 0.8276,
+   "val_auc": 0.8212
+  },
+  {
+   "k": 201,
+   "train_auc": 0.8217,
+   "val_auc": 0.8204
+  }
+ ],
+ "tree_depth_curve": [
+  {
+   "depth": 1,
+   "train_auc": 0.6844,
+   "val_auc": 0.6918
+  },
+  {
+   "depth": 2,
+   "train_auc": 0.7523,
+   "val_auc": 0.7552
+  },
+  {
+   "depth": 3,
+   "train_auc": 0.7861,
+   "val_auc": 0.7889
+  },
+  {
+   "depth": 4,
+   "train_auc": 0.8062,
+   "val_auc": 0.8052
+  },
+  {
+   "depth": 6,
+   "train_auc": 0.8328,
+   "val_auc": 0.807
+  },
+  {
+   "depth": 8,
+   "train_auc": 0.8637,
+   "val_auc": 0.788
+  },
+  {
+   "depth": 12,
+   "train_auc": 0.9378,
+   "val_auc": 0.7173
+  },
+  {
+   "depth": 16,
+   "train_auc": 0.9866,
+   "val_auc": 0.6585
+  },
+  {
+   "depth": 0,
+   "train_auc": 1.0,
+   "val_auc": 0.6172
+  }
+ ],
+ "svm_grid": [
+  {
+   "C": 1,
+   "class_weight": "none",
+   "gamma": "scale",
+   "n_sv": 5707,
+   "val_auc": 0.7878
+  },
+  {
+   "C": 1,
+   "class_weight": "balanced",
+   "gamma": "scale",
+   "n_sv": 8101,
+   "val_auc": 0.8304
+  },
+  {
+   "C": 0.1,
+   "class_weight": "balanced",
+   "gamma": "scale",
+   "n_sv": 8711,
+   "val_auc": 0.8349
+  },
+  {
+   "C": 1,
+   "class_weight": "balanced",
+   "gamma": 0.01,
+   "n_sv": 8289,
+   "val_auc": 0.8381
+  },
+  {
+   "C": 10,
+   "class_weight": "balanced",
+   "gamma": 0.01,
+   "n_sv": 8019,
+   "val_auc": 0.8304
+  }
+ ],
+ "permutation_importance": [
+  [
+   "age_years",
+   0.1066
+  ],
+  [
+   "waist_cm",
+   0.0459
+  ],
+  [
+   "family_history",
+   0.0408
+  ],
+  [
+   "high_chol",
+   0.0079
+  ],
+  [
+   "systolic_bp",
+   0.0077
+  ],
+  [
+   "diastolic_bp",
+   0.0067
+  ],
+  [
+   "bmi",
+   0.0067
+  ],
+  [
+   "high_bp",
+   0.0061
+  ],
+  [
+   "heart_disease",
+   0.0025
+  ],
+  [
+   "phys_activity",
+   0.0022
+  ],
+  [
+   "smoker",
+   0.0016
+  ],
+  [
+   "sex",
+   0.0009
+  ],
+  [
+   "stroke",
+   0.0007
+  ]
+ ],
+ "logreg_odds_ratio_per_sd": {
+  "age_years": 1.9344,
+  "sex": 1.1487,
+  "bmi": 1.1004,
+  "waist_cm": 1.5585,
+  "systolic_bp": 1.1047,
+  "diastolic_bp": 0.9183,
+  "high_bp": 1.2345,
+  "high_chol": 1.2481,
+  "family_history": 1.7843,
+  "smoker": 0.9263,
+  "phys_activity": 0.8722,
+  "heart_disease": 1.0862,
+  "stroke": 1.0291
+ },
+ "regression": {
+  "linreg": {
+   "name": "Hồi quy tuyến tính",
+   "rmse": 0.984,
+   "mae": 0.5691,
+   "r2": 0.1553
+  },
+  "ridge": {
+   "name": "Ridge (α=10)",
+   "rmse": 0.984,
+   "mae": 0.5691,
+   "r2": 0.1553
+  },
+  "svr": {
+   "name": "SVR (RBF, ε=0,1)",
+   "rmse": 0.9995,
+   "mae": 0.5154,
+   "r2": 0.1284
+  },
+  "rf": {
+   "name": "Rừng ngẫu nhiên",
+   "rmse": 0.9807,
+   "mae": 0.5577,
+   "r2": 0.1608
+  },
+  "mean": {
+   "name": "Dự đoán bằng trung bình",
+   "rmse": 1.0716,
+   "mae": 0.6363,
+   "r2": 0.0
+  }
+ },
+ "regression_n": 20413,
+ "linreg_coef_per_sd": {
+  "age_years": 0.183,
+  "sex": 0.0329,
+  "bmi": 0.059,
+  "waist_cm": 0.1063,
+  "systolic_bp": 0.0578,
+  "diastolic_bp": -0.0242,
+  "high_bp": 0.0449,
+  "high_chol": 0.0986,
+  "family_history": 0.1787,
+  "smoker": -0.0139,
+  "phys_activity": -0.0608,
+  "heart_disease": 0.0277,
+  "stroke": 0.0002
+ },
+ "kmeans": [
+  {
+   "k": 2,
+   "inertia": 69499.1661,
+   "silhouette": 0.2476
+  },
+  {
+   "k": 3,
+   "inertia": 55167.4547,
+   "silhouette": 0.2576
+  },
+  {
+   "k": 4,
+   "inertia": 47521.2782,
+   "silhouette": 0.2597
+  },
+  {
+   "k": 5,
+   "inertia": 42501.8435,
+   "silhouette": 0.2161
+  },
+  {
+   "k": 6,
+   "inertia": 38955.6887,
+   "silhouette": 0.2078
+  },
+  {
+   "k": 7,
+   "inertia": 36318.3626,
+   "silhouette": 0.2078
+  },
+  {
+   "k": 8,
+   "inertia": 33970.5063,
+   "silhouette": 0.2113
+  }
+ ],
+ "kmeans_profile": [
+  {
+   "cluster": 0,
+   "n": 7038,
+   "diabetes_rate": 0.044,
+   "age_years": 35.614,
+   "bmi": 25.266,
+   "waist_cm": 87.998,
+   "systolic_bp": 112.139,
+   "diastolic_bp": 68.124
+  },
+  {
+   "cluster": 1,
+   "n": 3825,
+   "diabetes_rate": 0.272,
+   "age_years": 45.671,
+   "bmi": 39.251,
+   "waist_cm": 122.245,
+   "systolic_bp": 124.917,
+   "diastolic_bp": 73.809
+  },
+  {
+   "cluster": 2,
+   "n": 3849,
+   "diabetes_rate": 0.222,
+   "age_years": 58.426,
+   "bmi": 27.905,
+   "waist_cm": 98.223,
+   "systolic_bp": 145.567,
+   "diastolic_bp": 83.074
+  },
+  {
+   "cluster": 3,
+   "n": 4139,
+   "diabetes_rate": 0.313,
+   "age_years": 68.805,
+   "bmi": 28.081,
+   "waist_cm": 100.267,
+   "systolic_bp": 126.571,
+   "diastolic_bp": 61.197
+  }
+ ],
+ "pca_explained": [
+  0.4187,
+  0.2703
+ ]
+}

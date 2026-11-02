@@ -439,3 +439,28 @@ Chi tiết: `data/models/metrics_nhanes.json`, `data/models/metrics_vn.json`.
 - Không có LLM: trích xuất bằng regex chỉ hiểu các cách viết phổ biến; ảnh/PDF scan cần cài `tesseract-ocr` + gói ngôn ngữ `vie`.
 - Gemini đôi khi quá tải (503); hệ thống tự chuyển model dự phòng nhưng một lượt có thể mất 10–40 giây.
 - Chưa có đăng nhập: mọi người dùng trên cùng máy chủ thấy chung danh sách phiên. Khóa S3 trong `docker/seaweedfs/s3.json` chỉ dành cho môi trường dev.
+
+---
+
+## 10. Báo cáo cuối khóa: thực nghiệm 7 chương và triển khai
+
+Báo cáo LaTeX nằm ở `report/` (biên dịch: `report/build.sh`, dùng image `texlive/texlive` → `report/main.pdf`).
+Mỗi chương có một script thực nghiệm trong `lab/`, ghi số liệu vào `lab/results/chX.json`, hình vào
+`report/figures/` và mô hình vào `data/models/`:
+
+| Chương | Script | Dữ liệu | Mô hình triển khai |
+|---|---|---|---|
+| 1 | `lab/ch1_history.py` | Pima Indians Diabetes | `ch1_pima.json` (luật CF, perceptron, MLP) |
+| 2 | `lab/ch2_ml.py` | NHANES 2011–2018 | `ch2_classic.joblib` (7 bộ phân loại) |
+| 3 | `lab/ch3_cnn.py` (GPU) | RetinaMNIST 128×128 | `ch3_resnet18.pt` |
+| 4 | `lab/ch4_rnn.py` (GPU) | ShanghaiT1DM/T2DM | `ch4_glucose_rnn.pt` (LSTM 2 tầng) |
+| 5 | `lab/ch5_rag.py` | KB tiếng Việt + MedQuAD-NIDDK | KnowledgeAgent (pgvector + AGE) |
+| 6 | `lab/ch6_gnn.py`, `lab/ch6_ablation.py` (GPU) | Pubmed-Diabetes | `ch6_gat.pt` |
+| 7 | `lab/ch7_agents.py` | NHANES (tập kiểm tra) | Hệ đa tác tử |
+
+Bộ dữ liệu được tải vào `lab/data/` (không commit); đường dẫn tải ghi trong từng chương của báo cáo.
+Huấn luyện GPU dùng một venv riêng (`.venv-gpu`, PyTorch CUDA); `.venv` và image Docker dùng PyTorch CPU.
+
+**Triển khai** (`docker compose --profile app up -d --build`): backend phục vụ chatbot `/`, trang thử nghiệm
+`/lab` (API `/api/lab/ch1…ch6`), Swagger `/docs`; dịch vụ `cloudflared` nối Cloudflare Tunnel (token
+`CLOUDFLARE_TUNNEL_TOKEN` trong `.env`) — public hostname trỏ về `http://localhost:8000`.
