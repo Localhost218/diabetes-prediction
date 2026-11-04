@@ -1,8 +1,8 @@
 """
 Tác tử Điều phối Trung tâm (Orchestrator)
 Mỗi lượt chat: phân loại ý định → lập kế hoạch → điều phối các tác tử qua MessageBus.
-Kế hoạch là động: câu hỏi kiến thức chỉ đi nhánh RAG; thiếu dữ liệu thì hỏi lại; đủ dữ liệu thì
-chạy song song nhánh Prediction và Knowledge rồi đưa vào hội đồng tranh biện.
+Kế hoạch là động: câu hỏi kiến thức chỉ đi nhánh RAG; thiếu dữ liệu hoặc hồ sơ có thể nằm ngoài phạm vi sàng lọc
+thì hỏi lại; đủ dữ liệu thì chạy song song nhánh Prediction và Knowledge rồi đưa vào hội đồng tranh biện.
 """
 
 import asyncio
@@ -10,6 +10,7 @@ import re
 import uuid
 from typing import Any, Dict, List, Optional
 
+from src.agents.clarification_agent import ClarificationAgent
 from src.agents.consensus_critic_agent import ConsensusCriticAgent
 from src.agents.conversation_agent import ConversationAgent
 from src.agents.document_agent import DocumentAgent
@@ -18,6 +19,7 @@ from src.agents.prediction_agent import PredictionAgent
 from src.agents.response_agent import ResponseAgent
 from src.agents.treatment_rl_agent import TreatmentRLAgent
 from src.communication.message_bus import AgentMessage, BaseAgent, MessageBus
+from src.knowledge.scope import apply_yes_no
 from src.llm.client import llm
 from src.llm.prompts import INTENT_SYSTEM, IntentDecision, format_history
 from src.schemas.patient_profile import PatientProfile
@@ -36,7 +38,7 @@ class OrchestratorAgent(BaseAgent):
 
     def __init__(self):
         super().__init__(MessageBus())
-        for agent_cls in (ConversationAgent, DocumentAgent, PredictionAgent, KnowledgeAgent,
+        for agent_cls in (ConversationAgent, DocumentAgent, ClarificationAgent, PredictionAgent, KnowledgeAgent,
                           ConsensusCriticAgent, TreatmentRLAgent, ResponseAgent):
             agent_cls(self.bus)
 
@@ -54,12 +56,15 @@ class OrchestratorAgent(BaseAgent):
         profile.conflicts = []  # mâu thuẫn chỉ báo ở lượt phát sinh
         last_bot = next((h["text"] for h in reversed(history) if h["sender"] == "bot"), "")
 
-        # 1. Tiếp nhận song song: phân loại ý định + trích xuất từ text + đọc từng file
+        # 1. Tiếp nhận song song: phân loại ý định + trích xuất từ text + kiểm tra phạm vi + đọc từng file
         intent_task = self._classify(text, history, profile) if text else _none()
         text_task = self.ask("ConversationAgent", "EXTRACT_FROM_TEXT",
                              {"text": text, "previous_bot_message": last_bot[-600:]}, conv) if text else _none()
+        scope_task = self.ask("ClarificationAgent", "SCOPE_CHECK", {"text": text, "history": history}, conv) \
+            if text else _none()
         doc_tasks = [self.ask("DocumentAgent", "PARSE_DOCUMENT", d, conv) for d in documents]
-        llm_intent, text_reply, *doc_replies = await asyncio.gather(intent_task, text_task, *doc_tasks)
+        llm_intent, text_reply, scope_reply, *doc_replies = await asyncio.gather(intent_task, text_task, scope_task,
+                                                                                  *doc_tasks)
         plan.append("intake: " + ", ".join(filter(None, ["text" if text else None, f"{len(documents)} file" if documents else None])))
 
         # Gộp file trước, tin nhắn sau: lời người dùng nói trực tiếp (ví dụ đính chính tuổi) được ưu tiên hơn file
@@ -73,7 +78,10 @@ class OrchestratorAgent(BaseAgent):
             doc_results.append(result)
         if text_reply is not None and text_reply.performative == "INFORM":
             updated += profile.merge(PatientProfile.model_validate(text_reply.payload["profile_delta"]))
+        if text:
+            updated += apply_yes_no(profile, text)  # "có"/"không" cho câu hỏi làm rõ vừa rồi
         updated = list(dict.fromkeys(updated))
+        profile.pending_questions = []
 
         intent = self._decide_intent(text, llm_intent, updated, documents, profile, last_assessment)
         plan.append(f"intent: {intent}" + (" (LLM)" if llm_intent else " (luật)"))
@@ -101,11 +109,26 @@ class OrchestratorAgent(BaseAgent):
             return self._finish(conv, plan + ["RAG: KnowledgeAgent", "respond: knowledge"], reply,
                                 {**base, "knowledge": kb.payload})
 
+        # Câu hỏi làm rõ: luật (thiếu/mâu thuẫn/ngoài phạm vi) + LLM (tình huống luật chưa lường trước)
+        scope_issues = scope_reply.payload.get("issues", []) if scope_reply is not None else []
+        clar = await self.ask("ClarificationAgent", "PLAN_QUESTIONS",
+                              {"profile": profile.model_dump(), "scope_issues": scope_issues}, conv)
+        questions = clar.payload["questions"] if clar.performative == "INFORM" else []
+        profile.asked_questions += [q["key"] for q in questions]
+        profile.pending_questions = [q["key"] for q in questions]
+        base["clarification"] = clar.payload if clar.performative == "INFORM" else None
+
+        if any(q["blocking"] for q in questions):
+            reply = await self.ask("ResponseAgent", "COMPOSE_CLARIFICATION", {
+                "questions": questions, "understood": profile.summary_vi() if updated else [],
+            }, conv)
+            return self._finish(conv, plan + [f"clarify: {', '.join(q['key'] for q in questions)}"], reply, base)
+
         if not profile.is_ready():
             reply = await self.ask("ResponseAgent", "COMPOSE_FOLLOW_UP", {
                 "missing_required": profile.missing_required(),
                 "understood": profile.summary_vi() if updated else [],
-                "documents": doc_results,
+                "documents": doc_results, "questions": questions,
             }, conv)
             return self._finish(conv, plan + [f"slot filling: thiếu {', '.join(profile.missing_required())}"], reply,
                                 {**base, "missing_required": profile.missing_required()})
@@ -133,8 +156,9 @@ class OrchestratorAgent(BaseAgent):
                       "treatment": treatment.payload}
         reply = await self.ask("ResponseAgent", "COMPOSE_ASSESSMENT", {
             **assessment, "missing_recommended": profile.missing_recommended(), "updated_fields": updated,
-            "question": text, "history": history,
+            "question": text, "history": history, "questions": questions,
         }, conv)
+        plan += [f"clarify (kèm kết quả): {', '.join(q['key'] for q in questions)}"] if questions else []
         return self._finish(conv, plan + ["RL: TreatmentRLAgent", "respond: assessment"], reply,
                             {**base, **assessment, "profile_summary": profile.summary_vi()})
 

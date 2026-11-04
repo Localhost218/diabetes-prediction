@@ -48,7 +48,7 @@ def _llm_enabled() -> bool:
 @dataclass(frozen=True)
 class Settings:
     # PostgreSQL (pgvector + Apache AGE)
-    database_url: str = _env("DATABASE_URL", "postgresql+psycopg://astarcare:astarcare@localhost:5432/astarcare")
+    database_url: str = _env("DATABASE_URL", "postgresql+psycopg://multiagent:multiagent@localhost:5432/multiagent")
     kg_backend: str = _env("KG_BACKEND", "age")  # age | sql
     kg_graph_name: str = _env("KG_GRAPH_NAME", "diabetes_kg")
 

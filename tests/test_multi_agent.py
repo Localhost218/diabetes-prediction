@@ -117,3 +117,15 @@ def test_ml_dl_models_and_disagreement_debate(orchestrator):
     issues = [d["issue"] for d in r["data"]["consensus"]["debate"]]
     assert "ml_dl_disagree" in issues
     assert any("ML và DL bất đồng" in m for m in r["data"]["consensus"]["negative_contradictions_minus"])
+
+
+def test_clarification_blocks_then_resumes_after_short_answer(orchestrator):
+    profile = PatientProfile()
+    r1 = _turn(orchestrator, profile, "tôi là nữ, 32 tuổi, BMI 26, đường huyết lúc đói 118 mg/dL")
+    assert "consensus" not in r1["data"]
+    assert [q["key"] for q in r1["data"]["clarification"]["questions"]] == ["pregnant"]
+    assert "PREDICT_RISK" not in {m["msg_type"] for m in r1["transcript"]}
+
+    r2 = _turn(orchestrator, profile, "không")
+    assert profile.get("pregnant") is False and "consensus" in r2["data"]
+    assert "pregnant" not in [q["key"] for q in r2["data"]["clarification"]["questions"]]

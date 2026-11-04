@@ -1,16 +1,16 @@
 # Hạ tầng lưu trữ cho hệ thống chatbot đa tác tử.
-#   docker compose up -d postgres seaweedfs        # chỉ hạ tầng, backend chạy local
-#   docker compose --profile app up -d --build     # chạy toàn bộ: backend (/, /lab, /docs) + Cloudflare Tunnel
-name: astarcare
+#   docker compose up -d postgres seaweedfs age-viewer   # hạ tầng + AGE Viewer, backend chạy local
+#   docker compose --profile app up -d --build           # chạy toàn bộ: backend (/, /lab, /docs) + Cloudflare Tunnel
+name: multiagent
 
 services:
   postgres:
     build: ./docker/postgres
-    image: astarcare-postgres:17
+    image: multiagent-postgres:17
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-astarcare}
-      POSTGRES_USER: ${POSTGRES_USER:-astarcare}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astarcare}
+      POSTGRES_DB: ${POSTGRES_DB:-multiagent}
+      POSTGRES_USER: ${POSTGRES_USER:-multiagent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-multiagent}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -35,12 +35,25 @@ services:
       - seaweed:/data
       - ./docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
 
+  age-viewer:
+    image: slanj/age-viewer:latest
+    container_name: multiagent-age-viewer
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./docker/age-viewer/sql/17:/src/backend/sql/17:ro
+      - ./docker/age-viewer/sql/16:/src/backend/sql/16:ro
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   backend:
     profiles: ["app"]
     build: .
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-astarcare}:${POSTGRES_PASSWORD:-astarcare}@postgres:5432/${POSTGRES_DB:-astarcare}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-multiagent}:${POSTGRES_PASSWORD:-multiagent}@postgres:5432/${POSTGRES_DB:-multiagent}
       S3_ENDPOINT_URL: http://seaweedfs:8333
     ports:
       - "8000:8000"

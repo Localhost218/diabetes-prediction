@@ -1,5 +1,5 @@
 """
-Chương 7 — Đánh giá hệ đa tác tử (Orchestrator + 7 tác tử, MessageBus, hội đồng tranh biện).
+Chương 7 — Đánh giá hệ đa tác tử (Orchestrator + 8 tác tử, MessageBus, hội đồng tranh biện).
 
 Ca kiểm thử lấy từ tập KIỂM TRA của NHANES (cùng phép chia 70/10/20, random_state=42 với scripts/train_model.py,
 nên PredictionAgent chưa từng thấy các ca này), chỉ giữ người có đủ glucose lúc đói và HbA1c.
@@ -9,7 +9,8 @@ nên PredictionAgent chưa từng thấy các ca này), chỉ giữ người có
   K2 — chỉ có FPG: so sánh tác tử Tri thức đơn lẻ (ngưỡng), tác tử Dự đoán đơn lẻ (ML) và cả hội đồng, với nhãn
        ĐTĐ thật của NHANES (gồm cả người đã được chẩn đoán và người có HbA1c ≥ 6,5% mà FPG bình thường).
   K3 — tin nhắn tiếng Việt tự do sinh từ mẫu câu: trích xuất bằng regex (không LLM) và bằng Gemini.
-Cùng với thống kê vận hành: số thông điệp, vòng tranh biện, guardrail, độ trễ từng tác tử.
+Cùng với thống kê vận hành: số thông điệp, vòng tranh biện, guardrail, độ trễ từng tác tử, và số câu hỏi làm rõ
+(ClarificationAgent) mà hệ thống đặt ra trên các ca nằm trong phạm vi sàng lọc.
 
     .venv/bin/python lab/ch7_agents.py [--n 400] [--llm-n 40]
 """
@@ -64,6 +65,7 @@ def profile_from(row, with_a1c=True):
         if not pd.isna(row[f]):
             p.set(f, bool(row[f]), "form")
     p.set("glucose_fasting_mgdl", row["fasting_glucose"], "form")
+    p.set("pregnant", False, "form")  # bộ NHANES đã loại thai phụ (scripts/fetch_nhanes.py)
     if with_a1c:
         p.set("hba1c_percent", row["hba1c"], "form")
     p.derive()
@@ -176,7 +178,8 @@ async def main_async(n, llm_n):
                    "rounds": c["debate_rounds"], "issues": [d["issue"] for d in c["debate"]],
                    "guardrails": [g["level"] for g in c["safety_guardrails"]], "plus": len(c["positive_evidence_plus"]),
                    "minus": len(c["negative_contradictions_minus"]), "ms": ms,
-                   "rl_action": out["data"]["treatment"].get("action_id")})
+                   "rl_action": out["data"]["treatment"].get("action_id"),
+                   "questions": [q["key"] for q in out["data"]["clarification"]["questions"]]})
         stats.append(transcript_stats(out["transcript"]))
         out2, ms2 = await run_profile(orc, profile_from(row, False))
         c2 = out2["data"]["consensus"]
@@ -195,6 +198,8 @@ async def main_async(n, llm_n):
               "guardrails": dict(Counter(g for r in k1 for g in r["guardrails"])),
               "plus_mean": r4(np.mean([r["plus"] for r in k1])), "minus_mean": r4(np.mean([r["minus"] for r in k1])),
               "rl_actions": dict(Counter(r["rl_action"] for r in k1)),
+              "clarification": {"turns_with_question": r4(np.mean([bool(r["questions"]) for r in k1])),
+                                "keys": dict(Counter(q.split(":")[0] for r in k1 for q in r["questions"]))},
               "latency_ms": {"median": r4(np.median([r["ms"] for r in k1])),
                              "p95": r4(np.percentile([r["ms"] for r in k1], 95))}}
     msgs = [s["n_messages"] for s in stats]
@@ -236,11 +241,19 @@ async def main_async(n, llm_n):
     async def extract(subset, use_llm):
         llm.enabled = use_llm
         per_field, exact, tiers, lat = defaultdict(list), [], [], []
+        asked, blocked = [], 0
         for (msg, truth), r2 in subset:
             p = PatientProfile()
             t0 = time.perf_counter()
             out = await orc.run_turn(p, msg, [])
             lat.append(time.perf_counter() - t0)
+            questions = (out["data"].get("clarification") or {}).get("questions", [])
+            asked.append([q["key"].split(":")[0] for q in questions])
+            if any(q["blocking"] for q in questions):
+                # Hệ thống dừng lại hỏi (thai kỳ) → người dùng mô phỏng trả lời đúng sự thật của NHANES
+                blocked += 1
+                history = [{"sender": "user", "text": msg}, {"sender": "bot", "text": out["text"]}]
+                out = await orc.run_turn(p, "không", [], history)
             ok = [field_correct(f, p.get(f), v) for f, v in truth.items()]
             for (f, _), o in zip(truth.items(), ok):
                 per_field[f].append(o)
@@ -250,7 +263,11 @@ async def main_async(n, llm_n):
         return {"n": len(subset), "exact_match": r4(np.mean(exact)),
                 "field_accuracy": {f: r4(np.mean(v)) for f, v in per_field.items()},
                 "micro_accuracy": r4(np.mean([o for v in per_field.values() for o in v])),
-                "same_tier_as_form": r4(np.mean(tiers)), "latency_s_median": r4(np.median(lat))}
+                "same_tier_as_form": r4(np.mean(tiers)), "latency_s_median": r4(np.median(lat)),
+                "clarification": {"turns_with_question": r4(np.mean([bool(a) for a in asked])),
+                                  "questions_per_turn": r4(np.mean([len(a) for a in asked])),
+                                  "blocked_then_answered": blocked,
+                                  "keys": dict(Counter(k for a in asked for k in a))}}
 
     evaluated = [i for i, (_, row) in enumerate(cases.iterrows())
                  if not any(sf["bmi"] == float(row.bmi) and sf["age"] == float(row.age_years) for sf in slot_filling)]

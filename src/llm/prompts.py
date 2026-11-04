@@ -18,6 +18,8 @@ NumericField = Literal[
 BooleanField = Literal[
     "high_bp", "high_chol", "family_history", "smoker", "phys_activity",
     "heart_disease", "stroke", "heavy_alcohol",
+    "pregnant", "diagnosed_diabetes", "glucose_lowering_meds", "steroid_use", "acute_illness",
+    "hba1c_interference", "fasting_confirmed",
 ]
 
 NUMERIC_FIELD_MAP = {
@@ -33,6 +35,7 @@ class Measurement(BaseModel):
     value: float
     unit: Optional[str] = Field(None, description="Đơn vị đúng như văn bản ghi, ví dụ mmol/L, mg/dL, %, mmol/mol, umol/L")
     evidence: str = Field(description="Trích nguyên văn đoạn chứa giá trị")
+    timing_unclear: bool = Field(False, description="True nếu là glucose trong tin nhắn mà không nói rõ đo lúc đói hay sau ăn")
 
 
 class RiskFactor(BaseModel):
@@ -58,7 +61,8 @@ class ExtractedClinicalData(BaseModel):
         for m in self.measurements:
             field = NUMERIC_FIELD_MAP.get(m.field, m.field)
             value, conf = normalize(field, m.value, m.unit)
-            profile.set(field, value, source, base_confidence * conf, m.evidence, unit_flags(field, m.unit))
+            flags = unit_flags(field, m.unit) + (["fasting_unclear"] if m.timing_unclear and field == "glucose_fasting_mgdl" else [])
+            profile.set(field, value, source, base_confidence * conf, m.evidence, flags)
         for r in self.risk_factors:
             profile.set(r.field, r.present, source, base_confidence * 0.95, r.evidence)
         if self.age_years:
@@ -85,7 +89,40 @@ Quy tắc:
 - Bỏ qua giá trị tham chiếu/khoảng bình thường in trên phiếu xét nghiệm, chỉ lấy kết quả của bệnh nhân.
 - Yếu tố nguy cơ: present=false khi người dùng phủ định rõ ràng ("không hút thuốc", "nhà không ai bị tiểu đường").
 - Tiền sử gia đình chỉ tính bố mẹ, anh chị em ruột hoặc con bị đái tháo đường.
-- Người dùng hỏi về người khác (ví dụ "mẹ tôi") thì vẫn trích chỉ số của người được hỏi."""
+- Người dùng hỏi về người khác (ví dụ "mẹ tôi") thì vẫn trích chỉ số của người được hỏi.
+- Tin nhắn ghi đường huyết mà không nói lúc đói hay sau ăn: trích là glucose_fasting và đặt timing_unclear=true.
+- Bối cảnh lâm sàng (trích như yếu tố nguy cơ, chỉ khi nói về CHÍNH người được đánh giá, không phải câu hỏi kiến thức):
+  pregnant (đang mang thai), diagnosed_diabetes (đã được chẩn đoán đái tháo đường), glucose_lowering_meds (đang dùng
+  thuốc hạ đường huyết/insulin), steroid_use (đang dùng corticoid), acute_illness (đang ốm cấp, sốt, nhiễm trùng, vừa
+  phẫu thuật lúc xét nghiệm), hba1c_interference (thiếu máu, bệnh thận nặng/chạy thận, vừa truyền máu, thalassemia),
+  fasting_confirmed (xác nhận lần đo glucose đã nhịn ăn ≥ 8 giờ; false nếu đo sau ăn).
+- Nếu tin nhắn là câu trả lời ngắn ("có", "không", "rồi", "chưa") cho câu chatbot vừa hỏi, trích trường mà câu hỏi đó nhắm tới."""
+
+
+class ScopeIssue(BaseModel):
+    reason: Literal["PREGNANCY", "ALREADY_DIAGNOSED", "ON_DIABETES_MEDS", "PEDIATRIC", "HBA1C_UNRELIABLE",
+                    "ACUTE_ILLNESS_OR_DRUG", "OTHER"]
+    evidence: str = Field(description="Trích NGUYÊN VĂN đoạn trong tin nhắn của người dùng gây ra vấn đề")
+    question: str = Field(description="Một câu hỏi ngắn, lịch sự để hỏi lại người dùng (tiếng Việt)")
+    blocking: bool = Field(description="True nếu không thể đưa kết luận sàng lọc có ý nghĩa trước khi có câu trả lời")
+
+
+class ScopeCheck(BaseModel):
+    issues: List[ScopeIssue] = Field(default_factory=list)
+
+
+SCOPE_SYSTEM = """Bạn là bộ kiểm tra phạm vi cho một chatbot SÀNG LỌC nguy cơ đái tháo đường típ 2.
+Hệ thống chỉ đúng khi người được đánh giá: là người lớn, không mang thai, chưa được chẩn đoán đái tháo đường, không
+dùng thuốc ảnh hưởng đường huyết, xét nghiệm làm lúc sức khỏe ổn định, và HbA1c phản ánh đúng đường huyết.
+Hệ thống đã tự hỏi các chỉ số còn thiếu (tuổi, BMI, đường huyết, đơn vị...) — KHÔNG hỏi lại những chỉ số đó.
+
+Nhiệm vụ: đọc tin nhắn MỚI của người dùng và tìm các tình huống MƠ HỒ hoặc NẰM NGOÀI các giả định trên mà cần hỏi lại,
+ví dụ: nhắc tới thai nghén nhưng không rõ, nói "đang điều trị" mà không rõ bệnh gì, đánh giá cho trẻ em, xét nghiệm
+làm khi đang nằm viện, triệu chứng cấp cứu, người dùng hỏi cho nhiều người khác nhau cùng lúc, dữ liệu tự mâu thuẫn.
+- Dùng OTHER cho tình huống không thuộc nhóm nào nhưng vẫn khiến kết quả sàng lọc có thể sai.
+- evidence phải là đoạn trích nguyên văn có trong tin nhắn. Không có bằng chứng thì không báo.
+- Thông tin đã nói RÕ RÀNG (ví dụ "tôi không mang thai", "tôi đang tiêm insulin") thì không cần hỏi.
+- Phần lớn tin nhắn KHÔNG có vấn đề gì: khi đó trả về danh sách rỗng. Tối đa 2 vấn đề."""
 
 
 class IntentDecision(BaseModel):

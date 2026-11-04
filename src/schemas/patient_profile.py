@@ -52,7 +52,25 @@ FIELD_SPECS: Dict[str, FieldSpec] = {
     "stroke": FieldSpec("Tiền sử đột quỵ", "bool"),
     "heavy_alcohol": FieldSpec("Uống nhiều rượu bia", "bool"),
     "gen_hlth": FieldSpec("Tự đánh giá sức khỏe (1 rất tốt – 5 kém)", "int", (1, 5)),
+    # Bối cảnh lâm sàng: không phải đặc trưng của mô hình, nhưng quyết định kết quả sàng lọc có áp dụng được không
+    "pregnant": FieldSpec("Đang mang thai", "bool", None, "",
+                          "Hiện bạn (hoặc người được đánh giá) có đang mang thai không?"),
+    "diagnosed_diabetes": FieldSpec("Đã được chẩn đoán đái tháo đường", "bool", None, "",
+                                    "Bạn đã từng được bác sĩ chẩn đoán đái tháo đường chưa?"),
+    "glucose_lowering_meds": FieldSpec("Đang dùng thuốc hạ đường huyết / insulin", "bool", None, "",
+                                       "Bạn có đang dùng thuốc hạ đường huyết hoặc tiêm insulin không?"),
+    "steroid_use": FieldSpec("Đang dùng corticoid", "bool", None, "",
+                             "Bạn có đang dùng thuốc corticoid (prednisolon, dexamethason...) không?"),
+    "acute_illness": FieldSpec("Đang ốm cấp / nhiễm trùng / sau phẫu thuật", "bool", None, "",
+                               "Lúc làm xét nghiệm, bạn có đang ốm, sốt, nhiễm trùng hoặc vừa phẫu thuật không?"),
+    "hba1c_interference": FieldSpec("Thiếu máu / bệnh thận nặng / vừa truyền máu", "bool", None, "",
+                                    "Bạn có bị thiếu máu, bệnh thận nặng hoặc vừa truyền máu trong 3 tháng gần đây không?"),
+    "fasting_confirmed": FieldSpec("Glucose đo lúc đói (nhịn ăn ≥ 8 giờ)", "bool", None, "",
+                                   "Lần đo đường huyết đó bạn đã nhịn ăn ít nhất 8 giờ chưa?"),
 }
+
+CONTEXT_FIELDS = ["pregnant", "diagnosed_diabetes", "glucose_lowering_meds", "steroid_use", "acute_illness",
+                  "hba1c_interference", "fasting_confirmed"]
 
 # Tối thiểu để chạy dự đoán: tuổi, BMI và ít nhất một xét nghiệm đường huyết
 REQUIRED_FIELDS = ["age_years", "bmi"]
@@ -82,6 +100,8 @@ class PatientProfile(BaseModel):
     glucose_history_source: Optional[str] = None
     fundus_features: Optional[Dict[str, Any]] = None  # {"image_b64": ...} ảnh đáy mắt cho CNN
     conflicts: List[Conflict] = Field(default_factory=list)
+    asked_questions: List[str] = Field(default_factory=list)  # mã câu hỏi làm rõ đã hỏi trong phiên (không hỏi lại)
+    pending_questions: List[str] = Field(default_factory=list)  # câu hỏi của lượt bot vừa rồi, chờ người dùng trả lời
 
     # ---------- truy cập ----------
     def get(self, name: str, default: Any = None) -> Any:
@@ -144,6 +164,16 @@ class PatientProfile(BaseModel):
             if tc or ldl or tg:
                 dyslipidemia = (tc or 0) >= 240 or (ldl or 0) >= 160 or (tg or 0) >= 200
                 self.set("high_chol", dyslipidemia, "derived", 0.8, "Suy ra từ bộ mỡ máu")
+
+        # Người dùng xác nhận lần đo glucose có/không nhịn ăn (chỉ áp dụng cho lần đo trước câu xác nhận)
+        glucose, confirm = self.fields.get("glucose_fasting_mgdl"), self.fields.get("fasting_confirmed")
+        if glucose and confirm and "fasting_unclear" in glucose.flags and confirm.updated_at >= glucose.updated_at:
+            if confirm.value:
+                glucose.flags = [f for f in glucose.flags if f != "fasting_unclear"]
+            else:
+                del self.fields["glucose_fasting_mgdl"]
+                self.set("glucose_random_mgdl", glucose.value, glucose.source, glucose.confidence, glucose.evidence,
+                         [f for f in glucose.flags if f != "fasting_unclear"])
 
     # ---------- đánh giá đủ dữ liệu ----------
     def missing_required(self) -> List[str]:

@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Tuple
 
 from src.communication.message_bus import AgentMessage, BaseAgent
 from src.config import settings
+from src.knowledge.scope import scope_notes
 from src.schemas.patient_profile import FIELD_SPECS, PatientProfile, format_value, source_vi
 
 ML_HIGH, ML_LOW = 0.30, 0.15
@@ -185,6 +186,9 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
     else:
         level, score = "low", prob
 
+    # Hồ sơ nằm ngoài giả định của mô hình (thai phụ, đã chẩn đoán, đang dùng thuốc...) → ghi (-) và cảnh báo phạm vi
+    scope_alerts, scope_minus = scope_notes(profile)
+    minus += scope_minus
     guardrails = _guardrails(profile)
     if any(a["level"] in ("emergency", "urgent") for a in guardrails):
         level, score = "very_high", max(score, 0.95)
@@ -205,7 +209,7 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
         "confirmation_required": state["confirmation_required"],
         "positive_evidence_plus": plus,
         "negative_contradictions_minus": minus,
-        "safety_guardrails": guardrails,
+        "safety_guardrails": guardrails + scope_alerts,
         "screening_plan": state.get("screening_plan"),
         "debate_rounds": max((d["round"] for d in debate), default=0),
         "debate": debate,

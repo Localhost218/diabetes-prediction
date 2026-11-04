@@ -48,6 +48,7 @@ Bổ sung so với sơ đồ: tầng **tiếp nhận** (text + file), tầng **h
 |---|---|---|---|
 | **Orchestrator** | — (khởi tạo hội thoại) | Phân loại ý định, lập kế hoạch, điều phối song song | LLM structured output + luật dự phòng |
 | **ConversationAgent** | `EXTRACT_FROM_TEXT` | Bóc tách chỉ số, yếu tố nguy cơ từ tin nhắn tự do | LLM structured output; dự phòng regex tiếng Việt |
+| **ClarificationAgent** | `SCOPE_CHECK`, `PLAN_QUESTIONS` | Phát hiện hồ sơ mơ hồ / ngoài phạm vi sàng lọc (thai phụ, đã chẩn đoán, dùng thuốc, mâu thuẫn nguồn, đơn vị phải đoán, HbA1c lệch glucose...) và đặt câu hỏi làm rõ: chặn luồng với câu hỏi quyết định, còn lại hỏi kèm kết quả; tối đa 2 câu/lượt, không hỏi lại | Luật (`knowledge/scope.py`) + LLM structured output có kiểm tra trích dẫn nguyên văn; nhóm `OTHER` ghi vào audit trail |
 | **DocumentAgent** | `PARSE_DOCUMENT` | Đọc file từ SeaweedFS → trích chỉ số → quy đổi đơn vị (mmol/L → mg/dL, mmol/mol → %, µmol/L → mg/dL) | PyMuPDF, python-docx, pandas, LLM vision (ảnh / PDF scan), Tesseract khi không có LLM |
 | **PredictionAgent** | `PREDICT_RISK`, `CHALLENGE_ML_VS_LABS`, `CHALLENGE_DATA_QUALITY`, `CHALLENGE_MODEL_DISAGREEMENT` | Hai mô hình ML + DL cho xác suất nguy cơ theo yếu tố nguy cơ (lấy trung bình) + giải thích đặc trưng; chỉ số CGM (TIR/TBR/CV); bảo vệ, nhượng bộ hoặc giải trình khi bị chất vấn | scikit-learn HistGradientBoosting, PyTorch MLP, RNN (NumPy) |
 | **KnowledgeAgent** | `RETRIEVE_EVIDENCE`, `ANSWER_QUESTION`, `CHALLENGE_VERIFY_CRITERIA`, `CHALLENGE_SCREENING_PLAN` | Đối chiếu xét nghiệm với ngưỡng ADA; hybrid RAG; GraphRAG; trả trích dẫn | pgvector, Apache AGE, fastembed |
@@ -138,6 +139,7 @@ MultiAgent/
 │   ├── agents/
 │   │   ├── orchestrator.py        Phân loại ý định, kế hoạch động, điều phối song song
 │   │   ├── conversation_agent.py  Text → PatientProfile
+│   │   ├── clarification_agent.py Câu hỏi làm rõ: luật phạm vi + LLM scope check
 │   │   ├── document_agent.py      File bệnh án → PatientProfile
 │   │   ├── prediction_agent.py    Nhánh DB → ML/DL, trả lời CHALLENGE
 │   │   ├── knowledge_agent.py     Nhánh KB → RAG, trả lời CHALLENGE

@@ -26,7 +26,7 @@ DISCLAIMER = "_Kết quả chỉ mang tính tham khảo, không thay thế chẩ
 class ResponseAgent(BaseAgent):
     name = "ResponseAgent"
     handles = {"COMPOSE_ASSESSMENT", "COMPOSE_FOLLOW_UP", "COMPOSE_KNOWLEDGE_ANSWER", "COMPOSE_SMALL_TALK",
-               "COMPOSE_CONTEXTUAL_ANSWER"}
+               "COMPOSE_CONTEXTUAL_ANSWER", "COMPOSE_CLARIFICATION"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
         p = msg.payload
@@ -35,6 +35,8 @@ class ResponseAgent(BaseAgent):
             text = await llm.generate(RESPONSE_SYSTEM, [history + _assessment_brief(p)]) or _assessment_template(p)
         elif msg.msg_type == "COMPOSE_FOLLOW_UP":
             text = _follow_up_template(p)
+        elif msg.msg_type == "COMPOSE_CLARIFICATION":
+            text = _clarification_template(p)
         elif msg.msg_type == "COMPOSE_CONTEXTUAL_ANSWER":
             text = await llm.generate(CONTEXT_SYSTEM, [history + _contextual_brief(p)]) or _contextual_template(p)
         elif msg.msg_type == "COMPOSE_KNOWLEDGE_ANSWER":
@@ -43,6 +45,9 @@ class ResponseAgent(BaseAgent):
             text = await llm.generate(SMALL_TALK_SYSTEM, [history + p["text"]]) or _small_talk_template()
         if "tham khảo" not in text[-300:] and msg.msg_type in ("COMPOSE_ASSESSMENT", "COMPOSE_KNOWLEDGE_ANSWER"):
             text = f"{text}\n\n{DISCLAIMER}"
+        if msg.msg_type == "COMPOSE_ASSESSMENT" and p.get("questions"):
+            # Câu hỏi làm rõ được gắn nguyên văn (không qua LLM viết lại) để chắc chắn người dùng nhìn thấy
+            text = f"{text}\n\n---\n**Để kết quả chính xác hơn, mình cần hỏi thêm:**\n{_questions_block(p['questions'])}"
         return self.reply(msg, "RESPONSE_TEXT", {"text": text, "generated_by": "llm" if llm.enabled else "template"})
 
 
@@ -141,10 +146,24 @@ def _follow_up_template(p: Dict[str, Any]) -> str:
     if lines and lines[-1] != "":
         lines.append("")
     questions = [FIELD_SPECS[f].question_vi for f in p["missing_required"] if FIELD_SPECS[f].question_vi]
+    questions += [q["question"] for q in p.get("questions", [])]
     lines.append("Để hội đồng các tác tử đánh giá nguy cơ đái tháo đường, mình cần thêm:")
     lines += [f"{i}. {q}" for i, q in enumerate(questions, 1)]
     lines += ["", "Bạn có thể trả lời bằng tin nhắn hoặc tải lên phiếu xét nghiệm / bệnh án (PDF, ảnh, DOCX)."]
     return "\n".join(lines)
+
+
+def _clarification_template(p: Dict[str, Any]) -> str:
+    lines = []
+    if p.get("understood"):
+        lines += ["Mình đã ghi nhận:"] + [f"- {u}" for u in p["understood"]] + [""]
+    lines += ["Trước khi đánh giá, mình cần hỏi thêm vì câu trả lời sẽ thay đổi cách hiểu kết quả:",
+              _questions_block(p["questions"])]
+    return "\n".join(lines)
+
+
+def _questions_block(questions: List[Dict[str, Any]]) -> str:
+    return "\n".join(f"{i}. {q['question']}  \n   _Lý do: {q['reason']}_" for i, q in enumerate(questions, 1))
 
 
 def _contextual_template(p: Dict[str, Any]) -> str:

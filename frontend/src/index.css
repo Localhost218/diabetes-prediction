@@ -1703,6 +1703,7 @@ input:checked+.slider:before {
 .evidence.minus { background: var(--minus-bg); }
 .evidence.minus::before { content: '−'; color: var(--minus-color); }
 .evidence.guardrail { background: var(--danger-bg); color: var(--danger-color); padding-left: 10px; font-weight: 500; }
+.evidence.guardrail-scope { background: var(--minus-bg); color: var(--minus-color); }
 
 .details-section { border-top: 1px solid var(--border-color); padding-top: 6px; }
 .details-section-header {

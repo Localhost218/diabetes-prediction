@@ -152,6 +152,24 @@ BOOLEAN_PATTERNS: List[Tuple[str, str, Optional[str]]] = [
     ("heart_disease", r"bệnh tim|nhồi máu cơ tim|bệnh mạch vành|suy tim|thiếu máu cơ tim", None),
     ("stroke", r"đột quỵ|tai biến mạch máu não|tai biến", None),
     ("heavy_alcohol", r"uống nhiều rượu|nhậu nhiều|uống rượu bia nhiều|nghiện rượu", None),
+    # Bối cảnh lâm sàng (phạm vi áp dụng của sàng lọc)
+    ("pregnant", r"mang thai|có thai|có bầu|đang bầu|thai \d+ tuần", None),
+    ("diagnosed_diabetes",
+     r"(?:^|[,.;\n]\s*)(?:tôi|mình|em)\s+(?:đã\s+)?(?:bị|mắc|được chẩn đoán)\s+(?:bệnh\s+)?(?:tiểu đường|đái tháo đường|đtđ)",
+     r"(?:^|[,.;\n]\s*)(?:tôi|mình|em)\s+(?:không|chưa)\s+(?:bị|mắc|được chẩn đoán)\s+(?:bệnh\s+)?(?:tiểu đường|đái tháo đường|đtđ)"),
+    ("glucose_lowering_meds",
+     r"(?:đang|có|vẫn)\s+(?:uống|dùng|tiêm|chích|sử dụng)\s+[^.\n]{0,20}?(?:insulin|metformin|glucophage|gliclazide|"
+     r"diamicron|sitagliptin|januvia|empagliflozin|jardiance|dapagliflozin|forxiga|"
+     r"thuốc (?:hạ )?(?:đường huyết|đường máu|tiểu đường|đái tháo đường))",
+     r"(?:không|chưa|ko)\s+(?:uống|dùng|tiêm|chích|sử dụng)\s+[^.\n]{0,20}?(?:insulin|"
+     r"thuốc (?:hạ )?(?:đường huyết|đường máu|tiểu đường|đái tháo đường))"),
+    ("steroid_use",
+     r"(?:đang|có|vẫn)\s+(?:uống|dùng|tiêm|chích|sử dụng)\s+[^.\n]{0,20}?(?:corticoid|corticosteroid|prednisolon|"
+     r"prednison|medrol|dexamethason)", None),
+    ("acute_illness", r"(?:đang|vừa|mới)\s+(?:bị\s+)?(?:ốm|sốt|nhiễm trùng|viêm phổi|cúm|covid|mổ|phẫu thuật|nằm viện)",
+     None),
+    ("hba1c_interference", r"thiếu máu(?! cơ tim)|chạy thận|lọc máu|suy thận (?:nặng|mạn)|truyền máu|thalass?emia|tan máu",
+     None),
 ]
 
 ACTIVITY_POS = r"tập thể dục|chạy bộ|đi bộ|tập gym|chơi thể thao|đạp xe|bơi"
