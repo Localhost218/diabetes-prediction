@@ -1,0 +1,362 @@
+\chapter{Học sâu trên đồ thị}
+\label{chap:gnn}
+
+Nhiều loại dữ liệu y sinh có dạng đồ thị: bài báo trích dẫn nhau, protein tương tác với nhau, thuốc tương tác với thuốc, bệnh đồng mắc với bệnh. Ở Chương 5, đồ thị tri thức được duyệt bằng truy vấn viết tay. Chương này để mạng nơ-ron \emph{tự học} từ cấu trúc đồ thị. Nội dung gồm nguyên lý truyền thông điệp, ba kiến trúc tiêu biểu (GCN, GraphSAGE, GAT), hiện tượng làm trơn quá mức, và thực nghiệm phân loại 19.717 bài báo PubMed về đái tháo đường. Trong hệ thống, mô hình này dùng để gán nhãn ``thực nghiệm / típ 1 / típ 2'' cho y văn trước khi đưa vào Knowledge Base.
+
+\section{Dữ liệu đồ thị và các bài toán}
+
+Một đồ thị $G=(V,E)$ có $n=|V|$ nút, ma trận kề $\mathbf A\in\{0,1\}^{n\times n}$, ma trận bậc $\mathbf D=\operatorname{diag}(d_1,\ldots,d_n)$ với $d_i=\sum_j A_{ij}$, và ma trận đặc trưng nút $\mathbf X\in\mathbb R^{n\times d}$. Đồ thị khác ảnh và chuỗi ở ba điểm: số láng giềng thay đổi theo nút; \emph{không có thứ tự} giữa các láng giềng; và các nút không độc lập với nhau. Do đó mô hình phải \emph{bất biến với hoán vị}, tức là đánh số lại nút thì kết quả không đổi. Có ba họ bài toán: \emph{cấp nút} (phân loại bài báo, phát hiện gian lận), \emph{cấp cạnh} (dự đoán liên kết, gợi ý thuốc, tác dụng phụ khi phối hợp thuốc \cite{zitnik2018}), và \emph{cấp đồ thị} (dự đoán tính chất phân tử).
+
+Trước GNN, đã có hai hướng. \emph{Lan truyền nhãn} \cite{zhou2004} chỉ dùng cấu trúc đồ thị, với giả định các nút nối nhau thường cùng nhãn (\emph{đồng tính}, homophily \cite{mcpherson2001}). \emph{Nhúng nút} như DeepWalk \cite{perozzi2014} học vector cho từng nút từ các bước đi ngẫu nhiên, nhưng không tận dụng đặc trưng nút và không tổng quát được sang nút mới.
+
+\section{Mạng nơ-ron đồ thị}
+
+\subsection{Khung truyền thông điệp}
+
+Gilmer và cộng sự \cite{gilmer2017} thống nhất phần lớn các GNN vào khung \emph{truyền thông điệp}. Ở tầng $l$, mỗi nút $v$ nhận thông điệp từ láng giềng, gộp chúng bằng một hàm bất biến hoán vị (tổng, trung bình, max), rồi cập nhật biểu diễn của mình:
+\begin{equation}
+\begin{gathered}
+\mathbf m_v^{(l)} = \operatorname*{AGG}_{u\in\mathcal N(v)} \phi^{(l)}\big(\mathbf h_u^{(l)}, \mathbf h_v^{(l)}\big), \\
+\mathbf h_v^{(l+1)} = \psi^{(l)}\big(\mathbf h_v^{(l)}, \mathbf m_v^{(l)}\big),\qquad \mathbf h_v^{(0)} = \mathbf x_v .
+\end{gathered}
+\label{eq:mp}
+\end{equation}
+Sau $L$ tầng, $\mathbf h_v^{(L)}$ tổng hợp thông tin của vùng lân cận $L$ bước quanh $v$, tương tự trường tiếp nhận của CNN. CNN thực chất là trường hợp đặc biệt của truyền thông điệp trên đồ thị lưới, trong đó mỗi điểm ảnh có đúng 8 láng giềng theo thứ tự cố định. GNN tổng quát hóa phép tích chập sang láng giềng không có thứ tự và số lượng thay đổi \cite{wu2021gnn}.
+
+\subsection{Nền tảng phổ: từ biến đổi Fourier trên đồ thị đến GCN}
+
+GCN có thể được dẫn ra từ lý thuyết đồ thị phổ. Ma trận Laplace chuẩn hóa $\mathbf L = \mathbf I - \mathbf D^{-1/2}\mathbf A\mathbf D^{-1/2}$ là ma trận đối xứng nửa xác định dương, phân rã được thành $\mathbf L = \mathbf U\boldsymbol\Lambda\mathbf U^\top$ với các trị riêng $0=\lambda_1\le\ldots\le\lambda_n\le 2$. Các vector riêng $\mathbf U$ đóng vai trò ``các tần số'' trên đồ thị. Vector riêng ứng với trị riêng nhỏ biến thiên chậm giữa các nút kề nhau (tần số thấp), trị riêng lớn ứng với tín hiệu dao động mạnh giữa các nút kề nhau (tần số cao). \emph{Biến đổi Fourier trên đồ thị} của tín hiệu $\mathbf x\in\mathbb R^n$ là $\hat{\mathbf x}=\mathbf U^\top\mathbf x$, và \emph{tích chập phổ} với bộ lọc $g_\theta$ là:
+\begin{equation}
+g_\theta \star \mathbf x = \mathbf U\, g_\theta(\boldsymbol\Lambda)\,\mathbf U^\top\mathbf x .
+\label{eq:spectral}
+\end{equation}
+Công thức \eq{eq:spectral} đẹp nhưng không dùng được trực tiếp: phân rã trị riêng tốn $O(n^3)$, bộ lọc không cục bộ, và không áp dụng được cho đồ thị khác. ChebNet xấp xỉ $g_\theta(\boldsymbol\Lambda)$ bằng đa thức Chebyshev bậc $K$, $g_\theta\approx\sum_{k=0}^{K}\theta_k T_k(\tilde{\mathbf L})$. Bộ lọc khi đó chỉ phụ thuộc lân cận $K$ bước và tính được bằng phép nhân ma trận thưa. Kipf và Welling chọn $K=1$, xấp xỉ $\lambda_{\max}\approx 2$ và dùng chung một tham số $\theta = \theta_0 = -\theta_1$, được $g_\theta\star\mathbf x \approx \theta(\mathbf I + \mathbf D^{-1/2}\mathbf A\mathbf D^{-1/2})\mathbf x$. Toán tử $\mathbf I + \mathbf D^{-1/2}\mathbf A\mathbf D^{-1/2}$ có trị riêng trong $[0,2]$, nên chồng nhiều tầng có thể làm số liệu bất ổn. Để tránh điều này, họ dùng \emph{thủ thuật chuẩn hóa lại}: thay bằng $\tilde{\mathbf D}^{-1/2}\tilde{\mathbf A}\tilde{\mathbf D}^{-1/2}$ với $\tilde{\mathbf A}=\mathbf A+\mathbf I$, chính là $\hat{\mathbf A}$ trong \eq{eq:gcn}. Góc nhìn phổ cũng giải thích bản chất của GCN: nó là một \emph{bộ lọc thông thấp}, giữ thành phần biến thiên chậm (các nút kề nhau giống nhau) và triệt thành phần dao động. Bộ lọc này phù hợp với đồ thị đồng tính, và áp dụng lặp lại nhiều lần thì dẫn tới làm trơn quá mức.
+
+\subsection{Mạng tích chập đồ thị (GCN)}
+
+Kipf và Welling \cite{kipf2017} rút ra GCN từ xấp xỉ bậc nhất của tích chập phổ trên đồ thị. Thêm khuyên vào mỗi nút để nút giữ thông tin của chính mình, $\tilde{\mathbf A}=\mathbf A+\mathbf I$, $\tilde{\mathbf D}=\operatorname{diag}(\tilde{\mathbf A}\mathbf 1)$. Một tầng GCN là:
+\begin{equation}
+\mathbf H^{(l+1)} = \sigma\!\Big(\hat{\mathbf A}\,\mathbf H^{(l)}\mathbf W^{(l)}\Big),\qquad \hat{\mathbf A} = \tilde{\mathbf D}^{-1/2}\tilde{\mathbf A}\tilde{\mathbf D}^{-1/2}.
+\label{eq:gcn}
+\end{equation}
+Viết theo từng nút: $\mathbf h_v' = \sigma\big(\sum_{u\in\mathcal N(v)\cup\{v\}}\frac{1}{\sqrt{\tilde d_u\tilde d_v}}\mathbf W\mathbf h_u\big)$. Mỗi tầng thực hiện hai phép toán. (i) \emph{Biến đổi đặc trưng} $\mathbf H\mathbf W$, giống một lớp tuyến tính dùng chung cho mọi nút. (ii) \emph{Gộp láng giềng} có chuẩn hóa đối xứng theo bậc: một nút có nhiều liên kết (bài tổng quan được trích dẫn nhiều) đóng góp ít hơn cho mỗi láng giềng, nên không lấn át. $\hat{\mathbf A}$ là ma trận thưa với $|E|$ phần tử khác 0, nên một tầng tốn $O(|E|\,d)$. Mô hình hai tầng cho phân loại nút:
+\begin{equation}
+\begin{gathered}
+\mathbf Z = \operatorname{softmax}\!\Big(\hat{\mathbf A}\ \operatorname{ReLU}\big(\hat{\mathbf A}\mathbf X\mathbf W^{(0)}\big)\mathbf W^{(1)}\Big), \\
+\mathcal L = -\sum_{v\in V_L}\sum_{c} Y_{vc}\log Z_{vc},
+\end{gathered}
+\label{eq:gcn2}
+\end{equation}
+với mất mát chỉ tính trên tập nút có nhãn $V_L$. Học bán giám sát diễn ra tự nhiên: nhãn của vài nút lan qua cạnh tới các nút chưa có nhãn nhờ phép gộp, trong khi đặc trưng của mọi nút (kể cả nút không nhãn) đều tham gia vào lan truyền xuôi.
+
+\textbf{Ví dụ tính tay.} Xét đồ thị hình sao 4 nút: nút 2 là bài tổng quan được ba bài 1, 3, 4 trích dẫn (đánh số 1–4). Bậc sau khi thêm khuyên là $\tilde{\mathbf d} = (2, 4, 2, 2)$, và
+\[
+\hat{\mathbf A} = \tilde{\mathbf D}^{-1/2}(\mathbf A+\mathbf I)\tilde{\mathbf D}^{-1/2} =
+\begin{bmatrix} 0{,}5 & 0{,}354 & 0 & 0\\ 0{,}354 & 0{,}25 & 0{,}354 & 0{,}354\\ 0 & 0{,}354 & 0{,}5 & 0\\ 0 & 0{,}354 & 0 & 0{,}5\end{bmatrix},
+\]
+với $\hat A_{12} = 1/\sqrt{2\cdot4} = 0{,}354$ và $\hat A_{22} = 1/4$. Giả sử một đặc trưng là ``bài có từ \emph{mice}'' với $\mathbf x = (1, 0, 0, 1)^\top$, tức bài 1 và 4 nghiên cứu trên chuột. Một bước gộp cho $\hat{\mathbf A}\mathbf x = (0{,}5;\ 0{,}707;\ 0;\ 0{,}5)$. Bài tổng quan (nút 2) nhận tín hiệu ``thực nghiệm'' mạnh nhất (0,707) từ hai láng giềng, dù bản thân nó không có từ đó. Bài 3 vẫn bằng 0 vì chưa có đường đi độ dài 1 tới nút nguồn. Sau bước thứ hai, $\hat{\mathbf A}^2\mathbf x = (0{,}5;\ 0{,}53;\ 0{,}25;\ 0{,}5)$: tín hiệu đã lan tới bài 3 qua bài tổng quan, đồng thời giá trị các nút bắt đầu ``san bằng''. Ví dụ này cho thấy cả hai mặt của truyền thông điệp: \emph{lan truyền thông tin} theo cấu trúc trích dẫn, và \emph{làm trơn}. Tiếp tục nhân nhiều lần, mọi nút sẽ hội tụ về cùng một giá trị (\S\ref{sec:oversmooth}).
+
+\subsection{GraphSAGE}
+
+GCN cần toàn bộ ma trận $\hat{\mathbf A}$ khi huấn luyện (transductive). GraphSAGE \cite{hamilton2017} học \emph{hàm gộp} thay vì học trên một đồ thị cố định, nên áp dụng được cho nút mới (inductive):
+\begin{equation}
+\mathbf h_v' = \sigma\Big(\mathbf W_{\text{self}}\mathbf h_v + \mathbf W_{\text{neigh}}\cdot\frac{1}{|\mathcal N(v)|}\sum_{u\in\mathcal N(v)}\mathbf h_u\Big).
+\label{eq:sage}
+\end{equation}
+Khác biệt với GCN là biểu diễn của chính nút và của láng giềng có \emph{hai ma trận trọng số riêng}. Mô hình nhờ vậy học được mức tin vào bản thân và mức tin vào láng giềng. Với đồ thị lớn, GraphSAGE lấy mẫu một số láng giềng cố định để giới hạn chi phí.
+
+\subsection{Mạng chú ý trên đồ thị (GAT)}
+
+GCN gán trọng số cố định $1/\sqrt{\tilde d_u\tilde d_v}$ cho mọi láng giềng. GAT \cite{velickovic2018} \emph{học} trọng số đó bằng cơ chế chú ý:
+\begin{equation}
+\begin{gathered}
+e_{vu} = \operatorname{LeakyReLU}\!\big(\mathbf a^\top[\mathbf W\mathbf h_v\,\|\,\mathbf W\mathbf h_u]\big), \\
+\alpha_{vu} = \frac{\exp(e_{vu})}{\sum_{k\in\mathcal N(v)\cup\{v\}}\exp(e_{vk})}, \\
+\mathbf h_v' = \Big\Vert_{k=1}^{K}\ \sigma\Big(\sum_{u}\alpha^{k}_{vu}\mathbf W^{k}\mathbf h_u\Big).
+\end{gathered}
+\label{eq:gat}
+\end{equation}
+Hệ số $\alpha_{vu}$ là ``mức quan trọng'' của láng giềng $u$ đối với $v$, được chuẩn hóa bằng softmax trên các láng giềng của $v$. $K$ \emph{đầu chú ý} độc lập được nối lại ($\Vert$) ở tầng ẩn và lấy trung bình ở tầng ra, giúp ổn định quá trình học. Vì $\mathbf a^\top[\mathbf W\mathbf h_v\Vert\mathbf W\mathbf h_u] = \mathbf a_{\text{dst}}^\top\mathbf W\mathbf h_v + \mathbf a_{\text{src}}^\top\mathbf W\mathbf h_u$, điểm chú ý tính được theo từng cạnh chỉ với hai phép tra chỉ số. Trọng số $\alpha$ còn có giá trị giải thích: trang thử nghiệm hiển thị các bài báo láng giềng mà GAT ``chú ý'' nhiều nhất.
+
+\subsection{Làm trơn quá mức}
+\label{sec:oversmooth}
+
+Mỗi phép nhân với $\hat{\mathbf A}$ là một bước khuếch tán, kéo biểu diễn của các nút kề nhau về gần nhau. Khi $L\to\infty$, $\hat{\mathbf A}^L$ hội tụ về một ma trận hạng một (với đồ thị liên thông), nên mọi nút có cùng biểu diễn, chỉ khác một hệ số tỉ lệ theo bậc \cite{li2018deeper}. Đó là hiện tượng \emph{làm trơn quá mức} (over-smoothing). Vì vậy GNN thường chỉ có 2–3 tầng, rất khác với CNN hàng trăm lớp. Chen và cộng sự \cite{chen2020mad} đo hiện tượng này bằng MAD (Mean Average Distance), tức khoảng cách cosin trung bình giữa biểu diễn các cặp nút; MAD tiến về 0 khi các nút không còn phân biệt được.
+
+\subsection{Năng lực biểu diễn và phép thử Weisfeiler–Lehman}
+
+GNN có thể phân biệt được những cấu trúc nào? Xu và cộng sự \cite{xu2019gin} chứng minh rằng mọi GNN truyền thông điệp đều \emph{không mạnh hơn} phép thử đẳng cấu đồ thị Weisfeiler–Lehman bậc 1 (1-WL). Phép thử này lặp lại việc gán cho mỗi nút một ``màu'' mới bằng cách băm màu hiện tại cùng \emph{đa tập} màu của láng giềng. Một GNN đạt được sức mạnh của 1-WL khi hàm gộp là \emph{đơn ánh trên đa tập}. Tổng thỏa mãn điều kiện này, còn trung bình và max thì không. Ví dụ, trung bình không phân biệt được láng giềng $\{a, b\}$ với $\{a, a, b, b\}$, còn max không phân biệt được $\{a, b\}$ với $\{a, b, b\}$. Từ đó họ đề xuất GIN, $\mathbf h_v' = \mathrm{MLP}\big((1+\epsilon)\mathbf h_v + \sum_{u\in\mathcal N(v)}\mathbf h_u\big)$. Với bài toán phân loại nút trên đồ thị trích dẫn như Pubmed, đặc trưng nút giàu thông tin và giả định đồng tính quan trọng hơn khả năng phân biệt cấu trúc tinh vi. Vì vậy các bộ gộp ``yếu'' như trung bình (GraphSAGE) hay tổng có chuẩn hóa (GCN) vẫn hoạt động tốt. Năng lực biểu diễn trở nên quyết định ở bài toán cấp đồ thị, như phân biệt hai phân tử có cùng thành phần nguyên tử nhưng khác cấu trúc vòng.
+
+\subsection{Các bài toán khác và ứng dụng y sinh}
+
+\emph{Dự đoán liên kết.} Bộ mã hóa GNN tạo biểu diễn nút $\mathbf z_v$. Xác suất có cạnh được giải mã bằng $\sigma(\mathbf z_u^\top\mathbf z_v)$ (Graph Auto-Encoder) hoặc bằng một MLP trên cặp $(\mathbf z_u,\mathbf z_v)$, huấn luyện với cạnh thật làm mẫu dương và cạnh ngẫu nhiên làm mẫu âm. \emph{Phân loại đồ thị.} Sau các tầng truyền thông điệp, một phép \emph{đọc ra} (readout) gộp biểu diễn của mọi nút thành một vector cho cả đồ thị, bằng tổng, trung bình, hoặc pooling phân cấp. Phép đọc ra phải bất biến với hoán vị.
+
+GNN có nhiều ứng dụng trong y sinh liên quan tới đái tháo đường. \emph{Tác dụng phụ khi phối hợp thuốc}: Decagon \cite{zitnik2018} dự đoán tác dụng phụ của từng cặp thuốc trên đồ thị gồm protein, thuốc và các loại tương tác. Đây là điều quan trọng với người ĐTĐ thường dùng nhiều thuốc (hạ đường huyết, hạ áp, statin). \emph{Tái định vị thuốc}: dự đoán liên kết thuốc–bệnh trên đồ thị tri thức y sinh. \emph{Mạng bệnh đồng mắc}: nút là bệnh nhân hoặc bệnh, cạnh là đồng xuất hiện trong hồ sơ, giúp dự báo biến chứng tim mạch, thận. \emph{Phân tử}: dự đoán tính chất của phân tử ứng viên thuốc, coi nguyên tử là nút và liên kết hóa học là cạnh. \emph{Gán nhãn y văn}: bài toán của chương này, giúp xây dựng KB có cấu trúc từ hàng triệu bài báo.
+
+\section{Dữ liệu Pubmed-Diabetes}
+
+Pubmed-Diabetes \cite{namata2012,sen2008} là một trong ba bộ chuẩn kinh điển của GNN (cùng Cora và Citeseer), được dùng trong bài báo gốc của GCN và GAT. Mỗi nút là một bài báo trong cơ sở dữ liệu PubMed liên quan tới đái tháo đường. Bài báo được biểu diễn bằng vector TF-IDF trên 500 từ gốc (stem) và gán một trong ba nhãn MeSH: \emph{Diabetes Mellitus, Experimental} (nghiên cứu trên động vật), \emph{Type 1} hoặc \emph{Type 2}. Cạnh là quan hệ trích dẫn.
+
+\begin{itemize}
+  \item \textbf{Nguồn}: nhóm LINQS, \weburl{https://linqs-data.soe.ucsc.edu/public/Pubmed-Diabetes.tgz} (14,7 MB). Bản văn bản gốc dạng TSV được dùng thay cho bản pickle của Planetoid, để đọc được mà không phải chạy mã không tin cậy.
+  \item \textbf{Quy mô}: 19.717 nút, 44.338 trích dẫn có hướng. Sau khi chuyển sang vô hướng, bỏ khuyên và cạnh trùng còn 44.324 cạnh. Ma trận đặc trưng 19.717 × 500 rất thưa: trung bình 50,1 từ khác 0 trên mỗi bài.
+  \item \textbf{Nhãn}: thực nghiệm 4.103 (20,8\%), típ 1 7.875 (39,9\%), típ 2 7.739 (39,3\%).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Năm nút đầu tiên: mã PubMed, nhãn, bậc và các từ có TF-IDF cao nhất}
+\label{tab:pubmed-head}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lllr@{}}
+\toprule
+\textbf{PubMed ID} & \textbf{Nhãn} & \textbf{Từ nổi bật} & \textbf{Bậc} \\
+\midrule
+12187484 & Thực nghiệm & retinopathi, mice, abnorm, month, anim, rat & 4 \\
+2344352 & Thực nghiệm & muscl, m, chang, r, stimul, caus & 5 \\
+14654069 & Thực nghiệm & cardiac, state, rat, experiment, defect, mark & 2 \\
+16443886 & Típ 1 & a1c, glucos, profil, sampl, predict, larg & 1 \\
+2684155 & Thực nghiệm & secret, cholesterol, h, rate, low, anim & 12 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Mười từ có TF-IDF trung bình cao nhất của mỗi lớp (dạng từ gốc sau stemming)}
+\label{tab:pubmed-words}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.2cm}Y@{}}
+\toprule
+\textbf{Lớp} & \textbf{Từ đặc trưng} \\
+\midrule
+ĐTĐ thực nghiệm & rat, mice, nerv, activ, anim, cell, streptozotocin, increas, protein, decreas \\
+ĐTĐ típ 1 & cell, iddm, nod, patient, children, mice, t, 0, islet, 1 \\
+ĐTĐ típ 2 & 0, patient, insulin, 2, niddm, glucos, risk, p, type, subject \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figw{ch6_data}{Phân bố nhãn, phân bố bậc (thang log–log) và số từ khác 0 của mỗi bài báo}
+
+\textbf{Nhận xét.} (i) Phân bố bậc có \emph{đuôi nặng}: phần lớn bài báo chỉ có 1–5 trích dẫn (bậc trung bình 4,50), một số ít có tới 171. Trên thang log–log, phân bố gần thẳng, đặc trưng của mạng trích dẫn. Không có nút cô lập. (ii) \emph{Tính đồng tính rất cao}: 80,2\% cạnh nối hai bài báo cùng nhãn. Đây là điều kiện để GNN phát huy tác dụng; nếu tỉ lệ này thấp, gộp láng giềng sẽ thêm nhiễu thay vì thông tin. (iii) Từ đặc trưng của mỗi lớp hợp lý về mặt y khoa: lớp thực nghiệm có \emph{rat, mice, streptozotocin} (hóa chất gây ĐTĐ trên chuột); típ 1 có \emph{iddm, nod} (chuột NOD), \emph{children, islet}; típ 2 có \emph{niddm, insulin, risk, subject}. (iv) Đồ thị rất thưa (mật độ $2{,}3\cdot10^{-4}$), nên phép nhân ma trận thưa trong \eq{eq:gcn} rất rẻ.
+
+\section{Cài đặt}
+
+Cả ba GNN được \emph{tự cài đặt bằng PyTorch thuần}, không dùng PyTorch Geometric \cite{fey2019pyg}, để thể hiện rõ từng phép toán của truyền thông điệp. GCN và GraphSAGE dùng ma trận thưa \texttt{torch.sparse}: $\hat{\mathbf A}$ cho GCN, ma trận trung bình láng giềng $\mathbf D^{-1}\mathbf A$ cho GraphSAGE. GAT làm việc trên danh sách cạnh: tính điểm chú ý cho từng cạnh, rồi tính softmax theo nút đích bằng \texttt{index\_reduce} (max, để ổn định số) và \texttt{index\_add} (tổng) (\coderef{lst:ch6-gat}).
+
+\begin{code}{Tầng GCN và tầng GAT cài bằng PyTorch thuần (\texttt{lab/ch6\_gnn.py}, rút gọn)}
+\label{lst:ch6-gat}
+\begin{minted}{python}
+class GCN(nn.Module):                      # H' = sigma(Â H W)
+    def forward(self, x, g):
+        for i, lin in enumerate(self.lins):
+            x = F.dropout(x, self.p, self.training)
+            x = torch.sparse.mm(g["A_gcn"], lin(x))     # biến đổi đặc trưng rồi gộp có chuẩn hóa bậc
+            if i < len(self.lins) - 1:
+                x = F.relu(x)
+        return x
+
+class GATLayer(nn.Module):
+    def forward(self, x, edge_index):
+        src, dst = edge_index                                       # cạnh u → v (đã có khuyên)
+        z = self.W(x).view(n, self.heads, self.h)                   # W h, K đầu
+        e = F.leaky_relu((z * self.a_src).sum(-1)[src]              # a_src^T W h_u
+                         + (z * self.a_dst).sum(-1)[dst], 0.2)      # + a_dst^T W h_v   → [E, K]
+        e_max = torch.full((n, K), -1e9).index_reduce_(0, dst, e, "amax")   # max theo nút đích
+        ex = torch.exp(e - e_max[dst])
+        alpha = ex / torch.zeros(n, K).index_add_(0, dst, ex)[dst]          # softmax trên láng giềng
+        out = torch.zeros(n, K, self.h).index_add_(0, dst, alpha[..., None] * z[src])
+        return out.reshape(n, -1) if self.concat else out.mean(1)
+\end{minted}
+\end{code}
+
+\begin{table}[H]
+\centering
+\caption{Cấu hình và số tham số của các mô hình (đặc trưng vào 500 chiều, 3 lớp)}
+\label{tab:gnn-config}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.5cm}YrL{2.4cm}@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Kiến trúc} & \textbf{Tham số} & \textbf{Dùng đồ thị} \\
+\midrule
+Hồi quy logistic & Dropout 0,2 → Linear(500, 3) & 1.503 & Không \\
+MLP & Linear(500, 64) → ReLU → Linear(64, 3), dropout 0,5 & 32.259 & Không \\
+Lan truyền nhãn & $\mathbf F\leftarrow0{,}9\,\hat{\mathbf A}\mathbf F+0{,}1\,\mathbf Y$, 50 bước & 0 & Chỉ đồ thị \\
+GCN & 2 tầng \eq{eq:gcn}, 500 → 64 → 3, dropout 0,5 & 32.259 & Có \\
+GraphSAGE-mean & 2 tầng \eq{eq:sage}, 500 → 64 → 3 & 64.451 & Có \\
+GAT & 8 đầu × 8 chiều (nối, ELU) → 8 đầu ra (trung bình), dropout 0,6 & 33.779 & Có \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+GCN và MLP có \emph{đúng cùng số tham số} (32.259 = 500·64 + 64 + 64·3 + 3). Khác biệt duy nhất là phép nhân với $\hat{\mathbf A}$. So sánh hai mô hình này vì vậy đo chính xác giá trị của cấu trúc đồ thị.
+
+\textbf{Hai giao thức.} (1) \emph{Bán giám sát kiểu Planetoid} \cite{yang2016planetoid}: 20 nút có nhãn mỗi lớp (60 nút, tức 0,3\% đồ thị), 500 nút validation, 1.000 nút test, lặp với 10 phép chia ngẫu nhiên. (2) \emph{Có giám sát đầy đủ}: chia 60/20/20, lặp 3 lần. Tối ưu Adam (tốc độ học 0,01; suy giảm trọng số $5\cdot10^{-4}$, GAT $10^{-3}$), tối đa 300–400 epoch, dừng sớm sau 50 epoch không cải thiện accuracy validation. Huấn luyện trên GPU, mỗi lần chạy 0,4–10 giây.
+
+\section{Kết quả và nhận xét}
+
+\begin{table}[H]
+\centering
+\caption{Accuracy phân loại nút trên Pubmed-Diabetes (trung bình ± độ lệch chuẩn)}
+\label{tab:ch6-results}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Bán giám sát (20 nhãn/lớp, 10 lần)}} & \multicolumn{2}{c}{\textbf{Có giám sát (60/20/20, 3 lần)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Mô hình} & \textbf{Accuracy} & \textbf{Macro-F1} & \textbf{Accuracy} & \textbf{Macro-F1} \\
+\midrule
+Hồi quy logistic & 0,707 ± 0,009 & 0,712 & 0,843 ± 0,005 & 0,843 \\
+MLP & 0,702 ± 0,019 & 0,706 & 0,871 ± 0,004 & 0,871 \\
+Lan truyền nhãn & 0,718 ± 0,021 & 0,702 & 0,836 ± 0,005 & 0,824 \\
+GCN & \textbf{0,780} ± 0,020 & \textbf{0,777} & 0,877 ± 0,005 & 0,872 \\
+GraphSAGE-mean & 0,757 ± 0,026 & 0,755 & \textbf{0,885} ± 0,001 & \textbf{0,882} \\
+GAT & 0,777 ± 0,019 & 0,773 & 0,851 ± 0,003 & 0,844 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Bán giám sát: đồ thị mang lại +7,8 điểm.} Khi chỉ có 60 nhãn, GCN đạt 0,780 so với 0,702 của MLP cùng kiến trúc và cùng số tham số. Cả hai nguồn thông tin đều cần thiết. Chỉ dùng đặc trưng (MLP, hồi quy logistic) đạt khoảng 0,70. Chỉ dùng đồ thị (lan truyền nhãn) đạt 0,718. GCN kết hợp cả hai và vượt cả hai. Kết quả của GCN (0,780) và GAT (0,777) sát với con số công bố trên phép chia chuẩn của Planetoid (0,790 cho cả hai \cite{kipf2017,velickovic2018}). Phần chênh nhỏ đến từ việc báo cáo này dùng 10 phép chia ngẫu nhiên thay cho một phép chia cố định. Trên Pubmed, GAT không vượt GCN: với đồ thị đồng tính cao và bậc thấp, trọng số chuẩn hóa theo bậc của GCN đã gần tối ưu, và chú ý học được thêm ít thông tin.
+
+\figw[0.75\linewidth]{ch6_label_rate}{Accuracy theo số nhãn huấn luyện mỗi lớp: đồ thị có lợi nhất khi nhãn khan hiếm}
+
+\textbf{Giá trị của đồ thị giảm khi có nhiều nhãn.} \figref{fig:ch6_label_rate} cho thấy với \emph{một} nhãn mỗi lớp (3 nút có nhãn trên 19.717), GCN đạt 0,608 trong khi MLP chỉ 0,485, chênh 12,2 điểm. Khoảng cách thu hẹp dần: 11,1 điểm ở 5 nhãn/lớp, 8,1 ở 20, 4,9 ở 100. Ở giao thức có giám sát (khoảng 3.900 nhãn mỗi lớp), MLP đã đạt 0,871 và GCN chỉ hơn 0,6 điểm. Khi nhãn dồi dào, đặc trưng TF-IDF của chính bài báo đủ để phân loại, và láng giềng chủ yếu bổ sung thông tin ở những ca khó. GraphSAGE thắng ở giao thức này (0,885) nhờ tách $\mathbf W_{\text{self}}$ khỏi $\mathbf W_{\text{neigh}}$: với nhiều dữ liệu, mô hình học được cách tin vào đặc trưng của chính nút hơn. Ngược lại, GAT với dropout 0,6 trên cả đặc trưng lẫn hệ số chú ý bị điều chuẩn quá mạnh ở chế độ nhiều dữ liệu (0,851). Siêu tham số này được thiết kế cho chế độ ít nhãn.
+
+\figw{ch6_tsne}{t-SNE của 3.000 bài báo: đặc trưng TF-IDF gốc (trái) và biểu diễn ẩn của GCN (phải)}
+
+\textbf{Biểu diễn học được.} Trên đặc trưng TF-IDF gốc, ba lớp trộn lẫn, chỉ lớp thực nghiệm hơi tách ra (\figref{fig:ch6_tsne}, trái). Sau một tầng GCN, dù chỉ huấn luyện với 60 nhãn, biểu diễn 64 chiều tách thành ba vùng rõ rệt (phải). Phép gộp láng giềng đã ``kéo'' các bài báo cùng chủ đề lại gần nhau, đúng như giả định đồng tính.
+
+\figw[0.75\linewidth]{ch6_depth}{Làm trơn quá mức: accuracy và MAD của GCN theo số tầng}
+
+\textbf{Làm trơn quá mức.} \figref{fig:ch6_depth} khảo sát GCN từ 1 đến 16 tầng (20 nhãn/lớp). Một tầng chỉ thấy láng giềng trực tiếp (0,739). Hai đến bốn tầng tốt nhất (0,803–0,810). Từ 6 tầng trở đi, mô hình \emph{sụp hoàn toàn}: accuracy 0,399, đúng bằng tỉ lệ lớp típ 1 đông nhất (7.875/19.717). Nghĩa là mô hình dự đoán cùng một lớp cho mọi nút. MAD giảm từ 0,92–0,94 xuống 0,026 (6 tầng) và 0,001 (16 tầng): biểu diễn của mọi nút gần như trùng nhau. Cần nói rõ, sự sụp đổ đột ngột này là tổng hợp của hai nguyên nhân: làm trơn quá mức theo lý thuyết ở trên, và khó tối ưu của mạng sâu không có kết nối tắt, với dropout 0,5 ở mỗi tầng. Các kỹ thuật như kết nối tắt kiểu ResNet, JKNet hay PairNorm được đề xuất để giảm cả hai vấn đề.
+
+\figw{ch6_history}{Loss huấn luyện và accuracy validation theo epoch (20 nhãn/lớp, một phép chia)}
+
+\figref{fig:ch6_history} cho thấy quá trình huấn luyện ở chế độ ít nhãn. Chỉ có 60 nút có nhãn, nên loss huấn luyện giảm rất nhanh: GraphSAGE, với hai ma trận trọng số và gấp đôi tham số, khớp gần như hoàn toàn (loss khoảng 0,03); MLP và GCN dừng quanh 0,1; GAT giữ loss cao nhất (khoảng 0,2) vì dropout 0,6 trên cả đặc trưng lẫn hệ số chú ý. Accuracy validation mới là tín hiệu thật. GAT tăng nhanh nhất, đạt khoảng 0,7 ngay sau vài epoch. Ba GNN vượt 0,75 sau khoảng 30 epoch, còn MLP dừng ở khoảng 0,70. Loss thấp nhất không tương ứng với accuracy cao nhất: GraphSAGE khớp sát 60 nhãn nhất nhưng tổng quát kém hơn GCN, dấu hiệu quá khớp khi dữ liệu nhãn quá ít. Dừng sớm theo accuracy validation, với kiên nhẫn 50 epoch, giữ lại trọng số tốt nhất.
+
+\subsection{Ablation các lựa chọn thiết kế của GCN}
+
+\begin{table}[H]
+\centering
+\caption{Ablation GCN trên giao thức bán giám sát (20 nhãn/lớp, 10 phép chia)}
+\label{tab:ch6-ablation}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Cấu hình} & \textbf{Accuracy} & \textbf{Chênh lệch} \\
+\midrule
+GCN chuẩn: khuyên, $\tilde{\mathbf D}^{-1/2}\tilde{\mathbf A}\tilde{\mathbf D}^{-1/2}$, ẩn 64, dropout 0,5 & \textbf{0,780} ± 0,020 & -- \\
+Không có khuyên ($\mathbf A$ thay cho $\mathbf A+\mathbf I$) & 0,764 ± 0,023 & −1,6 \\
+Chuẩn hóa theo hàng $\tilde{\mathbf D}^{-1}\tilde{\mathbf A}$ (trung bình láng giềng) & 0,775 ± 0,017 & −0,5 \\
+Không chuẩn hóa (tổng láng giềng) & 0,765 ± 0,017 & −1,6 \\
+Không dropout & 0,776 ± 0,021 & −0,5 \\
+Kích thước ẩn 16 & 0,782 ± 0,019 & +0,1 \\
+Kích thước ẩn 256 & 0,782 ± 0,014 & +0,1 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\tabref{tab:ch6-ablation} xác nhận các lựa chọn của Kipf và Welling bằng thực nghiệm. (i) \emph{Khuyên} quan trọng nhất: bỏ khuyên, biểu diễn mới của một nút chỉ là tổng hợp của láng giềng, đặc trưng của chính nó bị mất sau mỗi tầng. Với 63\% số nút chỉ có 1–2 láng giềng, mất thông tin bản thân là thiệt hại lớn (−1,6 điểm). (ii) \emph{Chuẩn hóa}: không chuẩn hóa thì nút bậc cao có biểu diễn lớn bất thường, làm số liệu bất ổn (−1,6). Chuẩn hóa theo hàng (lấy trung bình) gần bằng chuẩn hóa đối xứng (−0,5). Chuẩn hóa đối xứng còn giảm thêm ảnh hưởng của láng giềng bậc cao, như bài tổng quan được trích dẫn rộng rãi ít đặc trưng cho một chủ đề cụ thể. (iii) \emph{Dropout} giúp nhẹ (+0,5) khi chỉ có 60 nhãn. (iv) \emph{Kích thước ẩn} từ 16 tới 256 gần như không ảnh hưởng. Nút thắt không nằm ở dung lượng mô hình mà ở lượng nhãn và thông tin trong đồ thị. Kết quả này khớp với kết luận của Chương 2.
+
+\subsection{Học chuyển dẫn và học quy nạp}
+
+GCN thường được mô tả là \emph{chuyển dẫn} (transductive): đồ thị đầy đủ, kể cả nút cần dự đoán, có mặt lúc huấn luyện. GraphSAGE nhấn mạnh tính \emph{quy nạp} (inductive): áp dụng được cho nút mới chưa từng thấy. Đây chính là tình huống của hệ thống khi một bài báo mới cần được gán nhãn trước khi nạp vào KB. Thí nghiệm sau kiểm tra trực tiếp sự khác biệt này. Với phép chia 60/20/20, khi huấn luyện, \emph{xóa toàn bộ nút kiểm tra cùng mọi cạnh nối tới chúng}: chỉ còn 29.175 trên 44.324 cạnh, tức đồ thị mất 34\% số cạnh. Lúc suy luận, các nút kiểm tra mới được thêm lại vào đồ thị.
+
+\begin{table}[H]
+\centering
+\caption{Học chuyển dẫn và học quy nạp trên Pubmed-Diabetes (60/20/20, 3 lần chạy)}
+\label{tab:ch6-inductive}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Chuyển dẫn} & \textbf{Quy nạp (nút test không có khi huấn luyện)} & \textbf{Chênh lệch} \\
+\midrule
+MLP & 0,872 ± 0,002 & 0,872 ± 0,002 & 0,00 \\
+GCN & 0,877 ± 0,006 & 0,876 ± 0,006 & −0,09 \\
+GraphSAGE-mean & \textbf{0,887} ± 0,004 & \textbf{0,885} ± 0,005 & −0,18 \\
+GAT & 0,848 ± 0,003 & 0,850 ± 0,003 & +0,18 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Ở cả bốn mô hình, độ chính xác gần như không đổi. MLP không đổi là hiển nhiên vì nó không dùng đồ thị. Điều đáng chú ý là GCN, mô hình được gọi là ``chuyển dẫn'', chỉ mất 0,09 điểm. Lý do: GCN cài đặt theo \eq{eq:gcn} học các ma trận $\mathbf W^{(l)}$ \emph{dùng chung cho mọi nút}. Lúc suy luận, chỉ cần áp dụng lại cùng phép gộp trên đồ thị mới. Tính ``chuyển dẫn'' trong bài báo gốc là một thiết lập thí nghiệm (đặc trưng của nút không nhãn tham gia lan truyền khi huấn luyện), không phải giới hạn của kiến trúc. GraphSAGE vẫn tốt nhất ở cả hai chế độ, và lợi thế thật sự của nó trên đồ thị rất lớn nằm ở \emph{lấy mẫu láng giềng} để huấn luyện theo lô nhỏ. Kết quả thực tiễn cho hệ thống: một bài báo mới chỉ cần danh sách trích dẫn và vector TF-IDF là gán nhãn được bằng mô hình đã huấn luyện, không cần huấn luyện lại.
+
+\subsection{Chi phí tính toán}
+
+\begin{table}[H]
+\centering
+\caption{Số tham số và thời gian huấn luyện trung bình một lần chạy (GPU RTX 3050)}
+\label{tab:ch6-cost}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Tham số} & \textbf{Bán giám sát} & \textbf{Có giám sát} & \textbf{Độ phức tạp một tầng} \\
+\midrule
+Hồi quy logistic & 1.503 & 0,45 s & 0,34 s & $O(nd)$ \\
+MLP & 32.259 & 0,36 s & 1,41 s & $O(ndh)$ \\
+GCN & 32.259 & 2,01 s & 3,34 s & $O(ndh + |E|h)$ \\
+GraphSAGE-mean & 64.451 & 2,79 s & 9,94 s & $O(ndh + |E|d)$ \\
+GAT (8 đầu) & 33.779 & 3,70 s & 4,11 s & $O(ndhK + |E|hK)$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Phép gộp láng giềng chỉ tốn $O(|E|)$ phép toán trên mỗi chiều đặc trưng, nhờ ma trận kề rất thưa (44 nghìn cạnh trên 389 triệu cặp nút có thể có). Toàn bộ đồ thị 19.717 nút nằm gọn trong bộ nhớ GPU 4 GB, và mỗi lần huấn luyện chỉ mất vài giây (\tabref{tab:ch6-cost}). GAT đắt hơn GCN vì phải tính hệ số chú ý cho từng cạnh và từng đầu. GraphSAGE đắt nhất ở chế độ có giám sát vì nhân ma trận trung bình láng giềng với đặc trưng 500 chiều \emph{trước} khi giảm chiều; đổi thứ tự (giảm chiều trước rồi gộp) như GCN sẽ rẻ hơn. Suy luận của GAT triển khai trên CPU cho cả đồ thị mất dưới 1 giây và chỉ chạy một lần khi khởi động dịch vụ; sau đó mỗi truy vấn chỉ là tra bảng kết quả.
+
+\subsection{Phân tích lỗi và trọng số chú ý của mô hình triển khai}
+
+\begin{table}[H]
+\centering
+\caption{Ma trận nhầm lẫn của GAT triển khai trên 3.944 bài báo giữ riêng (20\%)}
+\label{tab:ch6-cm}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrrrc@{}}
+\toprule
+\textbf{Thật \textbackslash{} Dự đoán} & \textbf{Thực nghiệm} & \textbf{Típ 1} & \textbf{Típ 2} & \textbf{Recall} \\
+\midrule
+Thực nghiệm (802) & \textbf{647} & 100 & 55 & 0,807 \\
+Típ 1 (1.551) & 83 & \textbf{1.233} & 235 & 0,795 \\
+Típ 2 (1.591) & 61 & 66 & \textbf{1.464} & 0,920 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Lỗi lớn nhất là 235 bài típ 1 bị đoán thành típ 2. Hai nhóm dùng chung nhiều thuật ngữ lâm sàng (\emph{insulin}, \emph{glucos}, \emph{patient}, \emph{hba1c}), và nhiều bài báo bàn về cả hai loại ĐTĐ hoặc về biến chứng chung (võng mạc, thận). Lớp típ 2 dễ nhất (recall 0,92) nhờ các từ đặc trưng như \emph{niddm}, \emph{risk}, \emph{obes}. Lớp thực nghiệm chủ yếu bị nhầm thành típ 1 (100 bài): nghiên cứu ĐTĐ típ 1 thường dùng mô hình chuột NOD, nên từ vựng giao thoa với nghiên cứu trên động vật.
+
+Theo bậc của nút, accuracy thấp nhất ở các bài có 1–2 trích dẫn (0,830, nhóm chiếm 63\% tập kiểm tra), và đạt 0,87–0,89 khi bậc từ 3 trở lên. Bài báo ít liên kết nhận ít thông tin từ láng giềng, nên mô hình phải dựa gần như hoàn toàn vào đặc trưng TF-IDF của chính nó, giống MLP. Đây chính là hiệu ứng ``đồ thị bù cho thiếu thông tin'' ở mức từng nút.
+
+\textbf{GAT có thực sự ``chú ý có chọn lọc''?} Lấy hệ số chú ý $\alpha_{vu}$ của tầng 1 (trung bình 8 đầu), nhân với $\deg(v)+1$ để chuẩn hóa: giá trị 1 nghĩa là chia đều như nhau cho mọi láng giềng. Trung bình trên các cạnh nối hai bài \emph{cùng nhãn} là 0,9996, trên các cạnh nối hai bài \emph{khác nhãn} là 1,0001. Nói cách khác, GAT đã học được một phân phối chú ý gần như đồng đều, không ``hạ trọng số'' các láng giềng khác lớp. Hệ số tự chú ý (khuyên) trung bình là 0,34, xấp xỉ $1/(\deg+1)$ với bậc điển hình 1–2. Đây là một phát hiện quan trọng để diễn giải kết quả. Trên đồ thị có 80\% cạnh cùng nhãn và bậc thấp, chú ý học được hội tụ về gần cách gộp chuẩn hóa theo bậc của GCN. Vì vậy GAT không vượt GCN ở \tabref{tab:ch6-results}, và trọng số chú ý dùng để giải thích trên trang thử nghiệm chỉ nên được đọc như một tín hiệu yếu. Chú ý phát huy tác dụng rõ hơn trên đồ thị có nhiều cạnh nhiễu hoặc dị tính (heterophily).
+
+\subsection{Hạn chế}
+
+Thực nghiệm của chương có bốn hạn chế. (i) Đặc trưng TF-IDF trên 500 từ gốc là biểu diễn nghèo so với mô hình ngôn ngữ y sinh hiện đại (như các mô hình BERT huấn luyện trên PubMed). Với đặc trưng giàu hơn, khoảng cách giữa MLP và GNN có thể thu hẹp thêm. (ii) Pubmed-Diabetes là đồ thị đồng tính cao. Kết luận ``GCN tốt hơn MLP'' không tự động đúng với đồ thị dị tính, nơi các nút kề nhau thường khác nhãn. (iii) Các nhãn MeSH được gán theo chủ đề chính của bài báo, trong khi nhiều bài thuộc cả hai loại ĐTĐ, nên một phần lỗi típ 1 $\leftrightarrow$ típ 2 là do bản chất của nhãn. (iv) Mô hình triển khai mới chỉ phân loại các bài báo có sẵn trong đồ thị. Để gán nhãn tài liệu mới nạp vào KB, cần thêm bước trích danh sách tham khảo và tính TF-IDF theo đúng bộ từ vựng 500 từ. Thí nghiệm quy nạp ở trên cho thấy bước này khả thi mà không cần huấn luyện lại.
+
+\input{chapters/06b_gnn_domains}
+
+\section{Triển khai}
+
+Mô hình triển khai là GAT huấn luyện theo giao thức có giám sát (accuracy 0,848 trên 20\% nút giữ riêng). GAT được chọn thay vì GraphSAGE vì trọng số chú ý cho phép \emph{giải thích} dự đoán bằng các bài báo láng giềng quan trọng nhất. Trọng số mô hình (\texttt{ch6\_gat.pt}, 170 KB) và đồ thị nén (\texttt{ch6\_pubmed\_graph.npz}: đặc trưng float16, danh sách cạnh, mã PubMed) được nạp bởi lớp \texttt{PubmedGraphClassifier} (\texttt{src/models/deep\_graph.py}). Endpoint \api{GET /api/lab/ch6/paper?pid=<PubMed ID>} trả về nhãn thật, nhãn dự đoán, xác suất ba lớp, các từ khóa nổi bật, và tối đa 8 bài báo láng giềng xếp theo hệ số chú ý $\alpha$ trung bình 8 đầu, kèm liên kết tới PubMed. Không truyền \texttt{pid} thì endpoint chọn ngẫu nhiên một bài thuộc tập kiểm tra.
+
+\begin{code}{Gọi endpoint Chương 6}
+\label{lst:ch6-api}
+\begin{minted}{bash}
+curl -s "https://agent.nits.io.vn/api/lab/ch6/paper?pid=12187484"
+\end{minted}
+\end{code}
+
+\section{Tiểu kết chương 6}
+
+Chương 6 trình bày khung truyền thông điệp thống nhất các mạng nơ-ron đồ thị, cùng ba kiến trúc với cách gộp láng giềng khác nhau: GCN (chuẩn hóa đối xứng theo bậc), GraphSAGE (tách biểu diễn bản thân và láng giềng), GAT (trọng số chú ý học được). Trên đồ thị trích dẫn 19.717 bài báo về ĐTĐ: (1) với 60 nhãn, GCN tăng 7,8 điểm accuracy so với MLP cùng số tham số, và cao hơn hẳn việc chỉ dùng đặc trưng hoặc chỉ dùng đồ thị; (2) lợi ích của đồ thị lớn nhất khi nhãn khan hiếm, giảm dần khi có nhiều nhãn; (3) GNN nông là đủ, từ 6 tầng mô hình sụp về một lớp do làm trơn quá mức cộng với khó tối ưu. Đồ thị giúp phân loại và tổ chức tri thức y văn, bổ sung cho đồ thị tri thức ở Chương 5.

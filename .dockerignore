@@ -13,3 +13,5 @@ data/nhanes/raw
 lab/data
 report
 *.pdf
+data/multiagent.db*
+data/qdrant/

@@ -4,6 +4,7 @@ Viết câu trả lời tiếng Việt từ kết quả của các tác tử. V�
 (grounded generation). Không có LLM: dùng mẫu câu có cấu trúc.
 """
 
+import re
 import json
 from typing import Any, Dict, List
 
@@ -48,10 +49,27 @@ class ResponseAgent(BaseAgent):
         if msg.msg_type == "COMPOSE_ASSESSMENT" and p.get("questions"):
             # Câu hỏi làm rõ được gắn nguyên văn (không qua LLM viết lại) để chắc chắn người dùng nhìn thấy
             text = f"{text}\n\n---\n**Để kết quả chính xác hơn, mình cần hỏi thêm:**\n{_questions_block(p['questions'])}"
-        return self.reply(msg, "RESPONSE_TEXT", {"text": text, "generated_by": "llm" if llm.enabled else "template"})
+        return self.reply(msg, "RESPONSE_TEXT", {"text": _plain_math(text),
+                                                 "generated_by": "llm" if llm.enabled else "template"})
 
 
 # ------------------------------------------------------------------ dữ liệu cho LLM
+_MATH = {r"\geq": "≥", r"\ge": "≥", r"\leq": "≤", r"\le": "≤", r"\times": "×", r"\%": "%", r"\approx": "≈",
+         r"\pm": "±", r"\to": "→", r"\rightarrow": "→"}
+
+
+def _plain_math(text: str) -> str:
+    """LLM đôi khi viết ký hiệu LaTeX ($\\ge$ 126) mà khung chat không hiển thị: đổi về ký tự Unicode."""
+    def repl(m: "re.Match") -> str:
+        inner = m.group(1)
+        if "\\" not in inner:  # không phải lệnh LaTeX (ví dụ "$5 và $10") → giữ nguyên
+            return m.group(0)
+        for k in sorted(_MATH, key=len, reverse=True):
+            inner = inner.replace(k, _MATH[k])
+        return inner.strip() if "\\" not in inner else m.group(0)
+    return re.sub(r"\$([^$\n]{1,40})\$", repl, text)
+
+
 def _history_block(history) -> str:
     return f"Lịch sử hội thoại gần đây:\n{format_history(history)}\n\n" if history else ""
 

@@ -1,8 +1,8 @@
 """
 Tác tử Tri thức (nhánh PDF/Web → KB → RAG → Agent trên sơ đồ)
   - Đối chiếu xét nghiệm với tiêu chuẩn ADA 2024 / QĐ 5481/QĐ-BYT
-  - Vector RAG: hybrid search trên pgvector (Chương 5)
-  - GraphRAG: duyệt đồ thị tri thức Apache AGE từ các yếu tố nguy cơ của bệnh nhân (Chương 5)
+  - Vector RAG: hybrid search (Qdrant + full-text) (Chương 5)
+  - GraphRAG: duyệt đồ thị tri thức Neo4j từ các yếu tố nguy cơ của bệnh nhân (Chương 5)
 """
 
 import asyncio
@@ -14,7 +14,7 @@ from src.knowledge.embedder import get_embedder
 from src.schemas.patient_profile import PatientProfile
 from src.storage.db import session_scope
 from src.storage.graph_store import get_graph_store
-from src.storage.vector_store import PgVectorStore
+from src.storage.vector_store import get_vector_store
 
 RELATION_VI = {"HAS_RISK_FACTOR": "có yếu tố nguy cơ", "DIAGNOSED_BY": "chẩn đoán bằng", "CAUSES": "gây/dẫn tới",
                "SCREENED_BY": "tầm soát bằng", "TREATED_BY": "điều trị/can thiệp bằng",
@@ -45,7 +45,7 @@ class KnowledgeAgent(BaseAgent):
     def _search(self, query: str, k: int) -> List[Dict[str, Any]]:
         vec = self.embedder.embed([query])[0]
         with session_scope() as s:
-            rows = PgVectorStore(s).hybrid_search(query, vec, k=k)
+            rows = get_vector_store(s).hybrid_search(query, vec, k=k)
         return [{"chunk_id": r["id"], "document_id": r["document_id"], "title": r["title"], "heading": r["heading"],
                  "source": r["source"], "url": r["url"], "content": r["content"],
                  "score": round(float(r["score"]), 4)} for r in rows]
@@ -54,7 +54,7 @@ class KnowledgeAgent(BaseAgent):
         with session_scope() as s:
             edges = get_graph_store(s).neighborhood(entities, max_hops=2, limit=60)
             chunk_ids = sorted({c for e in edges if e["hops"] == 1 for c in e["chunk_ids"]})[:6]
-            chunks = PgVectorStore(s).chunks_by_ids(chunk_ids)
+            chunks = get_vector_store(s).chunks_by_ids(chunk_ids)
         recommendations = {
             "screenings": _tails(edges, "SCREENED_BY"),
             "interventions": _tails(edges, "TREATED_BY", {"Intervention"}) + _tails(edges, "PREVENTED_BY"),

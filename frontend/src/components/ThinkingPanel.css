@@ -1,0 +1,90 @@
+:root {
+  --kg-disease: #dc2626;
+  --kg-risk: #ea580c;
+  --kg-test: #2563eb;
+  --kg-drug: #7c3aed;
+  --kg-intervention: #059669;
+  --kg-complication: #6b7280;
+  --tp-bg: #f8fafc;
+}
+
+[data-theme="dark"] {
+  --kg-disease: #f87171;
+  --kg-risk: #fb923c;
+  --kg-test: #60a5fa;
+  --kg-drug: #a78bfa;
+  --kg-intervention: #34d399;
+  --kg-complication: #9ca3af;
+  --tp-bg: #17191e;
+}
+
+.thinking-panel {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--tp-bg);
+  margin-bottom: 10px;
+  overflow: hidden;
+  max-width: 100%;
+}
+.thinking-panel.is-live { border-color: var(--primary-color); }
+
+.tp-header {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; cursor: pointer; text-align: left;
+  padding: 8px 12px; font-size: 0.8rem; color: var(--text-secondary);
+}
+.tp-header:disabled { cursor: default; }
+.tp-header:not(:disabled):hover { color: var(--text-primary); }
+.tp-header > span { flex: 1; }
+.is-live .tp-icon { color: var(--primary-color); animation: tp-pulse 1.2s ease-in-out infinite; }
+@keyframes tp-pulse { 50% { opacity: 0.35; } }
+.tp-live-text { color: var(--text-primary); font-weight: 500; }
+.tp-current { color: var(--text-secondary); font-weight: 400; }
+.tp-dots i { font-style: normal; animation: tp-dot 1.2s infinite; }
+.tp-dots i:nth-child(2) { animation-delay: 0.2s; }
+.tp-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tp-dot { 0%, 60%, 100% { opacity: 0.2; } 30% { opacity: 1; } }
+
+.tp-body { border-top: 1px solid var(--border-color); padding: 8px 12px 10px; }
+
+.tp-steps {
+  list-style: none; display: flex; flex-direction: column; gap: 3px;
+  max-height: 240px; overflow-y: auto; font-size: 0.76rem;
+  border-left: 2px solid var(--border-color); padding-left: 10px;
+}
+.tp-steps li {
+  display: grid; grid-template-columns: auto auto 1fr; gap: 6px; align-items: baseline;
+  animation: tp-in 0.25s ease-out;
+}
+@keyframes tp-in { from { opacity: 0; transform: translateY(4px); } }
+.tp-who { font-weight: 600; white-space: nowrap; color: var(--text-primary); }
+.tp-perf { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.03em; color: #2563eb; }
+.tp-text { color: var(--text-secondary); line-height: 1.4; }
+.tp-steps li.perf-inform .tp-perf { color: #059669; }
+.tp-steps li.perf-challenge .tp-perf, .tp-steps li.perf-challenge .tp-who { color: #dc2626; }
+.tp-steps li.perf-response .tp-perf { color: #d97706; }
+.tp-steps li.perf-failure .tp-perf { color: #7f1d1d; }
+[data-theme="dark"] .tp-perf { color: #60a5fa; }
+[data-theme="dark"] .tp-steps li.perf-inform .tp-perf { color: #34d399; }
+[data-theme="dark"] .tp-steps li.perf-challenge .tp-perf,
+[data-theme="dark"] .tp-steps li.perf-challenge .tp-who { color: #f87171; }
+[data-theme="dark"] .tp-steps li.perf-response .tp-perf { color: #fbbf24; }
+.tp-pending .tp-who { color: var(--text-secondary); animation: tp-pulse 1s infinite; }
+
+.kg-view { margin-top: 10px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-main); padding: 8px; }
+.kg-title { display: flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 600; color: var(--text-primary); }
+.kg-count { margin-left: auto; font-weight: 400; color: var(--text-secondary); }
+.kg-svg { width: 100%; height: auto; aspect-ratio: 520 / 280; display: block; }
+.kg-edge { stroke: var(--text-secondary); stroke-opacity: 0.45; stroke-width: 1.2; animation: kg-draw 0.5s ease-out both; }
+.kg-edge.hop-2 { stroke-dasharray: 3 3; stroke-opacity: 0.3; }
+@keyframes kg-draw { from { stroke-opacity: 0; } }
+.kg-node { animation: kg-pop 0.35s ease-out both; }
+.kg-node circle { stroke: var(--bg-main); stroke-width: 2; }
+.kg-node.ring-0 circle { stroke: var(--text-primary); stroke-width: 2; }
+.kg-node text { font-size: 9px; fill: var(--text-primary); paint-order: stroke; stroke: var(--bg-main); stroke-width: 3px; }
+.kg-node.ring-0 text { font-weight: 700; font-size: 10px; }
+@keyframes kg-pop { from { opacity: 0; } }
+.kg-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.66rem; color: var(--text-secondary); margin-top: 4px; }
+.kg-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.bot-content { min-width: 0; flex: 1; max-width: 100%; }

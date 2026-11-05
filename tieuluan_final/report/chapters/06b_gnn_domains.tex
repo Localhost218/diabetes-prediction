@@ -1,0 +1,84 @@
+% Chương 6 — phần bổ sung của tiểu luận final: một khung GNN tự cài đặt chạy lại trên PubMed-Diabetes và hai đồ thị đối chiếu.
+
+\section{Một khung GNN chung cho ba đồ thị trích dẫn}
+\label{sec:ch6-domains}
+
+Để kiểm tra các kết luận ở trên có phụ thuộc vào miền y sinh hay không, cùng một khung mã được chạy lại trên PubMed-Diabetes và hai đồ thị trích dẫn kinh điển của khoa học máy tính: \textbf{Cora} (2.708 bài báo, 7 chủ đề) và \textbf{CiteSeer} (3.327 bài báo, 6 chủ đề). Khung này kế thừa mã nguồn của thành viên nhóm 07, được bổ sung PubMed. Ba lớp GCN, GraphSAGE, GAT được \emph{tự cài đặt} bằng phép nhân ma trận thưa của PyTorch (không dùng PyTorch Geometric, thư viện này chỉ dùng để nạp dữ liệu). Cả ba đồ thị dùng phép chia Planetoid chuẩn: 20 nút có nhãn mỗi lớp để huấn luyện, 500 nút validation, 1.000 nút test. Mỗi mô hình có 2 lớp (64 đơn vị ẩn, GAT 8 đầu × 8 đơn vị), dropout 0,5 (GAT 0,6), Adam ($\eta=0{,}01$, weight decay $5\cdot10^{-4}$), tối đa 250 epoch, chọn epoch theo accuracy validation. Mỗi cấu hình chạy \textbf{5 hạt giống}.
+
+\begin{table}[H]
+\centering
+\caption{Accuracy phân loại nút trên ba đồ thị (trung bình ± độ lệch chuẩn qua 5 hạt giống; 1.000 nút test)}
+\label{tab:ch6-domains}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Mô hình} & \textbf{PubMed-Diabetes} & \textbf{Cora} & \textbf{CiteSeer} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Đặc điểm đồ thị}} \\
+Số nút / cạnh & 19.717 / 44.324 & 2.708 / 5.278 & 3.327 / 4.552 \\
+Đặc trưng / lớp / nút có nhãn & 500 / 3 / 60 & 1.433 / 7 / 140 & 3.703 / 6 / 120 \\
+Bậc trung bình; độ đồng chất cạnh & 4,5; 0,80 & 3,9; 0,81 & 2,7; 0,74 \\
+\midrule
+Hồi quy logistic (không đồ thị) & 0,735 & 0,574 & 0,614 \\
+MLP 2 lớp (không đồ thị) & 0,722 ± 0,005 & 0,585 ± 0,007 & 0,576 ± 0,007 \\
+GCN & \textbf{0,789} ± 0,005 & 0,821 ± 0,008 & \textbf{0,721} ± 0,009 \\
+GraphSAGE-mean & 0,765 ± 0,005 & 0,804 ± 0,006 & 0,699 ± 0,007 \\
+GAT & 0,777 ± 0,004 & \textbf{0,829} ± 0,011 & 0,715 ± 0,008 \\
+\midrule
+Lợi ích của đồ thị (GNN tốt nhất − MLP) & +6,7 điểm & +24,4 điểm & +14,5 điểm \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét.} (i) Kết quả trên PubMed khớp với thực nghiệm riêng ở các mục trên (GCN 0,789 so với 0,780; MLP 0,722 so với 0,702), dù là một bản cài đặt độc lập. Kết luận ``đồ thị giúp khi ít nhãn'' vì vậy không phụ thuộc vào mã nguồn. (ii) Lợi ích của đồ thị \emph{khác nhau rất nhiều giữa các miền}: +24 điểm trên Cora, +15 trên CiteSeer, nhưng chỉ +7 trên PubMed. Lý do là đặc trưng TF-IDF của PubMed (500 từ khóa y khoa) đã phân biệt khá tốt ba loại ĐTĐ (hồi quy logistic đạt 0,735), còn túi từ của Cora và CiteSeer yếu hơn nhiều (0,57–0,61). Đồ thị bù cho thông tin còn thiếu trong đặc trưng nút. (iii) Độ đồng chất cạnh (tỷ lệ cạnh nối hai bài cùng lớp) của cả ba đồ thị đều cao (0,74–0,81). Đây là điều kiện để phép trộn láng giềng có ích. CiteSeer có độ đồng chất thấp nhất và 48 nút cô lập, nên mọi GNN đều thấp nhất trên bộ này. (iv) Không có kiến trúc thắng tuyệt đối: GCN tốt nhất trên PubMed và CiteSeer, GAT tốt nhất trên Cora, nhưng khoảng cách giữa ba GNN (1–3 điểm) nhỏ hơn nhiều so với khoảng cách giữa có đồ thị và không có đồ thị.
+
+\section{GCN dưới dạng hợp các hàm}
+\label{sec:ch6-compose}
+
+Một GCN 2 lớp cho mọi nút cùng lúc là hợp của các hàm trên \emph{ma trận} đặc trưng $X\in\mathbb R^{N\times d}$:
+\begin{equation}
+\hat Y = \big(\mathrm{softmax}\circ A_{\hat{}}\circ L_2 \circ D \circ \mathrm{ReLU} \circ A_{\hat{}} \circ L_1 \circ D\big)(X),
+\qquad A_{\hat{}}(H) = \hat A H,\quad \hat A = \tilde D^{-1/2}(A+I)\tilde D^{-1/2},
+\label{eq:ch6-compose}
+\end{equation}
+trong đó $L_1(H)=HW_1$ ($d\to64$) và $L_2(H)=HW_2+\mathbf b$ ($64\to C$) là các hàm affine áp lên từng nút \emph{độc lập}, còn $A_{\hat{}}$ là hàm \emph{duy nhất} trộn thông tin giữa các nút: mỗi nút lấy trung bình có trọng số theo bậc của chính nó và các láng giềng. Cách viết này cho thấy ba điều:
+\begin{itemize}
+  \item Bỏ hai hàm $A_{\hat{}}$ thì \eq{eq:ch6-compose} trở thành đúng MLP ở \tabref{tab:ch6-domains}, cùng số tham số (32.259 trên PubMed). Toàn bộ 6,7 điểm chênh lệch đến từ hai phép nhân với ma trận thưa $\hat A$, vốn \emph{không có tham số}.
+  \item Hai lần $A_{\hat{}}$ nghĩa là thông tin lan đi tối đa 2 bước: mỗi bài báo ``nhìn thấy'' các bài trích dẫn nó và các bài trích dẫn những bài đó. Chồng $k$ lớp thì $\hat A^k$ tiến dần tới phân phối dừng của bước ngẫu nhiên trên đồ thị, mọi nút có biểu diễn giống nhau: đó là hiện tượng làm trơn quá mức đã phân tích ở mục trên.
+  \item GraphSAGE và GAT chỉ thay hàm trộn: $A_{\hat{}}$ được thay bằng ``nối đặc trưng bản thân với trung bình láng giềng'' (SAGE), hoặc bằng trung bình có trọng số \emph{học được} $\alpha_{ij}$ (GAT). Các hàm còn lại trong \eq{eq:ch6-compose} giữ nguyên.
+\end{itemize}
+
+\begin{code}{Lớp GCN tự cài đặt: hàm trộn $\hat A H W$ bằng nhân ma trận thưa (\texttt{tl3/ch6\_gnn.py}, rút gọn)}
+\label{lst:ch6-gcn}
+\begin{minted}{python}
+def gcn_norm_adj(edge_index, n):
+    """Â = D̃^{-1/2}(A + I)D̃^{-1/2} dưới dạng ma trận thưa (Kipf & Welling, 2017)."""
+    ei = add_self_loops(edge_index, n)
+    deg = torch.zeros(n).index_add_(0, ei[1], torch.ones(ei.size(1)))
+    dinv = deg.pow(-0.5)
+    w = dinv[ei[0]] * dinv[ei[1]]
+    return torch.sparse_coo_tensor(ei.flip(0), w, (n, n)).coalesce()
+
+class GCNLayer(nn.Module):
+    def __init__(self, d_in, d_out):
+        super().__init__()
+        self.lin = nn.Linear(d_in, d_out, bias=False)         # L: biến đổi từng nút, có tham số
+        self.bias = nn.Parameter(torch.zeros(d_out))
+    def forward(self, x, adj):
+        return torch.sparse.mm(adj, self.lin(x)) + self.bias  # Â(HW): trộn láng giềng, không tham số
+\end{minted}
+\end{code}
+
+\section{Thực nghiệm trên Notebook và Demo Localhost}
+\label{sec:ch6-notebook-demo}
+
+Notebook \texttt{notebooks/ch6\_gnn\_pubmed.ipynb} (các ô \texttt{GNN-00} đến \texttt{GNN-04}) cho phép kiểm tra trực tiếp ma trận kề chuẩn hóa thưa và hiện tượng làm trơn quá mức theo độ sâu:
+\begin{itemize}
+  \item \textbf{Ô \texttt{GNN-02} (Kiểm chứng ma trận $\hat A$ thưa và sự ngang bằng tham số giữa GCN và MLP)}: Ô \texttt{GNN-02} gọi \texttt{gcn\_norm\_adj(edge\_index, n=19717)} trên đồ thị PubMed-Diabetes, tạo ra ma trận thưa $\hat A\in\mathbb R^{19.717\times 19.717}$ dạng COO với đúng $108.365$ phần tử khác không ($2\times 44.324$ cạnh vô hướng cộng $19.717$ khuyên tự nối). Khi khởi tạo \texttt{GCN(500, 64, 3)} và \texttt{MLP(500, 64, 3)}, cả hai mô hình có tổng số tham số bằng hệt nhau là $32.259$ ($500\times 64 + 64 + 64\times 3 + 3$). Điều này chứng minh trực tiếp rằng $+6{,}7$ điểm phần trăm accuracy của GCN so với MLP ($0{,}789$ so với $0{,}722$) đến thuần túy từ cấu trúc đồ thị trích dẫn qua phép nhân $\hat A H$ chứ không phải do tăng dung lượng mô hình.
+  \item \textbf{Ô \texttt{GNN-04} (Đo khoảng cách góc trung bình MAD và hiện tượng làm trơn quá mức từ 1 đến 8 lớp)}: Ô \texttt{GNN-04} đọc kết quả khảo sát độ sâu (\texttt{ch6\_depth.json}) trên Cora từ 1 đến 8 tầng. Khi không có kết nối tắt (\texttt{residual=False}), accuracy đạt đỉnh ở 2 tầng ($0{,}8213$, khoảng cách góc trung bình giữa các nút kề $\text{MAD}_{\text{neighbors}}=0{,}0412$), giảm nhẹ ở 3–4 tầng ($0{,}8023\to 0{,}7440$) và sụp đổ ở 6–8 tầng ($0{,}363\to 0{,}281$) khi biểu diễn các nút bị hòa trộn. Khi thêm kết nối tắt $H^{(l+1)} = \text{GCNLayer}(H^{(l)}) + H^{(l)}$ (\texttt{residual=True}), mạng 5–8 tầng giữ được tín hiệu bản thân và duy trì accuracy ở mức $0{,}771–0{,}792$.
+\end{itemize}
+
+Trên ứng dụng web cục bộ tại \texttt{http://localhost:8095} (\figref{fig:app_ch6_pubmed}), tab \textbf{Ch.6 — GNN · Đồ thị y văn PubMed-Diabetes} nạp đồng thời cả 4 mô hình đã huấn luyện trên PubMed (\texttt{GCN}, \texttt{GraphSAGE}, \texttt{GAT}, \texttt{MLP không dùng đồ thị}). Khi chọn một nút bài báo kiểm tra, giao diện hiển thị bậc của nút, tỷ lệ láng giềng cùng chủ đề và bảng so sánh xác suất dự đoán của cả bốn mô hình, cho thấy rõ trường hợp MLP đoán sai khi chỉ nhìn từ khóa của một bài báo nhưng ba mô hình GNN đều đoán đúng nhờ thông tin từ các bài trích dẫn láng giềng.
+
+\figw[0.92\linewidth]{app_ch6_pubmed}{Giao diện thử nghiệm Chương 6 trên \texttt{http://localhost:8095}: so sánh dự đoán của GCN, GraphSAGE, GAT và MLP (không dùng đồ thị) trên cùng một bài báo của đồ thị trích dẫn PubMed-Diabetes}
+

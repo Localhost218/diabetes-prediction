@@ -1,0 +1,54 @@
+\unnumberedchapter{MỞ ĐẦU}
+
+\renewcommand{\thetable}{MĐ.\arabic{table}}\renewcommand{\thefigure}{MĐ.\arabic{figure}}
+
+\section*{1. Lý do chọn đề tài}
+
+Trí tuệ nhân tạo (AI) đã đi một chặng đường dài từ những chương trình chứng minh định lý của thập niên 1950 tới các hệ thống tác tử dựa trên mô hình ngôn ngữ lớn hiện nay. Mỗi giai đoạn để lại một lớp kỹ thuật vẫn đang được dùng: luật chuyên gia, học máy thống kê, mạng nơ-ron tích chập và hồi quy, đồ thị tri thức, học sâu trên đồ thị và hệ đa tác tử. Một hệ thống thông minh thực tế hiếm khi chỉ dùng một kỹ thuật duy nhất. Nó thường là sự phối hợp của nhiều mô hình chuyên biệt, mỗi mô hình mạnh ở một loại dữ liệu, được điều phối để cùng đưa ra một quyết định có căn cứ.
+
+Đái tháo đường (ĐTĐ) là một bài toán điển hình cho cách tiếp cận đó. Theo IDF Diabetes Atlas \cite{idf2021}, năm 2021 có khoảng 537 triệu người trưởng thành mắc ĐTĐ, và gần một nửa chưa được chẩn đoán. Dữ liệu để sàng lọc lại rất đa dạng: chỉ số tự khai (tuổi, BMI, tiền sử gia đình) phù hợp với học máy trên bảng; ảnh đáy mắt dùng để phát hiện biến chứng võng mạc là đất của CNN; chuỗi đo đường huyết liên tục cần mô hình tuần tự như RNN; hướng dẫn lâm sàng (ADA 2024 \cite{ada2024}, Quyết định 5481/QĐ-BYT \cite{byt5481}) là tri thức văn bản cần RAG và đồ thị tri thức; y văn có cấu trúc trích dẫn là dữ liệu đồ thị. Mỗi loại dữ liệu đòi hỏi một lớp kỹ thuật riêng, nên ĐTĐ là một ``phòng thí nghiệm'' tự nhiên để đi qua toàn bộ các chủ đề của môn học.
+
+Tiểu luận này trình bày tiến trình phát triển của AI qua các chủ đề của môn học. Mỗi chủ đề được kiểm chứng bằng một thực nghiệm độc lập trên một bộ dữ liệu công khai liên quan tới ĐTĐ, có mô hình đối chứng, và được đóng gói thành một bản demo chạy được.
+
+\section*{2. Mục tiêu}
+
+\begin{enumerate}
+  \item Hệ thống hóa lịch sử AI và các kỹ thuật nền tảng xuyên suốt môn học: học máy cơ bản, CNN, RNN/LSTM, đồ thị tri thức và RAG, mạng nơ-ron đồ thị (GNN) và hệ đa tác tử (Multi-Agent Systems — cả học tăng cường lẫn tác tử LLM). Với mỗi mô hình, giải thích chi tiết từng lớp (layer) và biểu diễn mô hình dưới dạng hợp của các hàm toán học.
+  \item Với mỗi chương, chọn các bộ dữ liệu công khai liên quan tới ĐTĐ (kèm các miền đối chiếu ngoài y tế), mô tả đường dẫn, kích thước, mẫu dữ liệu và phân bố; cài đặt mạng nơ-ron của các chương 2–4 bằng cả ba cách (tự viết từ đầu bằng NumPy, Keras/TensorFlow và PyTorch) để kiểm chứng đạo hàm và so sánh chi phí.
+  \item Cài đặt và so sánh các mô hình trên cùng một giao thức đánh giá, kèm mô hình đối chứng. Báo cáo bằng thước đo phù hợp với từng bài toán (ROC-AUC, QWK, RMSE và lưới Clarke, Hit@k và MRR, độ chính xác phân loại nút, tỷ lệ bắt được trong trò chơi Markov và độ chính xác/lỗi phối hợp của hệ đa tác tử).
+  \item Đóng gói toàn bộ các thực nghiệm từ Chương 2 đến Chương 7 thành bộ 6 Jupyter Notebook chạy tái lập được và một ứng dụng web cục bộ (\texttt{http://localhost:8095}) để kiểm tra trực tiếp.
+\end{enumerate}
+
+\section*{3. Đối tượng, phạm vi và dữ liệu}
+
+Đối tượng nghiên cứu là các mô hình và thuật toán của môn Phát triển hệ thống thông minh, áp dụng vào bài toán sàng lọc, theo dõi và hỏi đáp ĐTĐ. \tabref{tab:datasets} liệt kê các bộ dữ liệu chính được dùng (cùng các bộ đối chiếu đa miền ở từng chương). Tất cả đều công khai và tải được bằng mã nguồn kèm theo. Thực nghiệm được chạy trực tiếp trên một máy tính cá nhân (CPU Intel i5-11400H, 16 GB RAM, GPU RTX 3050 4 GB). Mục tiêu là kiểm chứng lý thuyết và giải phẫu cơ chế hoạt động của mô hình, không phải chạy đua điểm số. Hệ thống chỉ phục vụ học tập và nghiên cứu, \emph{không thay thế chẩn đoán của bác sĩ}.
+
+\begin{table}[H]
+\centering
+\caption{Các bộ dữ liệu chính về đái tháo đường dùng trong tiểu luận}
+\label{tab:datasets}
+\small
+\begin{tabularx}{\linewidth}{@{}L{1.1cm}L{3.8cm}L{3.5cm}Y@{}}
+\toprule
+\textbf{Ch.} & \textbf{Bộ dữ liệu chính} & \textbf{Quy mô} & \textbf{Bài toán} \\
+\midrule
+1 & Pima Indians Diabetes \cite{smith1988} & 768 người, 8 đặc trưng & Phân loại ĐTĐ: luật chuyên gia → perceptron → MLP \\
+2 & NHANES \cite{nhanes} \& Diabetes 100k & 20.646 \& 100.000 người & Phân loại, hồi quy HbA1c, gom cụm; MLP 3 cách (NumPy/Keras/PyTorch) \\
+3 & RetinaMNIST \cite{yang2023medmnist} & 1.600 ảnh đáy mắt & Phân độ bệnh võng mạc ĐTĐ (5 mức); CNN 3 cách \& chuyển giao \\
+4 & ShanghaiT1DM/T2DM \cite{zhao2023shanghai} & 112 bệnh nhân, 125 bản ghi CGM & Dự báo glucose 15–60 phút; RNN/LSTM/GRU 3 cách \& xếp chồng 5 lớp \\
+5 & KB ADA 2024 + MedQuAD \cite{benabacha2019} & 36 đoạn + 1.192 hỏi–đáp + KG 96k nút & Truy xuất thưa/dày, xếp hạng lại, GraphRAG và sinh câu trả lời có trích dẫn \\
+6 & Pubmed-Diabetes \cite{namata2012} & 19.717 bài báo, 44.324 cạnh & Phân loại nút bán giám sát và có giám sát bằng GCN, GraphSAGE, GAT \\
+7 & Lưới Mèo–Chuột \& MedMCQA \cite{pal2022medmcqa} & Lưới 8×8 (157k trạng thái) \& 150 câu ĐTĐ & Đa tác tử học tăng cường (hợp tác IQL, đối kháng) \& Đa tác tử LLM tranh luận \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section*{4. Phương pháp nghiên cứu và đóng góp kế thừa}
+
+Báo cáo kết hợp bốn phương pháp. \emph{Tổng hợp tài liệu}: hệ thống hóa kiến thức từ giáo trình và các bài báo gốc (Perceptron, LSTM, ResNet, GCN, GAT, RAG, Q-learning, Debate\ldots). \emph{Lịch sử – logic và hợp hàm}: trình bày mỗi kỹ thuật như lời giải cho hạn chế của kỹ thuật đi trước, đồng thời biểu diễn tường minh mỗi mạng sâu như một hợp hàm toán học. \emph{Thực nghiệm có đối chứng và đa cách cài đặt}: mỗi chương có mô hình nền đơn giản (persistence, MLP phẳng, chỉ BM25, tác tử đơn\ldots) và tự cài đặt từ đầu bằng NumPy/PyTorch thưa để kiểm chứng đạo hàm trước khi đối chiếu với Keras và PyTorch. \emph{Kỹ nghệ hệ thống}: đóng gói thành 6 notebook (\texttt{notebooks/ch2\_*.ipynb} đến \texttt{ch7\_*.ipynb}) và cổng thử nghiệm thống nhất tại \texttt{http://localhost:8095} (\figref{fig:app_home}). Một số khung mã đối chiếu đa miền (\texttt{src/tl03}) được kế thừa và mở rộng từ phần làm việc chung của thành viên cùng nhóm 07 (Nguyễn Duy Nghĩa), được ghi chú rõ tại từng mục liên quan; toàn bộ thực nghiệm đái tháo đường, bài toán Mèo–Chuột mở rộng, trắc nghiệm MedMCQA và số liệu trong báo cáo này đều được huấn luyện và đo lại hoàn toàn trên máy thực nghiệm.
+
+\figw[0.92\linewidth]{app_home}{Trang chủ ứng dụng cục bộ \emph{Diabetes AI Lab} (\texttt{http://localhost:8095}) tích hợp 19 thực nghiệm từ Chương 2 đến Chương 7}
+
+\section*{5. Bố cục của tiểu luận}
+
+Ngoài Mở đầu, Kết luận và Tài liệu tham khảo, tiểu luận gồm bảy chương. \textbf{Chương 1} điểm lại lịch sử AI và tái hiện bốn thế hệ mô hình trên bộ Pima. \textbf{Chương 2} trình bày các thuật toán học máy cơ bản trên NHANES và cài đặt MLP bằng ba cách trên 100.000 hồ sơ tiểu đường. \textbf{Chương 3} phân tích từng lớp của CNN, cài đặt CNN bằng ba cách (\texttt{im2col}) và áp dụng vào phân độ bệnh võng mạc. \textbf{Chương 4} trình bày RNN, LSTM, GRU, cài đặt BPTT bằng ba cách và khảo sát LSTM 5 lớp trên chuỗi đường huyết CGM. \textbf{Chương 5} xây dựng đồ thị tri thức và đánh giá các chiến lược RAG / GraphRAG. \textbf{Chương 6} trình bày GCN, GraphSAGE, GAT trên đồ thị trích dẫn y văn PubMed-Diabetes và đối chiếu với Cora, CiteSeer. \textbf{Chương 7} trình bày hệ đa tác tử qua hai bài toán: học tăng cường đa tác tử (mèo đuổi chuột hợp tác và đối kháng) và hệ đa tác tử LLM giải trắc nghiệm y khoa MedMCQA (đối chiếu với giải toán GSM8K).

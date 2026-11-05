@@ -1,23 +1,35 @@
 """
-Mô hình dữ liệu PostgreSQL.
+Mô hình dữ liệu quan hệ — chạy được trên SQLite (mặc định) và PostgreSQL.
+
+JSON dùng kiểu JSONB khi ở Postgres. Cột `embedding` (pgvector) và `tsv` (tsvector) chỉ tồn tại
+khi chạy Postgres; với SQLite, vector nằm ở Qdrant và full-text ở bảng ảo FTS5 `kb_chunks_fts`.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import (Boolean, Computed, DateTime, Float, ForeignKey, Integer, String, Text,
+from sqlalchemy import (JSON, Boolean, Computed, DateTime, Float, ForeignKey, Integer, String, Text,
                         UniqueConstraint, func)
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import JSONB as PG_JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config import settings
 from src.storage.db import Base
 
+if settings.is_postgres:
+    from pgvector.sqlalchemy import Vector
+
+JSONB = JSON().with_variant(PG_JSONB(), "postgresql")  # JSON trên SQLite, JSONB trên Postgres
+
 
 def _uuid() -> str:
     return uuid.uuid4().hex
+
+
+def _now() -> datetime:
+    # Gán từ Python (độ phân giải micro giây) để các tin nhắn trong cùng giao dịch vẫn sắp xếp đúng thứ tự
+    return datetime.now(timezone.utc)
 
 
 class ChatSession(Base):
@@ -45,7 +57,7 @@ class ChatMessage(Base):
     attachments: Mapped[list] = mapped_column(JSONB, default=list)  # [{document_id, filename, mime_type}]
     is_helpful: Mapped[bool] = mapped_column(Boolean, default=False)
     is_useless: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.clock_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     session: Mapped[ChatSession] = relationship(back_populates="messages")
 
@@ -125,15 +137,17 @@ class KbChunk(Base):
     chunk_index: Mapped[int] = mapped_column(Integer)
     heading: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     content: Mapped[str] = mapped_column(Text)
-    embedding = mapped_column(Vector(settings.embedding_dim))
     embedding_model: Mapped[str] = mapped_column(String(200))
-    tsv = mapped_column(TSVECTOR, Computed("to_tsvector('simple', immutable_unaccent(coalesce(heading, '') || ' ' || content))", persisted=True))
+    if settings.is_postgres:
+        embedding = mapped_column(Vector(settings.embedding_dim))
+        tsv = mapped_column(TSVECTOR, Computed(
+            "to_tsvector('simple', immutable_unaccent(coalesce(heading, '') || ' ' || content))", persisted=True))
 
     document: Mapped[KbDocument] = relationship(back_populates="chunks")
 
 
 class KgNode(Base):
-    """Bảng dự phòng cho Knowledge Graph khi không có Apache AGE (KG_BACKEND=sql)."""
+    """Bảng dự phòng cho Knowledge Graph trên Postgres không có Apache AGE (KG_BACKEND=sql)."""
     __tablename__ = "kg_nodes"
     __table_args__ = (UniqueConstraint("label", "name"),)
 

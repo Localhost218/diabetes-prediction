@@ -1,0 +1,127 @@
+% ======================================================================
+%  Định dạng báo cáo — theo mẫu Tiểu luận 03 (Times 13pt, giãn dòng 1.5)
+% ======================================================================
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm,headheight=14pt]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{TeX Gyre Termes}[Scale=1.0833]          % 12pt × 1,0833 ≈ 13pt
+\setmathfont{TeX Gyre Termes Math}[Scale=1.0833]
+\setmonofont{SourceCodePro}[Extension=.otf,UprightFont=*-Regular,BoldFont=*-Bold,ItalicFont=*-RegularIt,BoldItalicFont=*-BoldIt,Scale=0.82]
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}  % để biblatex dùng chuỗi tiếng Anh (đã Việt hóa) trong danh mục tài liệu
+
+\usepackage{setspace}
+\setstretch{1.4}
+\setlength{\parindent}{1cm}
+\setlength{\parskip}{3pt}
+\usepackage{indentfirst}
+\usepackage{microtype}
+\usepackage{ragged2e}
+\setlength{\emergencystretch}{3em}
+
+\usepackage{amsmath,amsthm}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{booktabs,longtable,tabularx,multirow,array,makecell}
+\renewcommand{\arraystretch}{1.18}
+\usepackage{xcolor}
+\definecolor{codebg}{HTML}{F4F5F7}
+\definecolor{accent}{HTML}{1D4ED8}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage[htt]{hyphenat}  % cho phép ngắt dòng trong \texttt (tên hàm, đường dẫn dài)
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\setlist{itemsep=1pt,topsep=3pt,parsep=0pt,leftmargin=1.2cm}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,shapes.symbols,calc,fit,backgrounds}
+
+% ---------------------------------------------------------------- tiêu đề chương, mục
+\usepackage{titlesec}
+\titleformat{\chapter}[block]{\centering\bfseries\fontsize{15}{19}\selectfont}
+  {\MakeUppercase{\chaptertitlename}\ \thechapter.}{0.5em}{\MakeUppercase}
+\titlespacing{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\bfseries\fontsize{13.5}{17}\selectfont}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\bfseries\itshape\fontsize{13}{16}\selectfont}{\thesubsection.}{0.5em}{}
+\titleformat{\subsubsection}{\itshape\fontsize{13}{16}\selectfont}{\thesubsubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{10pt}{4pt}
+\titlespacing{\subsection}{0pt}{8pt}{3pt}
+\titlespacing{\subsubsection}{0pt}{6pt}{2pt}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+\renewcommand{\chaptertitlename}{Chương}
+
+% chương không đánh số (Mở đầu, Kết luận, TLTK) vẫn vào mục lục
+\newcommand{\unnumberedchapter}[1]{%
+  \chapter*{#1}\addcontentsline{toc}{chapter}{#1}\markboth{#1}{#1}}
+
+% ---------------------------------------------------------------- mục lục
+\usepackage{tocloft}
+\renewcommand{\contentsname}{\centering MỤC LỤC}
+\renewcommand{\listfigurename}{\centering DANH MỤC HÌNH VẼ}
+\renewcommand{\listtablename}{\centering DANH MỤC BẢNG BIỂU}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\renewcommand{\cftchappresnum}{CHƯƠNG }
+\setlength{\cftchapnumwidth}{6.6em}
+\renewcommand{\cftchapaftersnum}{.}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftfigpresnum}{Hình }
+\renewcommand{\cfttabpresnum}{Bảng }
+\setlength{\cftfignumwidth}{5.2em}
+\setlength{\cfttabnumwidth}{5.2em}
+\renewcommand{\cftfigaftersnum}{.}
+\renewcommand{\cfttabaftersnum}{.}
+
+% ---------------------------------------------------------------- chú thích hình, bảng
+\usepackage{caption}
+\DeclareCaptionLabelSeparator{dotspace}{.\ }
+\captionsetup{labelsep=dotspace,font={small},justification=centering,singlelinecheck=false}
+\captionsetup[figure]{name=Hình,font={small,it},skip=4pt}
+\captionsetup[table]{name=Bảng,font={small,bf},position=top,skip=4pt}
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+
+% ---------------------------------------------------------------- đoạn mã
+\usepackage[newfloat]{minted}
+\setminted{fontsize=\footnotesize,breaklines,bgcolor=codebg,frame=none,tabsize=4,
+           baselinestretch=1.05,style=friendly,autogobble}
+\SetupFloatingEnvironment{listing}{name=Đoạn mã,placement=H}
+\captionsetup[listing]{font={small,bf},position=top,justification=raggedright,skip=2pt}
+\renewcommand{\thelisting}{\thechapter.\arabic{listing}}
+\newenvironment{code}[1]{\begin{listing}[H]\caption{#1}}{\end{listing}}
+
+% ---------------------------------------------------------------- trang
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------------------------------------------------------------- tài liệu tham khảo
+\usepackage[backend=biber,style=ieee,sorting=none,maxnames=4,minnames=1,language=english,autolang=none]{biblatex}
+\addbibresource{refs.bib}
+\DefineBibliographyStrings{english}{andothers={và cộng sự},and={và},in={trong},edition={ấn bản},volume={tập},jourvol={tập},number={số},pages={tr.},page={tr.}}
+
+% ---------------------------------------------------------------- tiện ích
+\newcommand{\eq}[1]{(\ref{#1})}
+\newcommand{\figref}[1]{Hình~\ref{#1}}
+\newcommand{\tabref}[1]{Bảng~\ref{#1}}
+\newcommand{\coderef}[1]{Đoạn mã~\ref{#1}}
+\newcommand{\weburl}[1]{{\small\url{#1}}}
+\newcommand{\api}[1]{\texttt{\small #1}}
+\newcommand{\figw}[3][\linewidth]{%
+  \begin{figure}[H]\centering\includegraphics[width=#1]{#2}\caption{#3}\label{fig:#2}\end{figure}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newtheorem*{dinhnghia}{Định nghĩa}
+
+% tên miền triển khai (Cloudflare Tunnel) — đổi ở đây là đổi toàn bộ báo cáo
+\newcommand{\deploydomain}{agent.nits.io.vn}
+\newcommand{\agent}[1]{\texttt{#1}}

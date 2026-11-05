@@ -23,9 +23,9 @@ Hệ thống trả về: mức nguy cơ, các bằng chứng đồng thuận (+)
 
 | Khối trên bảng | Hiện thực |
 |---|---|
-| **DB** → ML / DL → *Prediction / Classification* | `PredictionAgent`: **ML** (Gradient Boosting) + **DL** (MLP PyTorch) huấn luyện từ bảng `nhanes_samples` trong **PostgreSQL** (dữ liệu thật NHANES, 20.646 người); RNN khi có chuỗi đo glucose; CNN khi có đặc trưng ảnh đáy mắt |
-| **PDF / Web** → **KB** | `scripts/ingest_kb.py`: bản gốc lưu lên **SeaweedFS** → chia đoạn → embedding vào **pgvector**; bộ ba tri thức vào **Apache AGE** |
-| **KB** → **RAG** → **Agent** | `KnowledgeAgent`: hybrid search (vector + full-text) + GraphRAG (Cypher trên AGE) + đối chiếu tiêu chuẩn chẩn đoán ADA |
+| **DB** → ML / DL → *Prediction / Classification* | `PredictionAgent`: **ML** (Gradient Boosting) + **DL** (MLP PyTorch) huấn luyện từ bảng `nhanes_samples` trong **SQLite** (dữ liệu thật NHANES, 20.646 người); ý kiến thứ hai từ cặp GBDT + MLP trên **BRFSS 2011–2023: 3.172.819 người** (`brfss_samples`, `scripts/fetch_brfss.py`); RNN khi có chuỗi đo glucose; CNN khi có đặc trưng ảnh đáy mắt |
+| **web, book** → **neo4j KB** | `scripts/ingest_kb.py`: bản gốc lưu lên **SeaweedFS** → chia đoạn (SQLite + FTS5) → embedding vào **Qdrant**; bộ ba tri thức vào **Neo4j** |
+| **KB** → **RAG** → **Agent** | `KnowledgeAgent`: hybrid search (vector + full-text) + GraphRAG (Cypher trên Neo4j) + đối chiếu tiêu chuẩn chẩn đoán ADA |
 | **Vòng tròn lớn (+ / −)** | `ConsensusCriticAgent`: tranh biện nhiều vòng với hai nhánh, liệt kê (+) / (−), Safety Guardrail |
 
 Bổ sung so với sơ đồ: tầng **tiếp nhận** (text + file), tầng **hội thoại** (hỏi lại khi thiếu dữ liệu), tác tử **gợi ý can thiệp** (Q-Learning) và tác tử **phản hồi** (LLM viết câu trả lời có trích dẫn).
@@ -33,7 +33,7 @@ Bổ sung so với sơ đồ: tầng **tiếp nhận** (text + file), tầng **h
 ### 1.2. Mô hình tổ chức
 
 - **Supervisor + Blackboard.** `Orchestrator` nhận mỗi lượt chat, phân loại ý định và **lập kế hoạch động**: câu hỏi kiến thức chỉ đi nhánh RAG; thiếu dữ liệu thì hỏi lại; câu hỏi tiếp nối thì trả lời từ bộ nhớ; có dữ liệu mới thì chạy hai nhánh song song rồi đưa vào hội đồng. Trạng thái chung là `PatientProfile`, tích lũy qua nhiều lượt chat.
-- **Bộ nhớ hai tầng** (đọc từ PostgreSQL mỗi lượt):
+- **Bộ nhớ hai tầng** (đọc từ SQLite mỗi lượt):
   - *Bộ nhớ có cấu trúc* — `PatientProfile` của phiên: mọi chỉ số đã khai, kèm nguồn.
   - *Bộ nhớ hội thoại* — 10 tin nhắn gần nhất và kết quả hội chẩn gần nhất. Được đưa cho bộ phân loại ý định (hiểu câu "vậy tại sao…"), cho ConversationAgent (hiểu câu trả lời cụt "62" sau khi bot hỏi tuổi) và cho ResponseAgent.
   - Ý định `FOLLOW_UP` ("tôi cao bao nhiêu?", "tại sao nguy cơ cao?") được trả lời từ hai tầng bộ nhớ, **không chạy lại hội đồng** khi không có dữ liệu mới.
@@ -51,7 +51,7 @@ Bổ sung so với sơ đồ: tầng **tiếp nhận** (text + file), tầng **h
 | **ClarificationAgent** | `SCOPE_CHECK`, `PLAN_QUESTIONS` | Phát hiện hồ sơ mơ hồ / ngoài phạm vi sàng lọc (thai phụ, đã chẩn đoán, dùng thuốc, mâu thuẫn nguồn, đơn vị phải đoán, HbA1c lệch glucose...) và đặt câu hỏi làm rõ: chặn luồng với câu hỏi quyết định, còn lại hỏi kèm kết quả; tối đa 2 câu/lượt, không hỏi lại | Luật (`knowledge/scope.py`) + LLM structured output có kiểm tra trích dẫn nguyên văn; nhóm `OTHER` ghi vào audit trail |
 | **DocumentAgent** | `PARSE_DOCUMENT` | Đọc file từ SeaweedFS → trích chỉ số → quy đổi đơn vị (mmol/L → mg/dL, mmol/mol → %, µmol/L → mg/dL) | PyMuPDF, python-docx, pandas, LLM vision (ảnh / PDF scan), Tesseract khi không có LLM |
 | **PredictionAgent** | `PREDICT_RISK`, `CHALLENGE_ML_VS_LABS`, `CHALLENGE_DATA_QUALITY`, `CHALLENGE_MODEL_DISAGREEMENT` | Hai mô hình ML + DL cho xác suất nguy cơ theo yếu tố nguy cơ (lấy trung bình) + giải thích đặc trưng; chỉ số CGM (TIR/TBR/CV); bảo vệ, nhượng bộ hoặc giải trình khi bị chất vấn | scikit-learn HistGradientBoosting, PyTorch MLP, RNN (NumPy) |
-| **KnowledgeAgent** | `RETRIEVE_EVIDENCE`, `ANSWER_QUESTION`, `CHALLENGE_VERIFY_CRITERIA`, `CHALLENGE_SCREENING_PLAN` | Đối chiếu xét nghiệm với ngưỡng ADA; hybrid RAG; GraphRAG; trả trích dẫn | pgvector, Apache AGE, fastembed |
+| **KnowledgeAgent** | `RETRIEVE_EVIDENCE`, `ANSWER_QUESTION`, `CHALLENGE_VERIFY_CRITERIA`, `CHALLENGE_SCREENING_PLAN` | Đối chiếu xét nghiệm với ngưỡng ADA; hybrid RAG; GraphRAG; trả trích dẫn | Qdrant, SQLite FTS5, Neo4j, fastembed |
 | **ConsensusCriticAgent** | `DELIBERATE` | Tranh biện, liệt kê (+)/(−), phân tầng nguy cơ, Safety Guardrail | Luật lâm sàng |
 | **TreatmentRLAgent** | `RECOMMEND_TREATMENT` | Chọn bước can thiệp bằng Q-Learning, bị ràng buộc bởi kết luận hội đồng và chống chỉ định trong KG | Q-Learning (MDP 24 trạng thái × 4 hành động) |
 | **ResponseAgent** | `COMPOSE_*` | Viết câu trả lời chỉ dựa trên kết quả các tác tử, có trích dẫn | LLM; dự phòng mẫu câu |
@@ -93,9 +93,9 @@ flowchart LR
     CONV --> BB[(PatientProfile<br/>Blackboard)]
     DOC --> BB
 
-    subgraph PG[PostgreSQL 17]
-        DB[(nhanes_samples<br/>chat · consultations)]
-        KB[(kb_chunks · pgvector<br/>diabetes_kg · AGE)]
+    subgraph PG[Lưu trữ]
+        DB[(SQLite<br/>nhanes_samples · chat<br/>consultations · kb_chunks FTS5)]
+        KB[(Qdrant: vector kb_chunks<br/>Neo4j: đồ thị tri thức)]
     end
 
     DB --> PRED[PredictionAgent<br/>ML · DL · RNN · CNN]
@@ -125,13 +125,11 @@ flowchart LR
 ```text
 MultiAgent/
 ├── app.py                         FastAPI: khởi tạo DB, nạp tác tử, mount route + giao diện
-├── docker-compose.yml             postgres (AGE + pgvector), seaweedfs, backend (profile "app")
+├── docker-compose.yml             neo4j, qdrant, seaweedfs, backend + cloudflared (profile "app")
 ├── Dockerfile                     Image backend
 ├── requirements.txt · .env.example · .gitignore · .dockerignore
 │
 ├── docker/
-│   ├── postgres/Dockerfile        apache/age:release_PG17_1.6.0 + postgresql-17-pgvector
-│   ├── postgres/init.sql          CREATE EXTENSION vector, age, unaccent, pg_trgm; tạo graph diabetes_kg
 │   └── seaweedfs/s3.json          Khóa truy cập S3 (môi trường dev)
 │
 ├── src/
@@ -158,7 +156,7 @@ MultiAgent/
 │   │   ├── lab_extractor.py       Regex tiếng Việt cho chỉ số xét nghiệm và yếu tố nguy cơ
 │   │   └── unit_normalizer.py     Quy đổi đơn vị, đánh dấu đơn vị phải đoán
 │   ├── knowledge/
-│   │   ├── ingest.py              PDF/Web/MD → SeaweedFS → chunk → pgvector; bộ ba → AGE
+│   │   ├── ingest.py              PDF/Web/MD → SeaweedFS → chunk (SQLite) → Qdrant; bộ ba → Neo4j
 │   │   ├── embedder.py            fastembed đa ngôn ngữ (dự phòng: hashing offline)
 │   │   └── clinical_criteria.py   Ngưỡng ADA, quy tắc xác nhận, ánh xạ hồ sơ → node KG
 │   ├── models/
@@ -172,8 +170,8 @@ MultiAgent/
 │   ├── storage/
 │   │   ├── db.py                  Engine SQLAlchemy, init_db() tạo extension/bảng/index
 │   │   ├── models.py              ORM: chat, documents, consultations, agent_messages, kb_*, kg_*
-│   │   ├── vector_store.py        Hybrid search pgvector + full-text, Reciprocal Rank Fusion
-│   │   ├── graph_store.py         AgeGraphStore (Cypher) | SqlGraphStore (WITH RECURSIVE)
+│   │   ├── vector_store.py        Hybrid search Qdrant + FTS5 (hoặc pgvector + tsvector), Reciprocal Rank Fusion
+│   │   ├── graph_store.py         Neo4jGraphStore | AgeGraphStore (Cypher) | SqlGraphStore (WITH RECURSIVE)
 │   │   └── object_storage.py      S3Storage (SeaweedFS/AWS S3) | LocalStorage
 │   ├── api/
 │   │   ├── routes_chat.py         /api/chat, /api/chat/upload, /api/documents/{id}/content
@@ -184,7 +182,7 @@ MultiAgent/
 │
 ├── scripts/
 │   ├── fetch_nhanes.py            Tải NHANES 2011–2018 từ CDC, dựng nhãn ĐTĐ bằng xét nghiệm
-│   ├── train_model.py             Nạp CSV vào Postgres, huấn luyện và so sánh ML / DL / hồi quy logistic
+│   ├── train_model.py             Nạp CSV vào SQLite, huấn luyện và so sánh ML / DL / hồi quy logistic
 │   ├── ingest_kb.py               Nạp Knowledge Base (thư mục, URL, --llm-triples)
 │   └── chat_cli.py                Chat với hội đồng trên terminal (--trace in luồng thông điệp)
 │
@@ -214,10 +212,10 @@ MultiAgent/
 | **Backend** | Python 3.12, FastAPI, Uvicorn, Pydantic v2 | |
 | **Điều phối đa tác tử** | Tự xây dựng: `BaseAgent` + `MessageBus` + `asyncio` | Thể hiện rõ cơ chế giao tiếp và tranh biện, không phụ thuộc framework |
 | **LLM** | **Gemini** (`google-genai`): `gemini-flash-latest`, dự phòng `gemini-3.5-flash` → `gemini-flash-lite-latest`; tùy chọn **Claude** (`anthropic`, `claude-opus-5-5`) | Structured output theo schema Pydantic; vision cho ảnh/PDF; chép giọng nói. **Không bắt buộc**: thiếu key thì toàn hệ thống chạy bằng luật |
-| **Cơ sở dữ liệu** | **PostgreSQL 17**, SQLAlchemy 2, psycopg 3 | Một database cho dữ liệu quan hệ, vector và đồ thị. Schema tạo tự động khi khởi động (`init_db`) |
-| **Vector store** | **pgvector 0.8** (HNSW, cosine) + full-text `tsvector` (`simple` + `unaccent`) | Hybrid search gộp bằng Reciprocal Rank Fusion |
+| **Cơ sở dữ liệu** | **SQLite** (WAL), SQLAlchemy 2 | Dữ liệu quan hệ + full-text FTS5 (`unicode61 remove_diacritics`). Schema tạo tự động khi khởi động (`init_db`). Tùy chọn PostgreSQL qua `DATABASE_URL` |
+| **Vector store** | **Qdrant 1.20** (HNSW, cosine; point id = `kb_chunks.id`) + FTS5 bm25 | Hybrid search gộp bằng Reciprocal Rank Fusion. `QDRANT_URL` trống → Qdrant nhúng trên đĩa. Tùy chọn `VECTOR_BACKEND=pgvector` |
 | **Embedding** | fastembed (ONNX, CPU) — `paraphrase-multilingual-MiniLM-L12-v2`, 384 chiều | Không cần PyTorch/GPU |
-| **Knowledge Graph** | **Apache AGE 1.6** (openCypher trong Postgres) | Dự phòng `KG_BACKEND=sql` cho Postgres không có AGE (ví dụ AWS RDS) |
+| **Knowledge Graph** | **Neo4j 5.26** (Cypher, Bolt; ràng buộc duy nhất theo `name`) | Tùy chọn `KG_BACKEND=age` (Apache AGE) hoặc `sql` trên Postgres |
 | **Lưu trữ file** | **SeaweedFS 3.97** (S3 gateway), boto3 | Bucket bệnh án tự xóa sau `UPLOAD_TTL_DAYS`; xóa phiên chat thì xóa luôn file gốc. Đổi sang AWS S3 chỉ cần đổi endpoint |
 | **Đọc tài liệu** | PyMuPDF, python-docx, pandas, Tesseract (tùy chọn) | |
 | **ML / DL / RL** | scikit-learn (Gradient Boosting), **PyTorch** (MLP, bản CPU), NumPy | Chọn bộ dữ liệu bằng `PREDICTION_DATASET=nhanes|vn` |
@@ -243,7 +241,7 @@ sequenceDiagram
     participant CRIT as ConsensusCritic
     participant RL as TreatmentRL
     participant RESP as Response
-    participant DB as PostgreSQL
+    participant DB as SQLite
 
     User->>API: text và/hoặc file
     opt Có file
@@ -301,7 +299,7 @@ sequenceDiagram
 6. **Hội đồng tranh biện** theo giao thức ở mục 1.4.
 7. **Gợi ý can thiệp.** Q-Learning chọn hành động, sau đó bị ràng buộc: xét nghiệm chưa ở ngưỡng ĐTĐ hoặc còn cần xác nhận thì chỉ dừng ở thay đổi lối sống; guardrail khẩn thì chuyển khám chuyên khoa; chống chỉ định trong KG (ví dụ metformin khi eGFR < 30) được nêu ra.
 8. **Phản hồi.** LLM nhận JSON kết quả và chỉ được dùng số liệu trong đó; không có LLM thì dùng mẫu câu.
-9. **Lưu trữ.** Hồ sơ phiên, tin nhắn, kết quả hội chẩn, audit trail và trạng thái tài liệu được lưu trong PostgreSQL.
+9. **Lưu trữ.** Hồ sơ phiên, tin nhắn, kết quả hội chẩn, audit trail và trạng thái tài liệu được lưu trong SQLite.
 
 ### 4.3. Nạp tri thức
 
@@ -309,9 +307,10 @@ sequenceDiagram
 data/kb_sources/*.md|pdf|html  hoặc  --url https://...
    → SeaweedFS: astarcare-kb/kb-sources/{doc_id}.{ext}              (bản gốc)
    → chia đoạn theo mục "##" (văn bản thường: ~1.200 ký tự, chồng lấp 200)
-   → embedding → kb_chunks (embedding vector(384), tsv tự sinh)       [pgvector]
+   → kb_chunks (nội dung, chỉ mục FTS5 qua trigger)                   [SQLite]
+   → embedding 384 chiều → collection kb_chunks                       [Qdrant]
    → curated_triples.json (+ LLM trích thêm nếu --llm-triples)
-   → MERGE node/cạnh vào graph diabetes_kg, cạnh gắn chunk_ids        [Apache AGE]
+   → MERGE node/cạnh (UNWIND theo lô), cạnh gắn chunk_ids              [Neo4j]
 ```
 
 Ontology: node `RiskFactor`, `Disease`, `Complication`, `Test`, `Drug`, `Intervention`; quan hệ `HAS_RISK_FACTOR`, `DIAGNOSED_BY`, `CAUSES`, `SCREENED_BY`, `TREATED_BY`, `CONTRAINDICATED_IN`, `PREVENTED_BY`. Chạy lại an toàn: tài liệu không đổi sẽ được bỏ qua.
@@ -320,14 +319,14 @@ Ontology: node `RiskFactor`, `Disease`, `Complication`, `Test`, `Drug`, `Interve
 
 | Bảng / đối tượng | Nội dung |
 |---|---|
-| `chat_sessions` | Phiên chat; `profile` (JSONB) là PatientProfile tích lũy |
+| `chat_sessions` | Phiên chat; `profile` (JSON) là PatientProfile tích lũy |
 | `chat_messages` | Tin nhắn; `attachments`, `data` (kết quả hội chẩn rút gọn), feedback |
 | `agent_messages` | Audit trail của MessageBus: sender, receiver, performative, payload, thời gian xử lý |
 | `documents` | Bệnh án: `bucket`, `object_key`, `sha256` (chống trùng), `status`, `extracted` |
 | `consultations` | Kết quả hội chẩn đầy đủ, mức nguy cơ, số vòng tranh biện |
 | `nhanes_samples` · `training_samples` | Dữ liệu huấn luyện: NHANES (20.646 người) · bộ VN (150.000 mẫu) |
-| `kb_documents`, `kb_chunks` | Knowledge Base; index HNSW (vector) và GIN (full-text) |
-| graph `diabetes_kg` (AGE) | Đồ thị tri thức · `kg_nodes`/`kg_edges` khi dùng `KG_BACKEND=sql` |
+| `kb_documents`, `kb_chunks` | Knowledge Base; bảng ảo `kb_chunks_fts` (FTS5) cho full-text; vector ở Qdrant |
+| Neo4j | Đồ thị tri thức (nhãn theo ontology, cạnh có `evidence`, `source_doc`, `chunk_ids`) |
 
 ---
 
@@ -356,15 +355,16 @@ Tài liệu đầy đủ: http://localhost:8000/docs
 # 1. Cấu hình
 cp .env.example .env            # điền GEMINI_API_KEY (không bắt buộc)
 
-# 2. Hạ tầng: PostgreSQL (AGE + pgvector) và SeaweedFS
-docker compose up -d postgres seaweedfs
+# 2. Hạ tầng: Neo4j, Qdrant và SeaweedFS (SQLite là file data/multiagent.db, không cần container)
+docker compose up -d neo4j qdrant seaweedfs
 
 # 3. Môi trường Python
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-# 4. Tải NHANES, huấn luyện ML + DL (nạp CSV vào Postgres rồi train), nạp Knowledge Base
+# 4. Tải NHANES, huấn luyện ML + DL (nạp CSV vào SQLite rồi train), nạp Knowledge Base
 .venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu   # nếu chưa có
 .venv/bin/python scripts/fetch_nhanes.py
+.venv/bin/python scripts/fetch_brfss.py          # BRFSS 7 năm lẻ 2011–2023, ~740 MB tải về
 .venv/bin/python scripts/train_model.py
 .venv/bin/python scripts/ingest_kb.py
 
@@ -373,11 +373,13 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 * Chatbot: http://localhost:8000 · Swagger: http://localhost:8000/docs
+* Neo4j Browser: http://localhost:7474 (neo4j / multiagent-neo4j) · Qdrant dashboard: http://localhost:6333/dashboard
 * SeaweedFS: S3 http://localhost:8333 · Filer UI http://localhost:8888
 * Chat trên terminal: `.venv/bin/python scripts/chat_cli.py --trace`
 * Sửa giao diện: `cd frontend && npm install && npm run dev` (http://localhost:5173, proxy `/api` về cổng 8000); xong thì `npm run build`.
 * Chạy toàn bộ bằng Docker: `docker compose --profile app up -d --build` (cần đã chạy bước 4 để có `data/models/`).
-* Không có Docker/AGE: đặt `KG_BACKEND=sql` và/hoặc `STORAGE_BACKEND=local`.
+* Không có Docker: để trống `QDRANT_URL` (Qdrant nhúng) và đặt `STORAGE_BACKEND=local`; Neo4j vẫn cần một server (Docker, Neo4j Desktop hoặc AuraDB Free).
+* Code vẫn hỗ trợ PostgreSQL (pgvector + Apache AGE) nếu bạn tự dựng server: đặt `DATABASE_URL=postgresql+psycopg://...`, `VECTOR_BACKEND=pgvector`, `KG_BACKEND=age`.
 
 ---
 
@@ -456,7 +458,7 @@ Mỗi chương có một script thực nghiệm trong `lab/`, ghi số liệu v�
 | 2 | `lab/ch2_ml.py` | NHANES 2011–2018 | `ch2_classic.joblib` (7 bộ phân loại) |
 | 3 | `lab/ch3_cnn.py` (GPU) | RetinaMNIST 128×128 | `ch3_resnet18.pt` |
 | 4 | `lab/ch4_rnn.py` (GPU) | ShanghaiT1DM/T2DM | `ch4_glucose_rnn.pt` (LSTM 2 tầng) |
-| 5 | `lab/ch5_rag.py` | KB tiếng Việt + MedQuAD-NIDDK | KnowledgeAgent (pgvector + AGE) |
+| 5 | `lab/ch5_rag.py` | KB tiếng Việt + MedQuAD-NIDDK | KnowledgeAgent (Qdrant + Neo4j) |
 | 6 | `lab/ch6_gnn.py`, `lab/ch6_ablation.py` (GPU) | Pubmed-Diabetes | `ch6_gat.pt` |
 | 7 | `lab/ch7_agents.py` | NHANES (tập kiểm tra) | Hệ đa tác tử |
 

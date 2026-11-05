@@ -18,6 +18,9 @@ from src.schemas.patient_profile import FIELD_SPECS, PatientProfile, format_valu
 
 ML_HIGH, ML_LOW = 0.30, 0.15
 ML_DL_DISAGREEMENT = 0.15  # lệch xác suất giữa ML và DL đủ lớn để hội đồng chất vấn
+# Mô hình chính (NHANES) và mô hình quy mô lớn (BRFSS) so theo nguy cơ tương đối: một bên ≥ 1,5 lần trung bình,
+# bên kia ≤ 0,8 lần thì coi là bất đồng thật; hai bên cùng phía thì là bằng chứng (+)
+COHORT_HIGH, COHORT_LOW = 1.5, 0.8
 LEVELS = {
     "very_high": "Rất cao — xét nghiệm ở ngưỡng đái tháo đường",
     "high": "Cao — tiền đái tháo đường hoặc nhiều yếu tố nguy cơ",
@@ -72,6 +75,10 @@ def _detect_issues(state: Dict[str, Any]) -> List[Tuple[str, str, str, Dict[str,
     issues = []
     if ml["data_completeness"] < 0.35:
         issues.append(("data_quality", "PredictionAgent", "CHALLENGE_DATA_QUALITY", {"risk_model": ml}))
+    ls = ml.get("large_scale")
+    if ls and ((ml["relative_risk"] >= COHORT_HIGH and ls["relative_risk"] <= COHORT_LOW)
+               or (ml["relative_risk"] <= COHORT_LOW and ls["relative_risk"] >= COHORT_HIGH)):
+        issues.append(("cohort_disagree", "PredictionAgent", "CHALLENGE_COHORT_DISAGREEMENT", {"risk_model": ml}))
     if ml.get("disagreement", 0) >= ML_DL_DISAGREEMENT:
         issues.append(("ml_dl_disagree", "PredictionAgent", "CHALLENGE_MODEL_DISAGREEMENT", {"risk_model": ml}))
     if ml["risk_probability"] >= ML_HIGH and gly["status"] == "normal":
@@ -93,6 +100,9 @@ def _apply_response(state: Dict[str, Any], issue: str, response: Dict[str, Any])
     if issue == "data_quality":
         state["ml_confidence"] = min(state["ml_confidence"], response["adjusted_confidence"])
         state["minus"].append(f"[-] Dữ liệu chưa đầy đủ: {response['statement']}")
+    elif issue == "cohort_disagree":
+        state["ml_confidence"] = min(state["ml_confidence"], response["adjusted_confidence"])
+        state["minus"].append(f"[-] Mô hình chính và mô hình quy mô lớn bất đồng. {response['statement']}")
     elif issue == "ml_dl_disagree":
         state["ml_confidence"] = min(state["ml_confidence"], response["adjusted_confidence"])
         state["minus"].append(f"[-] Mô hình ML và DL bất đồng. Giải trình của PredictionAgent: {response['statement']}")
@@ -145,6 +155,12 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
     if models and ml["disagreement"] < 0.05:
         plus.append(f"[+] Hai mô hình đồng thuận: ML (Gradient Boosting) {models['ml']['risk_probability'] * 100:.0f}% · "
                     f"DL (MLP) {models['dl']['risk_probability'] * 100:.0f}%.")
+    # (+) mô hình quy mô lớn (BRFSS) cùng phía với mô hình chính
+    ls = ml.get("large_scale")
+    if ls and (ml["relative_risk"] >= 1) == (ls["relative_risk"] >= 1):
+        side = "cao hơn" if ls["relative_risk"] >= 1 else "thấp hơn"
+        plus.append(f"[+] Mô hình quy mô lớn ({ls['dataset']}) đồng thuận: nguy cơ {side} trung bình "
+                    f"(gấp {ls['relative_risk']} lần, mô hình chính gấp {ml['relative_risk']} lần).")
     # (+) đồng thuận giữa nhánh dự đoán và nhánh tri thức
     if prob >= ML_HIGH and status in ("diabetes_range", "prediabetes_range"):
         plus.append(f"[+] Đồng thuận: mô hình dự đoán ước lượng nguy cơ {prob * 100:.0f}% và xét nghiệm cũng ở ngưỡng bất thường.")

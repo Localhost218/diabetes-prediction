@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">Phân tích các hệ thống thông minh</span>
+    <h1>Từ học máy, CNN, RNN đến <em>Knowledge Graph</em>, RAG và hệ đa tác tử</h1>
+    <p>Mỗi thực nghiệm trong báo cáo có một trang dùng thử: nhập dữ liệu, chọn mô hình và xem kết quả do mô hình đã huấn luyện trả về ngay trên máy.</p>
+    <div class="stats">
+      <div><b>7</b><span>chương</span></div>
+      <div><b>{{ total }}</b><span>thực nghiệm trực tuyến</span></div>
+      <div><b>{{ chapters | selectattr('status','equalto','ok') | list | length }}</b><span>phân hệ sẵn sàng</span></div>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="cube c1"></div><div class="cube c2"></div><div class="cube c3"></div>
+    <div class="orb o1"></div><div class="orb o2"></div>
+  </div>
+</section>
+
+<section class="grid">
+  {% for c in chapters %}
+  <article class="card" id="{{ c.id }}" style="--c: {{ c.color }}">
+    <div class="card-head">
+      <span class="card-icon">{{ c.icon }}</span>
+      <div><span class="card-no">Chương {{ c.no }}</span><h2>{{ c.title }}</h2></div>
+    </div>
+    <p class="card-desc">{{ c.desc }}</p>
+    {% if c.exps %}
+    <ul class="explist">
+      {% for e in c.exps %}
+      <li><a href="/exp/{{ e.id }}"><span>{{ e.title }}</span><small>{{ e.kind }} · {{ e.n_models }} mô hình</small><i>→</i></a></li>
+      {% endfor %}
+    </ul>
+    {% elif c.status == 'none' %}
+    <div class="note">Chương lý thuyết — không có thực nghiệm trực tuyến.</div>
+    {% else %}
+    <div class="note wait">Đang cập nhật mô hình…</div>
+    {% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

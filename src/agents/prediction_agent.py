@@ -2,8 +2,10 @@
 Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification trên sơ đồ)
   - ML (Chương 2): Gradient Boosting
   - DL: mạng nơ-ron MLP (PyTorch)
-  Cả hai huấn luyện trên cùng dữ liệu từ PostgreSQL (mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
+  Cả hai huấn luyện trên cùng dữ liệu từ DB quan hệ (SQLite) (mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
   độ lệch giữa chúng là căn cứ để hội đồng chất vấn.
+  - Ý kiến thứ hai quy mô lớn: cặp GBDT + MLP huấn luyện trên BRFSS 2011–2023 (3,17 triệu người, nhãn tự khai).
+    So sánh theo nguy cơ TƯƠNG ĐỐI (vì tỷ lệ nền hai bộ khác nhau); lệch nhiều thì hội đồng chất vấn.
   - RNN Temporal (Chương 4): chỉ số CGM khi có chuỗi đo glucose (≥ 5 lần), dự báo 15–60 phút bằng LSTM/GRU khi ≥ 12 lần
   - CNN Vision (Chương 3): ResNet-18 phân độ bệnh võng mạc khi có ảnh đáy mắt
 Không tự sinh dữ liệu giả cho CNN/RNN khi người dùng không cung cấp.
@@ -22,11 +24,13 @@ from src.models.tabular_ml import GradientBoostingRisk, risk_report
 from src.schemas.patient_profile import PatientProfile
 
 DISAGREEMENT_THRESHOLD = 0.15
+LARGE_SCALE_DATASET = "brfss"
 
 
 class PredictionAgent(BaseAgent):
     name = "PredictionAgent"
-    handles = {"PREDICT_RISK", "CHALLENGE_ML_VS_LABS", "CHALLENGE_DATA_QUALITY", "CHALLENGE_MODEL_DISAGREEMENT"}
+    handles = {"PREDICT_RISK", "CHALLENGE_ML_VS_LABS", "CHALLENGE_DATA_QUALITY", "CHALLENGE_MODEL_DISAGREEMENT",
+               "CHALLENGE_COHORT_DISAGREEMENT"}
 
     def __init__(self, bus):
         super().__init__(bus)
@@ -36,6 +40,13 @@ class PredictionAgent(BaseAgent):
         except FileNotFoundError as exc:
             raise FileNotFoundError(f"Chưa có mô hình cho bộ dữ liệu '{self.spec.name}'. "
                                     f"Chạy: python scripts/train_model.py --dataset {self.spec.name}") from exc
+        self.large = None  # (spec, gbdt, mlp) của bộ quy mô lớn, nếu đã huấn luyện
+        if settings.prediction_dataset != LARGE_SCALE_DATASET:
+            spec = DATASETS[LARGE_SCALE_DATASET]
+            try:
+                self.large = (spec, GradientBoostingRisk.load(spec), MLPRisk.load(spec))
+            except FileNotFoundError:
+                pass
         self.cnn_vision = CNNRetinopathyEngine()
         self.rnn_temporal = RNNTemporalEngine()
 
@@ -43,7 +54,8 @@ class PredictionAgent(BaseAgent):
         if msg.msg_type == "PREDICT_RISK":
             return self.reply(msg, "RISK_PREDICTION", await asyncio.to_thread(self._predict, msg.payload))
         handler = {"CHALLENGE_ML_VS_LABS": self._defend_ml_vs_labs, "CHALLENGE_DATA_QUALITY": self._defend_data_quality,
-                   "CHALLENGE_MODEL_DISAGREEMENT": self._explain_disagreement}[msg.msg_type]
+                   "CHALLENGE_MODEL_DISAGREEMENT": self._explain_disagreement,
+                   "CHALLENGE_COHORT_DISAGREEMENT": self._explain_cohort_disagreement}[msg.msg_type]
         return self.reply(msg, "CHALLENGE_RESPONSE", handler(msg.payload), "RESPONSE")
 
     # ------------------------------------------------------------------
@@ -89,6 +101,29 @@ class PredictionAgent(BaseAgent):
             "models": {"ml": ml, "dl": dl},
             "disagreement": round(abs(ml["risk_probability"] - dl["risk_probability"]), 4),
             "model_metrics": {"ml": self.gbdt.metrics, "dl": self.mlp.metrics},
+            "large_scale": self._large_scale(profile),
+        }
+
+    def _large_scale(self, profile: PatientProfile) -> Dict[str, Any] | None:
+        if self.large is None:
+            return None
+        spec, gbdt, mlp = self.large
+        ml, dl = risk_report(gbdt, profile), risk_report(mlp, profile)
+        prob = (ml["risk_probability"] + dl["risk_probability"]) / 2
+        up = {}
+        for r in (ml, dl):
+            for f in r["top_risk_factors"]:
+                up[f["feature_vi"]] = up.get(f["feature_vi"], 0) + f["impact"] / 2
+        return {
+            "dataset": spec.title,
+            "n_train": gbdt.metrics.get("n_train"),
+            "risk_probability": round(prob, 4),
+            "relative_risk": round(prob / gbdt.base_rate, 2),
+            "population_base_rate": round(gbdt.base_rate, 4),
+            "models": {"ml": ml["risk_probability"], "dl": dl["risk_probability"]},
+            "roc_auc": {"ml": gbdt.metrics.get("roc_auc"), "dl": mlp.metrics.get("roc_auc")},
+            "data_completeness": ml["data_completeness"],
+            "top_risk_factors": [k for k, v in sorted(up.items(), key=lambda kv: -kv[1]) if v >= 0.005][:3],
         }
 
     # ------------------------------------------------------------------ trả lời chất vấn của hội đồng
@@ -123,6 +158,18 @@ class PredictionAgent(BaseAgent):
                           f"nhưng hạ độ tin cậy xuống {adjusted}."),
             "adjusted_confidence": adjusted,
             "imputed_features": rm["imputed_features"],
+        }
+
+    def _explain_cohort_disagreement(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        rm, ls = payload["risk_model"], payload["risk_model"]["large_scale"]
+        return {
+            "position": "explain_cohort_difference",
+            "statement": (f"Mô hình chính (NHANES, nhãn xác nhận bằng xét nghiệm) cho nguy cơ gấp {rm['relative_risk']} lần "
+                          f"trung bình; mô hình quy mô lớn (BRFSS, {f'{ls["n_train"] or 0:,}'.replace(',', '.')} người huấn luyện, nhãn tự khai) cho gấp "
+                          f"{ls['relative_risk']} lần. Hai bộ khác nhau ở cách xác định bệnh (BRFSS bỏ sót người mắc mà chưa "
+                          "được chẩn đoán) và ở đặc trưng (BRFSS không có vòng eo, số đo huyết áp, tiền sử gia đình). "
+                          "Giữ kết quả mô hình chính, hạ độ tin cậy và đề nghị xét nghiệm để phân xử."),
+            "adjusted_confidence": 0.6,
         }
 
     def _explain_disagreement(self, payload: Dict[str, Any]) -> Dict[str, Any]:

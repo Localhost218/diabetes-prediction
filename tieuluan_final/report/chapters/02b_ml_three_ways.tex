@@ -1,0 +1,173 @@
+% Chương 2 — phần bổ sung của tiểu luận final: MLP cài đặt bằng ba cách, đối chiếu hai miền, hợp các hàm, notebook.
+
+\section{Mạng nơ-ron nhiều lớp cài đặt bằng ba cách}
+\label{sec:ch2-three}
+
+NHANES chỉ có các yếu tố nguy cơ tự khai, nên mọi mô hình chạm cùng một trần AUC khoảng 0,82. Để thấy rõ ảnh hưởng của \emph{cách cài đặt} (chứ không phải của dữ liệu), phần này dùng thêm một bộ dữ liệu tiểu đường lớn hơn và giàu thông tin hơn, rồi viết \emph{cùng một} mạng nơ-ron bằng ba cách: tự viết bằng NumPy, Keras (TensorFlow) và PyTorch.
+
+\subsection{Dữ liệu Diabetes Prediction}
+
+Bộ \emph{Diabetes Prediction} (Kaggle) gồm \textbf{100.000 hồ sơ} với 8 đặc trưng: giới, tuổi, tăng huyết áp, bệnh tim, tiền sử hút thuốc, BMI, \textbf{HbA1c} và \textbf{glucose máu}. Lớp dương (mắc ĐTĐ) chiếm 8,5\%. Khác NHANES ở các mục trên, bộ này có sẵn hai xét nghiệm đường huyết. Đây là kiểu dữ liệu của một phòng khám đã làm xét nghiệm, không phải dữ liệu sàng lọc, nên AUC cao hơn hẳn. Dữ liệu được chia 80/20 phân tầng theo nhãn (80.000 huấn luyện, 20.000 kiểm tra). Bộ chuẩn hóa (StandardScaler cho biến số, mã hóa one-hot cho giới và tiền sử hút thuốc) chỉ được khớp trên tập huấn luyện. 10\% tập huấn luyện được tách làm tập kiểm định, chỉ dùng cho dừng sớm.
+
+\subsection{Một kiến trúc, ba cách viết}
+
+Cả ba bản dùng đúng một kiến trúc: \texttt{Dense(128)–ReLU–Dropout(0,2)–Dense(64)–ReLU–Dropout(0,2)–Dense(1)–sigmoid}, tối ưu Adam ($\eta=10^{-3}$), lô 256, tối đa 40 epoch, dừng sớm khi mất mát kiểm định không giảm 8 epoch. Số tham số là $15\cdot128+128 + 128\cdot64+64 + 64+1 = 10.369$ ở cả ba bản. \tabref{tab:ch2-three-code} so sánh phần việc mà lập trình viên phải tự làm ở mỗi cách.
+
+\begin{table}[H]
+\centering
+\caption{Phần việc lập trình viên tự viết ở ba cách cài đặt}
+\label{tab:ch2-three-code}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.0cm}YYY@{}}
+\toprule
+\textbf{Thành phần} & \textbf{NumPy (tự viết)} & \textbf{Keras} & \textbf{PyTorch} \\
+\midrule
+Lan truyền tiến & Nhân ma trận, ReLU, mặt nạ dropout & \texttt{Sequential} khai báo lớp & \texttt{nn.Sequential} + \texttt{forward} \\
+Lan truyền ngược & Tự suy đạo hàm từng lớp & Tự động (\texttt{GradientTape} bên trong) & Tự động (\texttt{loss.backward()}) \\
+Tối ưu Adam & Tự viết mômen bậc 1, 2 và hiệu chỉnh độ chệch & \texttt{optimizers.Adam} & \texttt{optim.Adam} \\
+Vòng huấn luyện & Tự viết: chia lô, dừng sớm & \texttt{model.fit} + \texttt{EarlyStopping} & Tự viết vòng lặp, gọi \texttt{opt.step()} \\
+Thiết bị & CPU & CPU (TensorFlow) & GPU (CUDA) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Điểm khó nhất của bản NumPy là lan truyền ngược. Với tầng ra sigmoid và mất mát entropy chéo nhị phân, đạo hàm theo đầu vào tầng ra rút gọn thành $\partial L/\partial z = (\hat y - y)/m$. Từ đó gradient được truyền ngược qua từng lớp: $\delta^{(l)} = (\delta^{(l+1)} W^{(l+1)\top}) \odot \mathbb{1}[z^{(l)}>0] \odot M^{(l)}$, với $M^{(l)}$ là mặt nạ dropout đã chia cho $1-p$ (dropout ngược). \coderef{lst:ch2-numpy-backward} là đoạn lõi.
+
+\begin{code}{Lan truyền ngược và cập nhật Adam của MLP NumPy (\texttt{tl/mlp\_scratch.py}, rút gọn)}
+\label{lst:ch2-numpy-backward}
+\begin{minted}{python}
+def backward(self, y):
+    m = len(y)
+    delta = (self.cache[-1][1] - y.reshape(-1, 1)) / m       # dL/dz tầng ra = (y_hat - y) / m
+    grads_W, grads_b = [None] * len(self.W), [None] * len(self.W)
+    for i in reversed(range(len(self.W))):
+        a_prev = self.X_in if i == 0 else self.cache[i - 1][1]
+        grads_W[i] = a_prev.T @ delta
+        grads_b[i] = delta.sum(0, keepdims=True)
+        if i > 0:
+            z_prev, _, mask = self.cache[i - 1]
+            delta = (delta @ self.W[i].T) * (z_prev > 0)    # quy tắc dây chuyền qua ReLU
+            if mask is not None:
+                delta = delta * mask                         # qua dropout ngược
+    self._adam(grads_W + grads_b)
+
+def _adam(self, grads, b1=0.9, b2=0.999, eps=1e-8):
+    self.t += 1
+    for k, (p, g) in enumerate(zip(self.W + self.b, grads)):
+        self.m[k] = b1 * self.m[k] + (1 - b1) * g
+        self.v[k] = b2 * self.v[k] + (1 - b2) * g * g
+        m_hat, v_hat = self.m[k] / (1 - b1 ** self.t), self.v[k] / (1 - b2 ** self.t)
+        p -= self.lr * m_hat / (np.sqrt(v_hat) + eps)        # cập nhật tại chỗ
+\end{minted}
+\end{code}
+
+\begin{code}{Cùng kiến trúc bằng Keras và PyTorch (\texttt{tl/mlp\_keras.py}, \texttt{tl/mlp\_torch.py}, rút gọn)}
+\label{lst:ch2-keras-torch}
+\begin{minted}{python}
+# Keras: khai báo lớp, fit lo phần còn lại
+model = keras.Sequential([keras.Input(shape=(15,)),
+                          layers.Dense(128, activation="relu"), layers.Dropout(0.2),
+                          layers.Dense(64, activation="relu"), layers.Dropout(0.2),
+                          layers.Dense(1, activation="sigmoid")])
+model.compile(optimizer=keras.optimizers.Adam(1e-3), loss="binary_crossentropy")
+model.fit(X, y, validation_data=(Xv, yv), epochs=40, batch_size=256,
+          callbacks=[keras.callbacks.EarlyStopping(patience=8, restore_best_weights=True)])
+
+# PyTorch: sigmoid nằm trong hàm mất mát (BCEWithLogitsLoss), vòng lặp tự viết, dữ liệu nằm sẵn trên GPU
+net = nn.Sequential(nn.Linear(15, 128), nn.ReLU(), nn.Dropout(0.2),
+                    nn.Linear(128, 64), nn.ReLU(), nn.Dropout(0.2), nn.Linear(64, 1)).cuda()
+opt, loss_fn = torch.optim.Adam(net.parameters(), lr=1e-3), nn.BCEWithLogitsLoss()
+for epoch in range(40):
+    for idx in torch.randperm(len(X), device="cuda").split(256):
+        opt.zero_grad()
+        loss_fn(net(X[idx]).squeeze(1), y[idx]).backward()
+        opt.step()
+\end{minted}
+\end{code}
+
+\subsection{Kết quả}
+
+\begin{table}[H]
+\centering
+\caption{MLP ba cách và các thuật toán cổ điển trên Diabetes Prediction (20.000 hồ sơ kiểm tra)}
+\label{tab:ch2-three}
+\small
+\begin{tabular}{@{}lccccrr@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Accuracy} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} & \textbf{Huấn luyện (s)} & \textbf{Kích thước} \\
+\midrule
+MLP – NumPy (CPU) & 0,972 & 0,675 & 0,804 & 0,978 & 32,2 & 82 KB \\
+MLP – Keras (CPU) & 0,972 & 0,678 & \textbf{0,806} & 0,977 & 61,4 & 151 KB \\
+MLP – PyTorch (GPU) & 0,972 & 0,678 & \textbf{0,806} & \textbf{0,978} & \textbf{20,1} & 44 KB \\
+\midrule
+Hồi quy logistic (cân bằng lớp) & 0,889 & \textbf{0,894} & 0,578 & 0,963 & 1,0 & 2 KB \\
+Rừng ngẫu nhiên & 0,964 & 0,734 & 0,776 & 0,974 & 9,8 & 21 MB \\
+SVM (RBF, cân bằng lớp) & 0,896 & 0,919 & 0,600 & 0,972 & 240,3 & 308 KB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét.} (i) \emph{Ba cách cài đặt cho cùng một kết quả}: AUC 0,977–0,978, F1 0,804–0,806, chênh lệch nằm trong biên độ của khởi tạo ngẫu nhiên. Đây là phép kiểm chứng rằng bản NumPy tự viết (lan truyền ngược, Adam, dropout ngược) đúng. (ii) Khác biệt nằm ở \emph{chi phí}: PyTorch trên GPU nhanh nhất (20 s), NumPy 32 s, Keras chậm nhất (61 s) vì chi phí điều phối của \texttt{fit} trên CPU với mạng nhỏ. (iii) MLP có precision gần 0,99 nhưng recall chỉ 0,68 ở ngưỡng 0,5: mô hình rất ``thận trọng'' với lớp hiếm. Hồi quy logistic và SVM dùng trọng số cân bằng lớp nên recall cao (0,89–0,92) nhưng precision thấp. Với sàng lọc, nên hạ ngưỡng của MLP theo chỉ số Youden (ô ML-06 trong notebook) thay vì đổi mô hình. (iv) AUC 0,978 cao hơn hẳn NHANES (0,82) vì bộ này có HbA1c và glucose, chính là hai tiêu chí chẩn đoán. Đây là bài học về \emph{rò rỉ theo định nghĩa nhãn}: mô hình đang học lại ngưỡng ADA nhiều hơn là dự đoán nguy cơ.
+
+\section{Đối chiếu trên hai miền khác}
+\label{sec:ch2-domains}
+
+Để kiểm tra rằng quy trình (tiền xử lý không rò rỉ, cùng một MLP ba cách, đối chứng cổ điển) không chỉ đúng với dữ liệu y tế, nó được áp dụng nguyên vẹn cho hai bài toán khác (mã nguồn kế thừa từ thành viên nhóm 07):
+\begin{itemize}
+  \item \textbf{Giá nhà Việt Nam} (30.229 tin đăng): \emph{hồi quy} giá bán (tỷ đồng) từ diện tích (log), mặt tiền, đường vào, số tầng, phòng ngủ, phòng tắm, tỉnh, quận/huyện, pháp lý, nội thất, hướng nhà. Tầng ra tuyến tính, mất mát MSE.
+  \item \textbf{Nhận xét khách hàng thời trang} (22.641 nhận xét tiếng Anh): \emph{phân loại văn bản} ba lớp cảm xúc suy từ số sao, biểu diễn TF-IDF 5.000 từ. Tầng ra softmax, mất mát entropy chéo.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Đối chiếu: cùng quy trình trên hồi quy giá nhà và phân loại văn bản (20\% kiểm tra)}
+\label{tab:ch2-domains}
+\small
+\begin{tabular}{@{}lccc|lccc@{}}
+\toprule
+\multicolumn{4}{c|}{\textbf{Giá nhà (hồi quy)}} & \multicolumn{4}{c}{\textbf{Nhận xét (3 lớp)}} \\
+\textbf{Mô hình} & \textbf{MAE} & \textbf{RMSE} & \textbf{R²} & \textbf{Mô hình} & \textbf{Acc} & \textbf{F1-macro} & \textbf{Train (s)} \\
+\midrule
+OLS & 1,150 & 1,492 & 0,544 & Logistic & 0,789 & 0,625 & 13,7 \\
+Rừng ngẫu nhiên & \textbf{0,994} & \textbf{1,351} & \textbf{0,626} & Linear SVM & 0,817 & 0,622 & 3,1 \\
+SVR & 1,024 & 1,380 & 0,610 & Rừng ngẫu nhiên & 0,821 & 0,585 & 8,0 \\
+MLP – NumPy & 1,032 & 1,364 & 0,619 & MLP – NumPy & \textbf{0,838} & \textbf{0,630} & 88,0 \\
+MLP – Keras & 1,023 & 1,355 & 0,623 & MLP – Keras & 0,837 & 0,621 & 19,4 \\
+MLP – PyTorch & 1,019 & 1,354 & 0,624 & MLP – PyTorch & 0,835 & 0,619 & 3,7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét.} Ba kết luận của Mục~\ref{sec:ch2-three} lặp lại ở cả hai miền. Ba bản MLP gần như trùng nhau (R² 0,619–0,624; F1 0,619–0,630). PyTorch trên GPU luôn nhanh nhất. Với dữ liệu bảng, mô hình cây (rừng ngẫu nhiên) vẫn ngang hoặc nhỉnh hơn MLP. Ở bài toán văn bản, MLP vượt các mô hình tuyến tính về accuracy nhưng không vượt về F1-macro, vì lớp ``trung tính'' khó tách khỏi hai lớp còn lại ở cả mọi mô hình. Điều này củng cố bài học chung của chương: khi dữ liệu là bảng hoặc túi từ, \emph{thông tin trong đặc trưng} quyết định trần hiệu năng, và kiến trúc chỉ tạo khác biệt nhỏ.
+
+\section{Mạng nhiều lớp dưới dạng hợp các hàm}
+\label{sec:ch2-compose}
+
+Một mạng nơ-ron nhiều lớp là \emph{hợp của các hàm} đơn giản. Với MLP ở Mục~\ref{sec:ch2-three} (5 lớp tính cả lớp ra), xác suất mắc ĐTĐ của hồ sơ $\mathbf x\in\mathbb R^{15}$ là
+\begin{equation}
+\hat y = f(\mathbf x) = \big(\sigma \circ L_3 \circ D \circ \mathrm{ReLU} \circ L_2 \circ D \circ \mathrm{ReLU} \circ L_1\big)(\mathbf x),
+\qquad L_k(\mathbf h) = W_k \mathbf h + \mathbf b_k ,
+\label{eq:ch2-compose}
+\end{equation}
+trong đó $L_1:\mathbb R^{15}\!\to\!\mathbb R^{128}$, $L_2:\mathbb R^{128}\!\to\!\mathbb R^{64}$, $L_3:\mathbb R^{64}\!\to\!\mathbb R$ là các hàm affine, $\mathrm{ReLU}(z)=\max(0,z)$ tác động từng phần tử, $D$ là dropout (đồng nhất khi suy luận) và $\sigma(z)=1/(1+e^{-z})$. Mỗi hàm riêng có một vai trò:
+\begin{itemize}
+  \item $L_k$ trộn tuyến tính các đặc trưng, đây là nơi chứa toàn bộ tham số học được.
+  \item $\mathrm{ReLU}$ tạo phi tuyến. Không có nó, hợp các hàm affine vẫn là affine và mạng suy biến thành hồi quy logistic.
+  \item $D$ chỉ hoạt động khi huấn luyện: tắt ngẫu nhiên 20\% nơ-ron để mạng không phụ thuộc vào một vài đường đi.
+  \item $\sigma$ đưa điểm số về xác suất trong $(0,1)$.
+\end{itemize}
+Cách nhìn hợp hàm giải thích luôn lan truyền ngược: theo quy tắc dây chuyền, $\nabla_{W_1} L = \frac{\partial L}{\partial \hat y}\,\sigma'\,W_3^\top\,\mathrm{ReLU}'\,W_2^\top\,\mathrm{ReLU}'\,\mathbf x^\top$, tức là tích các đạo hàm của từng hàm riêng theo thứ tự ngược. Đó chính là vòng \texttt{for i in reversed(range(len(self.W)))} ở \coderef{lst:ch2-numpy-backward}. Ba chương sau dùng lại cách nhìn này: CNN thay $L_k$ bằng tích chập (Chương~\ref{chap:cnn}), RNN lặp cùng một hàm theo thời gian (Chương~\ref{chap:rnn}), GNN thêm phép trộn theo láng giềng (Chương~\ref{chap:gnn}).
+
+\section{Thực nghiệm trên Notebook và Demo Localhost}
+\label{sec:ch2-notebook-demo}
+
+Toàn bộ quy trình ba cách cài đặt trên bộ \emph{Diabetes Prediction} được đóng gói trong notebook \texttt{notebooks/ch2\_hoc\_may.ipynb} (8 ô mã \texttt{ML-00} đến \texttt{ML-06}) và tích hợp trực tiếp vào ứng dụng web chạy cục bộ tại \texttt{http://localhost:8095}. Hai ô tiêu biểu trong notebook minh họa rõ hai quyết định kỹ thuật quan trọng:
+\begin{itemize}
+  \item \textbf{Ô \texttt{ML-02} và \texttt{ML-03} (Tiền xử lý không rò rỉ và kiểm chứng MLP viết tay)}: Ô \texttt{ML-02} chia phân tầng 80.000 mẫu huấn luyện và 20.000 mẫu kiểm tra (tỷ lệ dương đều đúng $0{,}085$), rồi mới khớp \texttt{StandardScaler} chỉ trên tập huấn luyện (trung bình tuổi $41{,}90$, BMI $27{,}32$, HbA1c $5{,}53\%$, glucose $138{,}08$ mg/dL). Ô \texttt{ML-03} khởi tạo \texttt{ScratchMLP([15, 128, 64, 1])} bằng NumPy thuần và chạy thử 5 epoch đầu tiên, đạt ngay ROC-AUC $= 0{,}9737$ sau $2{,}7$ giây trên CPU — xác nhận công thức lan truyền ngược và cập nhật Adam có hiệu chỉnh độ chệch hoạt động chính xác trước khi huấn luyện đủ 40 epoch (AUC $= 0{,}9775$).
+  \item \textbf{Ô \texttt{ML-06} (Hiệu chỉnh ngưỡng quyết định theo chỉ số Youden $J$)}: Vì lớp dương chỉ chiếm $8{,}5\%$, ngưỡng mặc định $0{,}5$ của MLP NumPy cho độ đặc hiệu $0{,}997$ nhưng độ nhạy (recall) chỉ đạt $0{,}655$ (bỏ sót hơn một phần ba người bệnh). Ô \texttt{ML-06} quét đường cong ROC và tìm ngưỡng tối ưu hóa $J = \text{độ nhạy} + \text{độ đặc hiệu} - 1$ tại $p^* = 0{,}101$, nâng độ nhạy lên $0{,}922$ trong khi vẫn giữ độ đặc hiệu ở mức $0{,}895$ — phù hợp hơn nhiều cho bài toán sàng lọc ban đầu.
+\end{itemize}
+
+Trên giao diện web cục bộ (\figref{fig:app_ch2_diabetes}), tab \textbf{Ch.2 — Học máy · Tiểu đường (100k hồ sơ)} nạp đồng thời cả 6 mô hình đã huấn luyện (\texttt{MLP – scratch}, \texttt{MLP – keras}, \texttt{MLP – torch}, hồi quy logistic, rừng ngẫu nhiên, SVM) để dự đoán tức thời trên một hồ sơ nhập tay hoặc mẫu thử và đối chiếu xác suất dự đoán giữa ba framework.
+
+\figw[0.92\linewidth]{app_ch2_diabetes}{Giao diện thử nghiệm Chương 2 trên \texttt{http://localhost:8095}: so sánh trực tiếp xác suất dự đoán của MLP ba cách (NumPy, Keras, PyTorch) và các mô hình cổ điển}
+

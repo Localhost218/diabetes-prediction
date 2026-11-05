@@ -4,17 +4,20 @@ Endpoint chat: nhận text và/hoặc file bệnh án, chạy một lượt hộ
 
 import asyncio
 import hashlib
+import json
 import logging
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from src.api.deps import get_orchestrator, message_dict, session_dict
+from src.communication.message_bus import AgentMessage, stream_sink
+from src.communication.summary import summarize
 from src.config import settings
 from src.document_processing.loaders import detect_kind
 from src.schemas.patient_profile import PatientProfile
@@ -41,6 +44,69 @@ async def chat(req: ChatRequest):
 
 @router.post("/chat/upload")
 async def chat_upload(files: List[UploadFile] = File(...), text: str = Form(""), session_id: Optional[str] = Form(None)):
+    return await _run_turn(session_id, text, await _read_uploads(files))
+
+
+@router.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    """Như /chat nhưng trả NDJSON: từng thông điệp giữa các tác tử ngay khi xảy ra, rồi kết quả cuối."""
+    if not req.text.strip():
+        raise HTTPException(400, "Tin nhắn trống")
+    return _stream(req.session_id, req.text, [])
+
+
+@router.post("/chat/upload/stream")
+async def chat_upload_stream(files: List[UploadFile] = File(...), text: str = Form(""),
+                             session_id: Optional[str] = Form(None)):
+    return _stream(session_id, text, await _read_uploads(files))
+
+
+def _stream(session_id: Optional[str], text: str, uploads: List[tuple]) -> StreamingResponse:
+    queue: asyncio.Queue = asyncio.Queue()
+    counter = {"i": 0}
+
+    def on_message(msg: AgentMessage) -> None:
+        m = msg.to_dict()
+        counter["i"] += 1
+        queue.put_nowait({"type": "message", "i": counter["i"], "summary": summarize(m),
+                          **{k: m[k] for k in ("sender", "receiver", "performative", "msg_type", "elapsed_ms")}})
+        graph = (m["payload"] or {}).get("graph_rag") if m["sender"] == "KnowledgeAgent" else None
+        if graph and graph.get("edges"):
+            queue.put_nowait({"type": "graph", **_graph_view(graph)})
+
+    async def turn():
+        try:
+            result = await _run_turn(session_id, text, uploads, sink=on_message)
+            queue.put_nowait({"type": "final", **result})
+        except HTTPException as exc:
+            queue.put_nowait({"type": "error", "detail": exc.detail})
+        except Exception as exc:  # noqa: BLE001
+            log.exception("Lượt hội chẩn (stream) thất bại")
+            queue.put_nowait({"type": "error", "detail": f"{type(exc).__name__}: {exc}"})
+        finally:
+            queue.put_nowait(None)
+
+    async def body():
+        task = asyncio.create_task(turn())
+        try:
+            while (event := await queue.get()) is not None:
+                yield json.dumps(event, ensure_ascii=False, default=str) + "\n"
+        finally:
+            if not task.done():
+                task.cancel()
+
+    return StreamingResponse(body(), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def _graph_view(graph: Dict[str, Any], limit: int = 30) -> Dict[str, Any]:
+    """Phần đồ thị tri thức mà KnowledgeAgent vừa duyệt (nút xuất phát + các cạnh 1–2 bước) để vẽ trên giao diện."""
+    edges = [{k: e.get(k) for k in ("head", "head_label", "relation", "tail", "tail_label", "hops")}
+             for e in graph.get("edges", [])[:limit]]
+    return {"entities": graph.get("start_entities", []), "edges": edges}
+
+
+async def _read_uploads(files: List[UploadFile]) -> List[tuple]:
     if len(files) > MAX_FILES:
         raise HTTPException(400, f"Tối đa {MAX_FILES} file mỗi tin nhắn")
     uploads = []
@@ -51,7 +117,7 @@ async def chat_upload(files: List[UploadFile] = File(...), text: str = Form(""),
         if not detect_kind(f.filename or "", f.content_type or ""):
             raise HTTPException(415, f"Định dạng không hỗ trợ: {f.filename}. Hỗ trợ PDF, DOCX, ảnh JPG/PNG/WEBP, CSV, TXT.")
         uploads.append((f.filename or "file", f.content_type or "application/octet-stream", data))
-    return await _run_turn(session_id, text, uploads)
+    return uploads
 
 
 @router.get("/documents/{document_id}/content")
@@ -66,7 +132,7 @@ async def document_content(document_id: str):
 
 
 # ---------------------------------------------------------------------------
-async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple]) -> Dict[str, Any]:
+async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple], sink=None) -> Dict[str, Any]:
     with session_scope() as s:
         session = s.get(ChatSession, session_id) if session_id else None
         if session is None:
@@ -86,6 +152,7 @@ async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple]) 
         s.flush()
         user_msg_id = user_msg.id
 
+    token = stream_sink.set(sink)
     try:
         result = await get_orchestrator().run_turn(profile, text, documents, history, last_assessment)
         bot_text, data, error = result["text"], _compact(result), None
@@ -94,6 +161,8 @@ async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple]) 
         result, error = None, f"{type(exc).__name__}: {exc}"
         bot_text = "Xin lỗi, hệ thống gặp lỗi khi xử lý yêu cầu. Vui lòng thử lại."
         data = {"error": error}
+    finally:
+        stream_sink.reset(token)
 
     with session_scope() as s:
         session = s.get(ChatSession, session_id)
@@ -116,7 +185,7 @@ HISTORY_TURNS = 10
 
 
 def _memory(s, session_id: str):
-    """Bộ nhớ của phiên: các tin nhắn gần nhất + kết quả hội chẩn gần nhất (đọc từ PostgreSQL)."""
+    """Bộ nhớ của phiên: các tin nhắn gần nhất + kết quả hội chẩn gần nhất (đọc từ DB quan hệ)."""
     rows = s.scalars(select(ChatMessage).where(ChatMessage.session_id == session_id)
                      .order_by(ChatMessage.created_at.desc()).limit(HISTORY_TURNS)).all()[::-1]
     history = []
@@ -187,7 +256,8 @@ def _compact(result: Dict[str, Any]) -> Dict[str, Any]:
     out: Dict[str, Any] = {
         "intent": d["intent"], "plan": result["plan"], "generated_by": result["generated_by"],
         "updated_fields": d.get("updated_fields", []), "documents": d.get("documents", []),
-        "transcript": [{k: m[k] for k in ("sender", "receiver", "performative", "msg_type", "elapsed_ms")}
+        "transcript": [{k: m[k] for k in ("message_id", "in_reply_to", "sender", "receiver", "performative",
+                                          "msg_type", "elapsed_ms")} | {"summary": summarize(m)}
                        for m in result["transcript"]],
     }
     if "consensus" in d:
@@ -199,10 +269,12 @@ def _compact(result: Dict[str, Any]) -> Dict[str, Any]:
                                       | {"statement": x["response"].get("statement")} for x in c["debate"]]
         out["ml"] = {k: ml[k] for k in ("risk_probability", "relative_risk", "top_risk_factors", "data_completeness",
                                         "model_metrics", "dataset", "disagreement")}
+        out["ml"]["large_scale"] = ml.get("large_scale")
         out["ml"]["models"] = {k: {"name": v["model"], "kind": v["kind"], "risk_probability": v["risk_probability"]}
                                for k, v in ml["models"].items()}
         out["glycemia"] = d["knowledge"]["glycemia"]["findings"]
         out["graph_paths"] = d["knowledge"]["graph_rag"]["paths"][:12]
+        out["graph"] = _graph_view(d["knowledge"]["graph_rag"])
         out["citations"] = d["knowledge"]["citations"]
         out["treatment"] = {k: d["treatment"][k] for k in ("recommended_action", "intervention_details", "notes",
                                                            "overridden_by_consensus")}

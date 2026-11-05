@@ -11,13 +11,18 @@ Bus định tuyến tin theo `receiver`, gọi `handle()` của tác tử nhận
 import logging
 import time
 import uuid
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 log = logging.getLogger(__name__)
 
 PERFORMATIVES = {"REQUEST", "INFORM", "CHALLENGE", "RESPONSE", "FAILURE"}
+
+# Nơi nhận thông điệp ngay khi bus ghi nhận (để giao diện hiện "suy luận" trực tiếp). Đặt theo từng lượt chat;
+# các task con tạo bằng asyncio.gather thừa hưởng context nên mọi thông điệp của lượt đó đều đi qua đây.
+stream_sink: ContextVar[Optional[Callable[["AgentMessage"], None]]] = ContextVar("stream_sink", default=None)
 
 
 @dataclass
@@ -88,6 +93,12 @@ class MessageBus:
 
     def _record(self, msg: AgentMessage) -> None:
         self.transcripts.setdefault(msg.conversation_id, []).append(msg)
+        sink = stream_sink.get()
+        if sink is not None:
+            try:
+                sink(msg)
+            except Exception:  # noqa: BLE001 — lỗi ở phía hiển thị không được làm hỏng lượt hội chẩn
+                log.exception("stream_sink lỗi")
 
     async def send(self, msg: AgentMessage) -> AgentMessage:
         if msg.performative not in PERFORMATIVES:

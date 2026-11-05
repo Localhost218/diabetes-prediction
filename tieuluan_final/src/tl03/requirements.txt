@@ -1,0 +1,25 @@
+numpy
+pandas
+scikit-learn
+xgboost
+lightgbm
+matplotlib
+seaborn
+wordcloud
+pillow
+torch                 # bản CUDA: pip install torch --index-url https://download.pytorch.org/whl/cu126
+torch_geometric       # Ch.6 — chỉ để nạp Planetoid và đối chiếu; GCN/SAGE/GAT tự cài
+tensorflow            # Keras 3; TF >= 2.11 trên Windows chỉ chạy CPU
+transformers
+accelerate
+safetensors
+sentence-transformers
+huggingface-hub
+rank-bm25
+networkx
+rdflib
+kagglehub             # tải dữ liệu Kaggle công khai (ẩn danh)
+yfinance
+flask
+psutil                # tl3.gpu: phát hiện khoá GPU bỏ lại của tiến trình đã chết
+playwright            # chỉ để chụp ảnh giao diện: python -m playwright install chromium

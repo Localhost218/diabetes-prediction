@@ -1,0 +1,189 @@
+\chapter{Kiến trúc tổng quan}
+\label{chap:arch}
+
+\section{Sơ đồ của đề bài và hiện thực}
+
+\figref{fig:board} vẽ lại sơ đồ trên bảng, giữ nguyên bố cục, và ghi kèm (chữ nghiêng màu xám) thành phần hiện thực tương ứng trong project. Có ba dòng chảy hội tụ vào agent trung tâm: (1) dữ liệu \emph{có sẵn} đi qua Deep Learning để \emph{dự đoán} và \emph{phân loại}; (2) tri thức từ web, sách được \emph{tạo} thành Knowledge Base trên Neo4j và truy xuất bằng RAG; (3) reinforcement learning và luật (rule) cùng điều khiển agent ra quyết định. Kết quả hội tụ ở vòng tròn lớn: hội đồng \emph{tư vấn} và \emph{trợ giúp} người dùng.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  box/.style={draw, thick, align=center, minimum height=8mm, inner sep=4pt},
+  note/.style={font=\scriptsize\itshape, text=black!55, align=center},
+  arr/.style={-{Stealth[length=2.2mm]}, thick}]
+% --- hàng 1: DB → Deep learning → dự đoán / phân loại
+\node[draw, thick, cylinder, shape border rotate=90, aspect=0.25, minimum width=2.1cm, minimum height=1.5cm, align=center] (db) at (0,0) {DB};
+\node[note, below=1mm of db] (dbn) {có sẵn (SQLite): NHANES 20.646 người\\ + BRFSS 2011–2023: 3.172.819 người};
+\node[box] (dl) at (4.3,1.35) {Deep learning};
+\node[note, above=0.5mm of dl] {GBDT + MLP (PyTorch), 2 bộ dữ liệu};
+\coordinate (mid) at (4.3,0);
+\draw[arr] (db.east) -- (5.6,0);
+\draw[arr, dashed] (dl.south) -- (mid);
+\node[box, anchor=west] (pred) at (6.6,0.55) {Dự đoán};
+\node[box, anchor=west] (cls) at (6.6,-0.55) {Phân loại};
+\draw[thick] (5.6,0) -- (6.1,0); \draw[thick] (6.1,0.55) -- (6.1,-0.55);
+\draw[arr] (6.1,0.55) -- (pred.west); \draw[arr] (6.1,-0.55) -- (cls.west);
+\node[note, right=1mm of pred] {xác suất ĐTĐ};
+\node[note, right=1mm of cls] {4 mức nguy cơ};
+
+% --- hàng 2: neo4j KB + RAG → Agent
+\node[box, minimum width=2.1cm] (neo) at (0,-3.0) {neo4j};
+\node[box, minimum width=2.1cm, below=0pt of neo, font=\bfseries\large] (kb) {KB};
+\node[note, left=1mm of kb, text width=2.2cm] {34 nút, 40 cạnh\\ + 36 đoạn văn};
+\node[draw, thick, cloud, cloud puffs=11, aspect=2, align=center, inner sep=0pt] (web) at (-0.4,-5.6) {web, book};
+\node[note, below=0.5mm of web] {ADA 2024 · QĐ 5481/QĐ-BYT};
+\draw[arr] (web.north) -- node[left, font=\scriptsize]{tạo} (kb.south -| web.north);
+\node[box] (rag) at (4.3,-2.6) {RAG};
+\node[note, right=1mm of rag, text width=2.6cm] {Qdrant (vector) + FTS5 (toàn văn) + GraphRAG};
+\node[box, minimum width=1.9cm] (agent) at (4.3,-4.5) {Agent};
+\node[note, right=1mm of agent, text width=2.4cm] {9 agent qua MessageBus};
+\draw[thick] (kb.east |- 0,-3.55) -- node[above, font=\large]{+} (3.3,-3.55);
+\draw[thick] (3.3,-3.55) -- (8.3,-3.55);
+\draw[thick] (rag.south) -- (4.3,-3.55); \draw[thick] (4.3,-3.55) -- (agent.north);
+
+% --- hàng 3: reinforcement learning + rule → Agent
+\node[box, text width=2.5cm] (rl) at (3.2,-6.7) {reinforcement learning};
+\node[box] (rule) at (6.3,-6.7) {rule};
+\node[note, below=0.5mm of rl, text width=3.4cm] {Q-learning\\ 24 trạng thái × 4 hành động};
+\node[note, below=0.5mm of rule, text width=2.6cm] {ngưỡng ADA, guardrail, ràng buộc của hội đồng};
+\draw[thick] (rl.north) -- (3.2,-5.5) -- (4.3,-5.5);
+\draw[thick] (rule.north) -- (6.3,-5.5) -- (4.3,-5.5);
+\draw[arr] (4.3,-5.5) -- (agent.south);
+
+% --- vòng tròn lớn: tư vấn, trợ giúp
+\node[draw, very thick, circle, minimum size=3.6cm, align=center] (council) at (10.3,-3.0) {\textbf{+ tư vấn}\\[2pt] \textbf{+ trợ giúp}};
+\node[note, below=1mm of council, text width=3.6cm] {Hội đồng tranh biện (+/−) → ResponseAgent trả lời có trích dẫn};
+\draw[arr] (cls.south east) to[out=-30,in=100] (council.north);
+\draw[arr] (8.3,-3.55) -- (council.west |- 0,-3.55);
+\end{tikzpicture}
+\caption{Sơ đồ hệ đa agent theo đề bài (vẽ lại từ bảng), kèm thành phần hiện thực của project}
+\label{fig:board}
+\end{figure}
+
+\tabref{tab:board-map} ánh xạ từng khối trên sơ đồ sang agent và công nghệ cụ thể.
+
+\begin{table}[H]
+\centering
+\caption{Ánh xạ khối trên sơ đồ sang thành phần của hệ thống}
+\label{tab:board-map}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.3cm}L{3.6cm}Y@{}}
+\toprule
+\textbf{Khối trên sơ đồ} & \textbf{Agent} & \textbf{Hiện thực} \\
+\midrule
+DB (có sẵn) → Deep learning → Dự đoán, Phân loại & \agent{PredictionAgent} & GBDT (scikit-learn) + MLP (PyTorch) huấn luyện trên NHANES (mô hình chính) và BRFSS 3,17 triệu người (ý kiến thứ hai), cùng lưu trong SQLite; phân tầng 4 mức (Mục~\ref{sec:dl}) \\
+web, book → tạo → neo4j KB & \texttt{scripts/ingest\_kb.py} & Đọc Markdown, PDF, HTML, URL; chia đoạn theo mục; bộ ba tri thức MERGE vào Neo4j; vector vào Qdrant (Mục~\ref{sec:kb}) \\
+KB + RAG → Agent & \agent{KnowledgeAgent} & Đối chiếu ngưỡng ADA; tìm kiếm lai Qdrant + FTS5 gộp bằng RRF; GraphRAG duyệt đồ thị Neo4j \\
+reinforcement learning + rule → Agent & \agent{TreatmentRLAgent} & Q-learning chọn bước can thiệp, bị luật an toàn và kết luận hội đồng ràng buộc (Mục~\ref{sec:rl}) \\
+Vòng tròn: + tư vấn, + trợ giúp & \agent{ConsensusCriticAgent}, \agent{ResponseAgent} & Tranh biện nhiều vòng, liệt kê (+)/(−), guardrail; câu trả lời có trích dẫn (Mục~\ref{sec:council}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ngoài các khối trên bảng, hệ thống bổ sung một \textbf{tầng tiếp nhận} (người dùng nhập văn bản tự do hoặc tải bệnh án, hệ thống hỏi lại khi thiếu dữ liệu) và một agent \textbf{điều phối} chạy các nhánh song song. Đây là phần cần thiết để sơ đồ trở thành một sản phẩm dùng được.
+
+\section{Vai trò của các agent}
+
+\begin{table}[H]
+\centering
+\caption{Chín agent, thông điệp chúng nhận và kỹ thuật bên trong}
+\label{tab:agents}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.3cm}L{4.3cm}Y@{}}
+\toprule
+\textbf{Agent} & \textbf{Nhận (\texttt{msg\_type})} & \textbf{Vai trò và kỹ thuật} \\
+\midrule
+\agent{Orchestrator} & -- (khởi tạo mỗi lượt) & Phân loại ý định, lập kế hoạch động, chạy song song bằng \texttt{asyncio} \\
+\agent{ConversationAgent} & \texttt{EXTRACT\_FROM\_TEXT} & Bóc tách chỉ số, yếu tố nguy cơ từ tin nhắn tiếng Việt (LLM structured output; dự phòng regex) \\
+\agent{DocumentAgent} & \texttt{PARSE\_DOCUMENT} & Đọc PDF, ảnh, DOCX, CSV; quy đổi đơn vị (mmol/L → mg/dL\ldots) \\
+\agent{ClarificationAgent} & \texttt{SCOPE\_CHECK}, \texttt{PLAN\_QUESTIONS} & Phát hiện hồ sơ ngoài phạm vi sàng lọc (thai phụ, đã chẩn đoán\ldots), đặt tối đa 2 câu hỏi làm rõ \\
+\agent{PredictionAgent} & \texttt{PREDICT\_RISK}, 4 loại \texttt{CHALLENGE\_*} & Deep Learning $\Rightarrow$ Agent: GBDT + MLP trên NHANES và trên BRFSS 3,17 triệu người; giải thích đặc trưng; bảo vệ hoặc nhượng bộ khi bị chất vấn \\
+\agent{KnowledgeAgent} & \texttt{RETRIEVE\_EVIDENCE}, \texttt{ANSWER\_QUESTION}, 2 loại \texttt{CHALLENGE\_*} & KB + RAG: ngưỡng ADA, tìm kiếm lai, GraphRAG trên Neo4j \\
+\agent{ConsensusCriticAgent} & \texttt{DELIBERATE} & Hội đồng: phát hiện mâu thuẫn, tranh biện, (+)/(−), phân tầng, Safety Guardrail \\
+\agent{TreatmentRLAgent} & \texttt{RECOMMEND\_TREATMENT} & RL + rule: Q-learning có ràng buộc an toàn \\
+\agent{ResponseAgent} & \texttt{COMPOSE\_*} & Viết câu trả lời chỉ từ dữ liệu của các agent, có trích dẫn (LLM; dự phòng mẫu câu) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Luồng một lượt hội chẩn}
+
+Mỗi tin nhắn của người dùng là một \emph{conversation} trên \texttt{MessageBus}. \agent{Orchestrator} lập kế hoạch theo ý định và mức đủ dữ liệu (\figref{fig:flow}): câu hỏi kiến thức chỉ đi nhánh RAG; câu hỏi tiếp nối được trả lời từ bộ nhớ; thiếu dữ liệu thì hỏi lại; đủ dữ liệu thì hai nhánh \emph{Dự đoán} và \emph{Tri thức} chạy song song, rồi đến hội đồng, agent can thiệp và agent phản hồi.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm, text width=3.1cm, inner sep=2pt},
+  dec/.style={draw, diamond, aspect=2, align=center, inner sep=1pt, text width=1.3cm},
+  arr/.style={-{Stealth[length=1.6mm]}, black!60}]
+\node[box, fill=gray!10] (in) at (0,0) {Tin nhắn + tệp};
+\node[box, fill=blue!6] (intake) at (0,-1.6) {Song song: ý định ‖ Conversation ‖ Document};
+\node[box, fill=blue!6] (merge) at (0,-3.4) {Gộp vào PatientProfile; Clarification kiểm tra phạm vi};
+\node[dec] (int) at (4.6,-3.4) {Ý định?};
+\node[box] (kq) at (9.4,-1.2) {Kiến thức: RAG → trả lời có trích dẫn};
+\node[box] (fu) at (9.4,-2.6) {Tiếp nối: trả lời từ bộ nhớ};
+\node[dec] (ready) at (4.6,-5.6) {Đủ dữ liệu?};
+\node[box] (ask) at (9.4,-5.6) {Hỏi lại phần còn thiếu};
+\node[box, fill=blue!6] (par) at (0,-7.8) {Song song: Prediction (DL) ‖ Knowledge (KB+RAG)};
+\node[box, fill=red!6] (deb) at (4.6,-7.8) {Hội đồng tranh biện (≤ 2 vòng)};
+\node[box, fill=blue!6] (rl) at (9.4,-7.8) {TreatmentRL (RL + rule)};
+\node[box, fill=gray!10] (resp) at (9.4,-9.4) {Response → người dùng};
+\draw[arr] (in) -- (intake); \draw[arr] (intake) -- (merge); \draw[arr] (merge) -- (int);
+\draw[arr] (int.north) |- (kq.west);
+\draw[arr] (int.north east) to[out=30,in=180] (fu.west);
+\draw[arr] (int) -- node[right] {đánh giá} (ready);
+\draw[arr] (ready) -- node[above] {thiếu} (ask);
+\draw[arr] (ready.south) -- ++(0,-0.5) -| node[pos=0.25, above] {đủ} (par.north);
+\draw[arr] (par) -- (deb); \draw[arr] (deb) -- (rl); \draw[arr] (rl) -- (resp);
+\end{tikzpicture}
+\caption{Luồng xử lý một lượt chat: Orchestrator rẽ nhánh theo ý định và mức đủ dữ liệu}
+\label{fig:flow}
+\end{figure}
+
+\section{Công nghệ và lưu trữ}
+
+Bộ lưu trữ được chọn để mỗi loại dữ liệu nằm ở công cụ phù hợp nhất với nó, và để khối ``neo4j KB'' trên sơ đồ được hiện thực đúng bằng Neo4j (\figref{fig:storage}, \tabref{tab:tech}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=10mm, text width=2.5cm, inner sep=3pt},
+  db/.style={draw, cylinder, shape border rotate=90, aspect=0.2, align=center, minimum width=2.6cm, minimum height=1.4cm, fill=blue!5},
+  arr/.style={-{Stealth[length=1.6mm]}, black!60}]
+\node[box, fill=gray!10] (ui) at (-0.4,0) {Chatbot React\\+ Phòng hội chẩn};
+\node[box, fill=blue!8, text width=3.2cm] (api) at (4.4,0) {Backend FastAPI\\9 agent + MessageBus};
+\node[box] (llm) at (9.0,0) {Gemini / Claude\\(tùy chọn)};
+\node[db] (sqlite) at (0.6,-2.6) {SQLite\\chat, audit, FTS5,\\NHANES + BRFSS 3,2 tr};
+\node[db] (qdrant) at (3.6,-2.6) {Qdrant\\vector đoạn văn\\(HNSW, cosine)};
+\node[db] (neo) at (6.6,-2.6) {Neo4j\\đồ thị tri thức\\(Cypher)};
+\node[db] (s3) at (9.6,-2.6) {SeaweedFS (S3)\\bệnh án gốc};
+\draw[arr] (ui) -- node[below, font=\tiny]{HTTP/JSON} (api);
+\draw[arr, dashed] (api) -- (llm);
+\foreach \n in {sqlite,qdrant,neo,s3} \draw[arr] (api.south) -- (\n.north);
+\end{tikzpicture}
+\caption{Thành phần triển khai và nơi lưu từng loại dữ liệu}
+\label{fig:storage}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Công nghệ sử dụng}
+\label{tab:tech}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.2cm}L{4.2cm}Y@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Ghi chú} \\
+\midrule
+Điều phối đa agent & Tự xây dựng: \texttt{BaseAgent}, \texttt{MessageBus}, \texttt{asyncio} & Thể hiện rõ cơ chế giao tiếp và tranh biện, không phụ thuộc framework \\
+DB quan hệ & SQLite (WAL) + SQLAlchemy 2 & Hồ sơ, tin nhắn, kết quả hội chẩn, audit trail \texttt{agent\_messages}; bảng \texttt{nhanes\_samples} (20.646) và \texttt{brfss\_samples} (3.172.819) \\
+Tìm kiếm toàn văn & SQLite FTS5 \cite{sqlitefts5}, BM25 & Tokenizer \texttt{unicode61 remove\_diacritics} khớp tiếng Việt có hoặc không dấu \\
+Vector store & Qdrant \cite{qdrant} & Point id = id của đoạn văn; chỉ mục HNSW \cite{malkov2018}, khoảng cách cosine \\
+Knowledge Graph & Neo4j 5 \cite{neo4j} & Ràng buộc duy nhất theo tên nút; MERGE theo lô bằng \texttt{UNWIND} \\
+Embedding & fastembed, MiniLM đa ngôn ngữ \cite{reimers2020} & 384 chiều, chạy ONNX trên CPU \\
+ML / DL / RL & scikit-learn, PyTorch, NumPy & GBDT, MLP, Q-learning \\
+LLM (tùy chọn) & Gemini hoặc Claude & Chỉ hiểu và diễn đạt ngôn ngữ; thiếu khóa thì dùng regex và mẫu câu \\
+Giao diện & React 19 + Vite, SVG & Chatbot và Phòng hội chẩn \\
+Triển khai & Docker Compose, Cloudflare Tunnel \cite{cloudflaretunnel} & \texttt{neo4j}, \texttt{qdrant}, \texttt{seaweedfs}, \texttt{backend}, \texttt{cloudflared} \\
+\bottomrule
+\end{tabularx}
+\end{table}

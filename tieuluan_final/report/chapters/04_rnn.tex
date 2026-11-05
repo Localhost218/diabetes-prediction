@@ -1,0 +1,282 @@
+\chapter{Mạng nơ-ron hồi quy (RNN)}
+\label{chap:rnn}
+
+Cảm biến theo dõi glucose liên tục (CGM) đo đường huyết dưới da mỗi 5–15 phút, tạo ra hàng trăm điểm đo mỗi ngày. Nếu dự báo được đường huyết 30–60 phút tới, người bệnh có thời gian phòng tránh hạ hoặc tăng đường huyết. Đây là bài toán \emph{chuỗi thời gian}: giá trị tiếp theo phụ thuộc vào cả quỹ đạo trước đó, không chỉ vào một thời điểm. Chương này trình bày mạng nơ-ron hồi quy, thuật toán lan truyền ngược theo thời gian, vấn đề biến mất gradient và hai lời giải LSTM, GRU. Sau đó chương so sánh sáu mô hình dự báo glucose trên dữ liệu CGM thật của 112 bệnh nhân.
+
+\section{Dữ liệu tuần tự và kiến trúc RNN}
+
+Dữ liệu tuần tự $\mathbf x_1,\ldots,\mathbf x_T$ có ba đặc điểm khiến MLP và CNN không phù hợp: độ dài thay đổi, thứ tự quan trọng, và phụ thuộc có thể xa. RNN \cite{elman1990} xử lý chuỗi bằng một \emph{trạng thái ẩn} $\mathbf h_t$, cập nhật ở mỗi bước bằng \emph{cùng một bộ tham số}:
+\begin{equation}
+\begin{gathered}
+\mathbf h_t = \tanh\!\big(\mathbf W_{xh}\mathbf x_t + \mathbf W_{hh}\mathbf h_{t-1} + \mathbf b_h\big), \\
+\hat{\mathbf y}_t = \mathbf W_{hy}\mathbf h_t + \mathbf b_y .
+\end{gathered}
+\label{eq:rnn}
+\end{equation}
+$\mathbf h_t$ là bản tóm tắt có mất mát của toàn bộ quá khứ $\mathbf x_{1:t}$. Khi ``mở'' theo thời gian, RNN là một mạng sâu $T$ lớp có trọng số dùng chung giữa các lớp. Số tham số không phụ thuộc độ dài chuỗi: với đầu vào $d$ chiều và trạng thái ẩn $m$ chiều, RNN có $m(d+m)+m$ tham số (PyTorch dùng hai vector bias nên là $m(d+m)+2m$).
+
+Tùy cách nối đầu vào với đầu ra, có các dạng bài toán: \emph{nhiều – một} (phân loại chuỗi), \emph{một – nhiều} (sinh chuỗi), \emph{nhiều – nhiều đồng bộ} (gán nhãn từng bước), và \emph{nhiều – nhiều lệch pha} (dịch máy, dự báo nhiều bước). Bài toán của chương thuộc dạng \emph{nhiều – một vector}: đọc 12 điểm gần nhất rồi xuất một vector 4 giá trị cho 15, 30, 45, 60 phút tới.
+
+\section{Lan truyền ngược theo thời gian và vấn đề biến mất gradient}
+
+RNN được huấn luyện bằng BPTT \cite{werbos1990}: mở mạng thành đồ thị tính toán $T$ bước rồi áp dụng quy tắc chuỗi. Gradient của mất mát ở bước $T$ theo trạng thái ở bước $k$ là một tích các ma trận Jacobi:
+\begin{equation}
+\begin{gathered}
+\frac{\partial \mathcal L_T}{\partial \mathbf h_k} = \frac{\partial \mathcal L_T}{\partial \mathbf h_T}\prod_{t=k+1}^{T}\frac{\partial \mathbf h_t}{\partial \mathbf h_{t-1}}, \\
+\frac{\partial \mathbf h_t}{\partial \mathbf h_{t-1}} = \operatorname{diag}\!\big(1-\mathbf h_t^2\big)\,\mathbf W_{hh}.
+\end{gathered}
+\label{eq:bptt}
+\end{equation}
+Nếu chuẩn của mỗi Jacobi nhỏ hơn 1 (trị riêng lớn nhất của $\mathbf W_{hh}$ nhỏ, tanh bão hòa), tích \eq{eq:bptt} co về 0 theo hàm mũ của $T-k$. Đó là \emph{biến mất gradient}: mạng không học được phụ thuộc xa. Nếu chuẩn lớn hơn 1, tích tăng theo hàm mũ, gọi là \emph{bùng nổ gradient} \cite{bengio1994,pascanu2013}. Bùng nổ được xử lý dễ bằng \emph{cắt gradient}: nếu $\|\mathbf g\|>\tau$ thì $\mathbf g \leftarrow \tau\mathbf g/\|\mathbf g\|$. Thực nghiệm dùng $\tau=1$. Biến mất gradient đòi hỏi thay đổi kiến trúc.
+
+\section{LSTM và GRU}
+
+\subsection{Bộ nhớ dài – ngắn hạn (LSTM)}
+
+LSTM \cite{hochreiter1997} thêm một \emph{trạng thái ô} $\mathbf c_t$ được cập nhật chủ yếu bằng phép cộng, cùng ba cổng sigmoid điều khiển dòng thông tin:
+\begin{align}
+\mathbf f_t &= \sigma(\mathbf W_f[\mathbf h_{t-1},\mathbf x_t] + \mathbf b_f) && \text{cổng quên} \nonumber\\
+\mathbf i_t &= \sigma(\mathbf W_i[\mathbf h_{t-1},\mathbf x_t] + \mathbf b_i) && \text{cổng vào} \nonumber\\
+\tilde{\mathbf c}_t &= \tanh(\mathbf W_c[\mathbf h_{t-1},\mathbf x_t] + \mathbf b_c) && \text{nội dung ứng viên} \label{eq:lstm}\\
+\mathbf c_t &= \mathbf f_t\odot\mathbf c_{t-1} + \mathbf i_t\odot\tilde{\mathbf c}_t && \text{cập nhật ô nhớ} \nonumber\\
+\mathbf o_t &= \sigma(\mathbf W_o[\mathbf h_{t-1},\mathbf x_t] + \mathbf b_o),\qquad \mathbf h_t = \mathbf o_t\odot\tanh(\mathbf c_t) && \text{cổng ra} \nonumber
+\end{align}
+Điểm mấu chốt là $\partial\mathbf c_t/\partial\mathbf c_{t-1} = \operatorname{diag}(\mathbf f_t)$ (bỏ qua đường gián tiếp qua $\mathbf h$). Khi cổng quên gần 1, gradient chảy qua nhiều bước gần như nguyên vẹn, tạo thành một ``băng chuyền'' (constant error carousel). Mạng tự \emph{học} khi nào cần nhớ, khi nào cần quên. LSTM có bốn khối biến đổi nên số tham số gấp bốn RNN: $4[m(d+m)+m]$.
+
+Trong bài toán glucose, có thể hình dung các cổng như sau. Cổng vào mở mạnh khi glucose bắt đầu tăng nhanh sau ăn. Cổng quên giữ lại xu hướng tăng hay giảm. Cổng ra quyết định phần nào của ô nhớ dùng cho dự báo.
+
+\subsection{Đơn vị hồi quy có cổng (GRU)}
+
+GRU \cite{cho2014} rút gọn LSTM: gộp trạng thái ô vào trạng thái ẩn và chỉ dùng hai cổng:
+\begin{equation}
+\begin{gathered}
+\mathbf z_t = \sigma(\mathbf W_z[\mathbf h_{t-1},\mathbf x_t]), \\
+\mathbf r_t = \sigma(\mathbf W_r[\mathbf h_{t-1},\mathbf x_t]), \\
+\tilde{\mathbf h}_t = \tanh(\mathbf W[\mathbf r_t\odot\mathbf h_{t-1},\mathbf x_t]), \\
+\mathbf h_t = (1-\mathbf z_t)\odot\mathbf h_{t-1} + \mathbf z_t\odot\tilde{\mathbf h}_t .
+\end{gathered}
+\label{eq:gru}
+\end{equation}
+Cổng cập nhật $\mathbf z_t$ nội suy giữa trạng thái cũ và trạng thái ứng viên, đóng vai trò của cả cổng quên lẫn cổng vào. Cổng đặt lại $\mathbf r_t$ cho phép ``quên'' quá khứ khi tính nội dung mới. GRU có ba khối nên ít hơn LSTM khoảng 25\% tham số.
+
+\subsection{Các mở rộng}
+
+\emph{RNN nhiều tầng} xếp chồng các lớp hồi quy: đầu ra $\mathbf h^{(l)}_t$ của tầng $l$ là đầu vào của tầng $l+1$, giúp học biểu diễn phân cấp theo thời gian. \emph{RNN hai chiều} chạy thêm một chiều ngược để mỗi bước thấy cả tương lai, nên chỉ dùng được khi có toàn bộ chuỗi, không dùng cho dự báo. Mô hình \emph{mã hóa – giải mã} \cite{sutskever2014} và \emph{cơ chế chú ý} \cite{bahdanau2015} cho phép bộ giải mã nhìn lại mọi trạng thái của bộ mã hóa. Từ đó dẫn tới Transformer \cite{vaswani2017}, kiến trúc bỏ hẳn tính hồi quy.
+
+\subsection{Đánh giá mô hình tuần tự và các bẫy thường gặp}
+
+Đánh giá chuỗi thời gian có ba bẫy dễ làm kết quả lạc quan giả tạo. \emph{Thứ nhất, rò rỉ theo thời gian}: xáo trộn ngẫu nhiên các cửa sổ trượt khiến cửa sổ ở test chồng lấn 11/12 điểm với một cửa sổ ở train. Phải chia theo thời gian (quá khứ → tương lai) hoặc theo đơn vị độc lập (bệnh nhân). \emph{Thứ hai, thiếu mốc đối chứng}: với chuỗi có tự tương quan cao như glucose, ``ngày mai giống hôm nay'' (persistence) đã có sai số nhỏ. Một mô hình phức tạp chỉ có giá trị nếu vượt rõ mốc này, và \emph{độ trễ pha}, tức dự báo chỉ là bản sao trễ của đầu vào, phải được kiểm tra bằng mắt. \emph{Thứ ba, thước đo không phản ánh hậu quả}: sai 20 mg/dL ở mức 60 mg/dL (bỏ sót hạ đường huyết) nguy hiểm hơn nhiều so với sai 20 mg/dL ở mức 250 mg/dL. Vì vậy ngành CGM dùng thêm MARD (sai số tương đối) và lưới Clarke (theo hậu quả lâm sàng), bên cạnh RMSE.
+
+\subsection{RNN và Transformer cho chuỗi thời gian}
+
+Transformer xử lý toàn bộ chuỗi song song bằng tự chú ý, mỗi bước nhìn trực tiếp mọi bước khác với đường đi độ dài 1. Nhờ vậy không có vấn đề biến mất gradient theo khoảng cách, và huấn luyện song song được trên GPU. Đổi lại, chi phí tăng theo bình phương độ dài chuỗi, và mô hình cần nhiều dữ liệu hơn vì thiếu thiên kiến quy nạp ``thứ tự thời gian'' (phải thêm mã hóa vị trí). Với chuỗi ngắn (12 bước), dữ liệu vừa phải và yêu cầu suy luận nhẹ trên CPU như bài toán của chương, RNN có cổng vẫn là lựa chọn hợp lý: LSTM 2 tầng chỉ có 51 nghìn tham số. Với chuỗi dài và đa biến (CGM kèm bữa ăn, insulin, vận động trong nhiều ngày), các biến thể Transformer cho chuỗi thời gian là hướng mở rộng tự nhiên.
+
+\section{Dữ liệu ShanghaiT1DM / ShanghaiT2DM}
+
+Bộ dữ liệu được công bố trên \emph{Scientific Data} năm 2023 \cite{zhao2023shanghai}. Dữ liệu thu thập tại các bệnh viện ở Thượng Hải từ người bệnh đeo cảm biến FreeStyle Libre trong 3–14 ngày, kèm thông tin lâm sàng, bữa ăn và liều thuốc.
+
+\begin{itemize}
+  \item \textbf{Nguồn}: figshare \weburl{https://doi.org/10.6084/m9.figshare.20444397}, tệp \texttt{data.zip} 3,4 MB, giấy phép CC BY 4.0.
+  \item \textbf{Quy mô}: 12 bệnh nhân ĐTĐ típ 1 và 100 bệnh nhân típ 2, tổng cộng 125 bản ghi (một số người đeo nhiều đợt), 127.982 điểm CGM cách nhau 15 phút. Mỗi người có từ 247 đến 3.724 điểm (trung vị 1.218 điểm, khoảng 12,7 ngày).
+  \item \textbf{Định dạng}: mỗi bản ghi một tệp Excel với các cột \texttt{Date}, \texttt{CGM (mg/dl)}, đường huyết mao mạch, bữa ăn, liều insulin. Tệp tổng hợp có 33 thuộc tính lâm sàng (tuổi, BMI, HbA1c, biến chứng\ldots).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ba dòng đầu của một bản ghi CGM (bệnh nhân 1001, ĐTĐ típ 1)}
+\label{tab:cgm-head}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}llllr@{}}
+\toprule
+\textbf{Bệnh nhân} & \textbf{Bản ghi} & \textbf{Loại} & \textbf{Thời điểm} & \textbf{CGM (mg/dL)} \\
+\midrule
+1001 & 1001\_0\_20210730 & T1 & 2021-07-30 16:43 & 113,4 \\
+1001 & 1001\_0\_20210730 & T1 & 2021-07-30 16:58 & 124,2 \\
+1001 & 1001\_0\_20210730 & T1 & 2021-07-30 17:13 & 129,6 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch4_data}{Phân bố glucose theo loại ĐTĐ, trung vị theo giờ trong ngày và một bản ghi típ 1 trong 4 ngày}
+
+\begin{table}[H]
+\centering
+\caption{Chỉ số kiểm soát đường huyết của hai nhóm theo đồng thuận quốc tế về Time in Range \cite{battelino2019}}
+\label{tab:cgm-stats}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Nhóm} & \textbf{TB (mg/dL)} & \textbf{TIR 70–180} & \textbf{TBR < 70} & \textbf{TAR > 180} & \textbf{CV} \\
+\midrule
+Mục tiêu & -- & > 70\% & < 4\% & < 25\% & ≤ 36\% \\
+ĐTĐ típ 1 (12 người) & 164,8 & 53,6\% & 7,6\% & 38,7\% & 43,9\% \\
+ĐTĐ típ 2 (100 người) & 140,2 & 78,7\% & 2,3\% & 18,9\% & 36,4\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Nhận xét.} (i) Hai nhóm khác biệt rõ. Nhóm típ 1 dao động mạnh (CV 43,9\%), chỉ 53,6\% thời gian trong khoảng mục tiêu, và có 7,6\% thời gian hạ đường huyết, gần gấp đôi ngưỡng an toàn. Nhóm típ 2 gần đạt mục tiêu. (ii) Đường huyết có \emph{nhịp ngày đêm} rõ: trung vị tăng sau các bữa sáng, trưa, tối và thấp nhất vào rạng sáng. Đây là lý do thêm đặc trưng giờ trong ngày (mã hóa $\sin$, $\cos$ để 23 giờ và 0 giờ nằm gần nhau). (iii) Có những khoảng mất tín hiệu cảm biến. Chuỗi được cắt tại mọi khoảng trống lớn hơn 20 phút để cửa sổ không nối qua chỗ hở. (iv) Nhóm típ 1 chỉ có 12 người, nên kết quả trên nhóm này có độ bất định cao.
+
+\section{Cài đặt}
+
+\textbf{Thiết lập bài toán.} Từ 12 điểm gần nhất (3 giờ), dự báo 4 điểm tiếp theo (15, 30, 45, 60 phút). Dữ liệu được chia \emph{theo bệnh nhân}, phân tầng típ 1/típ 2: 78 người train (91.147 cửa sổ), 17 người validation (16.801), 17 người test (18.012). Chia theo cửa sổ ngẫu nhiên sẽ để các cửa sổ chồng lấn của cùng một người rơi vào cả train lẫn test, tức là rò rỉ dữ liệu. Chia theo người buộc mô hình phải tổng quát sang người chưa gặp. Glucose được chuẩn hóa z-score bằng trung bình 140,5 và độ lệch chuẩn 53,3 mg/dL của tập train.
+
+\textbf{Sáu mô hình.} (1) \emph{Persistence}: giữ nguyên giá trị cuối, mốc tối thiểu phải vượt qua. (2) \emph{AR tuyến tính}: hồi quy Ridge trên 12 điểm, dự báo phần chênh so với điểm cuối. (3)–(6) \emph{RNN đơn giản, LSTM, GRU, LSTM 2 tầng} với 64 đơn vị ẩn. Đầu vào mỗi bước là vector 3 chiều $[\tilde g_t, \sin\theta, \cos\theta]$. Trạng thái ẩn ở bước cuối qua một lớp tuyến tính 64 → 4. Mô hình dự báo \emph{phần dư} so với giá trị cuối: $\hat{\mathbf y} = \tilde g_T\mathbf 1 + \mathbf W\mathbf h_T + \mathbf b$. Kết nối tắt này giống ResNet: mạng chỉ cần học \emph{thay đổi}, và khởi đầu ngay từ persistence thay vì từ con số 0 (\coderef{lst:ch4-model}).
+
+\begin{code}{Mô hình hồi quy dự báo glucose và vòng huấn luyện (\texttt{lab/ch4\_rnn.py}, rút gọn)}
+\label{lst:ch4-model}
+\begin{minted}{python}
+class SeqModel(nn.Module):
+    def __init__(self, cell="lstm", hidden=64, layers=1):
+        super().__init__()
+        rnn = {"rnn": nn.RNN, "lstm": nn.LSTM, "gru": nn.GRU}[cell]
+        self.rnn = rnn(3, hidden, num_layers=layers, batch_first=True,
+                       dropout=0.2 if layers > 1 else 0.0)
+        self.head = nn.Linear(hidden, 4)                 # 15, 30, 45, 60 phút
+
+    def forward(self, x):                                # x: [B, 12, 3]
+        out, _ = self.rnn(x)                             # out: [B, 12, 64]
+        return x[:, -1:, 0] + self.head(out[:, -1])     # dự báo phần dư so với điểm cuối
+
+for epoch in range(40):
+    for b in batches(Xtr, Ytr, size=512):
+        loss = F.mse_loss(model(b.x), b.y)
+        opt.zero_grad(); loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), 1.0)   # chặn bùng nổ gradient
+        opt.step()
+    sched.step(val_mse)                                 # giảm tốc độ học khi validation chững lại
+    # dừng sớm sau 8 epoch không cải thiện, giữ trọng số tốt nhất
+\end{minted}
+\end{code}
+
+\begin{table}[H]
+\centering
+\caption{Kích thước tensor và số tham số của các mô hình hồi quy ($d=3$, $m=64$)}
+\label{tab:rnn-params}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Công thức số tham số lớp hồi quy} & \textbf{Hồi quy} & \textbf{Tổng (+ lớp ra 260)} \\
+\midrule
+RNN & $m(d+m) + 2m = 64\cdot67 + 128$ & 4.416 & 4.676 \\
+GRU & $3[m(d+m)+2m]$ & 13.248 & 13.508 \\
+LSTM & $4[m(d+m)+2m]$ & 17.664 & 17.924 \\
+LSTM 2 tầng & tầng 1 như trên + $4[m(m+m)+2m]$ & 50.944 & 51.204 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Huấn luyện dùng Adam (tốc độ học $2\cdot10^{-3}$, giảm một nửa khi validation không cải thiện sau 3 epoch), lô 512, cắt gradient ở chuẩn 1, dừng sớm sau 8 epoch không cải thiện, tối đa 40 epoch. Huấn luyện trên GPU mất 23–43 giây mỗi mô hình.
+
+\textbf{Thước đo.} RMSE và MAE (mg/dL); MARD $=\frac1n\sum|y-\hat y|/y$, thước đo chuẩn của ngành CGM; và \emph{lưới sai số Clarke} \cite{clarke1987}. Lưới Clarke chia mặt phẳng (tham chiếu, dự báo) thành 5 vùng theo hậu quả lâm sàng: A (sai ≤ 20\% hoặc cả hai < 70 mg/dL), B (sai lệch lành tính), C (dẫn tới điều trị thừa), D (bỏ sót cần điều trị), E (điều trị ngược). Một hệ thống chấp nhận được cần hơn 99\% điểm nằm trong vùng A+B.
+
+\section{Kết quả và nhận xét}
+
+\begin{table}[H]
+\centering
+\caption{Dự báo glucose trên 17 bệnh nhân của tập kiểm tra (18.012 cửa sổ)}
+\label{tab:ch4-results}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrcccccc@{}}
+\toprule
+ & & \multicolumn{4}{c}{\textbf{Tầm 30 phút}} & \multicolumn{2}{c}{\textbf{Tầm 60 phút}} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-8}
+\textbf{Mô hình} & \textbf{Tham số} & \textbf{RMSE} & \textbf{MAE} & \textbf{MARD} & \textbf{Clarke A} & \textbf{RMSE} & \textbf{Clarke A} \\
+\midrule
+Persistence & 0 & 19,01 & 12,97 & 8,81\% & 90,1\% & 31,61 & 74,5\% \\
+AR tuyến tính (Ridge) & 52 & 14,73 & 10,30 & 7,25\% & 94,5\% & 27,29 & 79,0\% \\
+RNN đơn giản & 4.676 & 13,93 & 9,81 & 6,94\% & 95,2\% & 25,18 & 81,4\% \\
+LSTM & 17.924 & 13,85 & 9,72 & 6,85\% & 95,3\% & 25,11 & 81,5\% \\
+GRU & 13.508 & 13,90 & 9,64 & 6,75\% & 95,3\% & 25,11 & 82,1\% \\
+LSTM 2 tầng & 51.204 & \textbf{13,67} & \textbf{9,51} & \textbf{6,66\%} & \textbf{95,6\%} & \textbf{24,77} & \textbf{82,6\%} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch4_rmse_clarke}{RMSE theo tầm dự báo và lưới sai số Clarke của LSTM ở tầm 30 phút}
+
+\textbf{So với mốc đối chứng.} Ở tầm 30 phút, LSTM 2 tầng giảm RMSE 28\% so với persistence (19,01 → 13,67 mg/dL) và nâng tỉ lệ vùng Clarke A từ 90,1\% lên 95,6\%. Vùng A+B đạt 99,75\%. Mô hình tuyến tính đã thu được phần lớn cải thiện (14,73): xu hướng tăng hoặc giảm của vài điểm cuối mang nhiều thông tin nhất. Các mô hình hồi quy giảm thêm 0,8–1,1 mg/dL nhờ học được động học phi tuyến, chẳng hạn đỉnh sau ăn ``uốn'' xuống chứ không tăng tuyến tính mãi.
+
+\textbf{Giữa các mô hình hồi quy.} RNN, LSTM, GRU chỉ cách nhau dưới 0,1 mg/dL ở tầm 30 phút; LSTM 2 tầng tốt hơn khoảng 0,2 mg/dL. Với cửa sổ chỉ 12 bước, phụ thuộc xa không phải là nút thắt. RNN đơn giản đủ ``nhớ'' 3 giờ và không chịu thiệt nhiều từ biến mất gradient. Lợi thế của các cổng thể hiện rõ hơn ở tầm xa: ở 60 phút, GRU và LSTM 2 tầng đạt Clarke A 82,1–82,6\% so với 81,4\% của RNN. Với dữ liệu nhỏ và yêu cầu độ trễ thấp, GRU là lựa chọn cân bằng: ít tham số hơn LSTM 25\%, độ chính xác tương đương.
+
+\textbf{Sai số tăng nhanh theo tầm dự báo}, từ khoảng 6 mg/dL ở 15 phút lên khoảng 25 mg/dL ở 60 phút. Trong một giờ, bữa ăn, insulin và vận động là các yếu tố không quan sát được từ chuỗi CGM mà quyết định quỹ đạo. Để dự báo xa hơn, cần thêm các đầu vào ngoại sinh này, vốn có trong bộ dữ liệu nhưng ghi chép không đều. Các nghiên cứu như GluNet \cite{li2020glunet} cũng ghi nhận sai số tăng nhanh theo tầm dự báo và dùng thêm thông tin bữa ăn, insulin để cải thiện tầm xa.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả tầm 30 phút theo loại ĐTĐ trên tập kiểm tra}
+\label{tab:ch4-type}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrcccc@{}}
+\toprule
+\textbf{Nhóm} & \textbf{Cửa sổ} & \textbf{RMSE persistence} & \textbf{RMSE LSTM} & \textbf{MARD LSTM} & \textbf{Clarke A LSTM} \\
+\midrule
+Típ 1 & 2.227 & 20,80 & 13,86 & 6,39\% & 95,6\% \\
+Típ 2 & 15.785 & 18,75 & 13,85 & 6,92\% & 95,3\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Theo \tabref{tab:ch4-type}, chuỗi típ 1 biến động mạnh hơn nên persistence kém hơn (20,80), nhưng LSTM đưa sai số hai nhóm về cùng mức. Mức giảm tương đối trên nhóm típ 1 là 33\%, cao hơn 26\% của nhóm típ 2. Mô hình có ích nhất ở chính nhóm cần nó nhất.
+
+\figw{ch4_forecast}{Dự báo trước 30 phút trên 24 giờ liên tục của một bệnh nhân thuộc tập kiểm tra}
+
+\figref{fig:ch4_forecast} cho thấy hành vi điển hình: persistence luôn ``trễ'' đúng 30 phút so với đường thật. AR tuyến tính và LSTM đều bám sát đường thật hơn nhiều, và khác biệt giữa hai mô hình (0,9 mg/dL RMSE) gần như không thấy bằng mắt. Cả hai đều vượt quá ở những điểm đổi chiều đột ngột (khoảng giờ thứ 7–8): từ chuỗi CGM, mô hình không biết bữa ăn đã kết thúc hay insulin đã có tác dụng.
+
+\figw[0.70\linewidth]{ch4_gradient_time}{Độ lớn gradient của dự báo theo từng điểm đầu vào trên chuỗi dài 48 bước (chuẩn hóa theo bước cuối)}
+
+\textbf{Mô hình ``nhìn'' bao xa?} Hình \ref{fig:ch4_gradient_time} đo $|\partial\hat y/\partial\tilde g_t|$ trên chuỗi dài 48 bước (12 giờ). Ở cả ba mô hình đã huấn luyện, độ nhạy giảm nhanh theo khoảng cách. Ở bước cách 11 điểm (khoảng 3 giờ), độ nhạy chỉ còn 1,1\% (RNN), 0,3\% (LSTM) và 1,0\% (GRU) so với điểm cuối. Ở bước xa nhất, các con số giảm 3–5 bậc. Cần đọc kết quả này cẩn thận. Đây là độ nhạy của mô hình \emph{đã học}, nên phản ánh cả hai yếu tố: biến mất gradient theo \eq{eq:bptt}, và việc mô hình chủ động học cách ``quên'' quá khứ xa vì với glucose, vài điểm gần nhất là quan trọng nhất. LSTM có độ nhạy giảm nhanh nhất. Điều này cho thấy cổng quên đã học để loại bỏ thông tin cũ, chứ không phải không thể giữ lại. Muốn kiểm chứng riêng khả năng nhớ xa, cần một bài toán mà đáp án phụ thuộc vào điểm đầu chuỗi, như bài toán sao chép hay phép cộng của Hochreiter.
+
+\subsection{Phân tích sai số theo dải đường huyết}
+
+Sai số trung bình che giấu hành vi ở những vùng quan trọng nhất về lâm sàng. \tabref{tab:ch4-range} chia các điểm tham chiếu ở tầm 30 phút theo ba dải, dùng mô hình triển khai (LSTM 2 tầng).
+
+\begin{table}[H]
+\centering
+\caption{Sai số dự báo 30 phút theo dải glucose tham chiếu (tập kiểm tra, LSTM 2 tầng)}
+\label{tab:ch4-range}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+\textbf{Dải glucose thật} & \textbf{Số điểm} & \textbf{RMSE persistence} & \textbf{RMSE LSTM} & \textbf{MARD LSTM} \\
+\midrule
+< 70 mg/dL (hạ đường huyết) & 206 & 14,90 & 12,98 & 15,0\% \\
+70–180 mg/dL (mục tiêu) & 14.067 & 15,73 & 11,67 & 6,6\% \\
+> 180 mg/dL (tăng đường huyết) & 3.739 & 28,26 & 19,44 & 6,4\% \\
+Thay đổi nhanh (|Δ| > 60 mg/dL trong 30 phút) & 261 & 74,10 & 44,37 & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Có ba nhận xét. (i) Ở vùng tăng đường huyết, sai số tuyệt đối lớn nhất (19,4 mg/dL) nhưng sai số tương đối nhỏ (6,4\%), và LSTM giảm 31\% so với persistence. Đây là vùng đường huyết biến động mạnh sau ăn, nơi mô hình học được xu hướng. (ii) Ở vùng hạ đường huyết, MARD tăng lên 15\%, do mẫu số nhỏ, và mức cải thiện so với persistence chỉ 13\%. Hạ đường huyết hiếm trong dữ liệu (206/18.012 điểm, khoảng 1,1\%), nên mô hình học từ MSE ít ``để ý'' tới vùng này. (iii) Khi glucose thay đổi nhanh, LSTM giảm sai số 40\% so với persistence, nhưng sai số vẫn ở mức 44 mg/dL, cho thấy giới hạn của việc chỉ dùng chuỗi CGM.
+
+Nếu dùng mô hình làm \emph{bộ cảnh báo hạ đường huyết trước 30 phút} (báo khi dự báo < 70 mg/dL), độ nhạy chỉ đạt 0,59 và precision 0,72: cứ 10 cơn hạ đường huyết thì bỏ sót khoảng 4. Đây là lý do hệ thống \emph{không} dùng dự báo để cảnh báo cấp cứu mà chỉ trình bày như thông tin tham khảo. Guardrail hạ đường huyết dựa trên giá trị đo thật (< 54 mg/dL). Để cải thiện, có thể dùng hàm mất mát có trọng số theo vùng nguy hiểm, hoặc huấn luyện thêm một bộ phân loại ``sắp hạ đường huyết'' riêng.
+
+\input{chapters/04b_rnn_three_ways}
+
+\section{Triển khai}
+
+Mô hình được chọn theo MSE trên validation là LSTM 2 tầng (\texttt{data/models/ch4\_glucose\_rnn.pt}, 210 KB). Nó được đóng gói trong lớp \texttt{RNNTemporalEngine} (\texttt{src/models/rnn\_temporal.py}), vừa tính các chỉ số TIR, TAR, TBR, CV, vừa dự báo 15–60 phút khi chuỗi có ít nhất 12 điểm. Endpoint \api{POST /api/lab/ch4/forecast} nhận chuỗi glucose và giờ của điểm cuối. \api{GET /api/lab/ch4/sample/\{i\}} trả về 24 giờ dữ liệu thật của bệnh nhân thuộc tập kiểm tra để thử. Trang \api{/lab} vẽ chuỗi đầu vào, dự báo, và giá trị thật nếu dùng dữ liệu mẫu.
+
+\begin{code}{Gọi endpoint Chương 4}
+\label{lst:ch4-api}
+\begin{minted}{bash}
+curl -s https://agent.nits.io.vn/api/lab/ch4/forecast -H 'Content-Type: application/json' \
+  -d '{"glucose":[110,115,124,138,152,166,175,181,184,182,176,168],"last_hour":9}'
+\end{minted}
+\end{code}
+
+\section{Tiểu kết chương 4}
+
+Chương 4 trình bày RNN với trạng thái ẩn dùng chung tham số theo thời gian, thuật toán BPTT, nguyên nhân toán học của biến mất và bùng nổ gradient, và hai lời giải có cổng: LSTM (ô nhớ cập nhật cộng tính, ba cổng) và GRU (hai cổng). Trên 127.982 điểm CGM thật của 112 bệnh nhân, chia theo người để tránh rò rỉ: (1) mọi mô hình học được đều vượt xa persistence, và LSTM 2 tầng giảm 28\% RMSE ở tầm 30 phút với 95,6\% điểm trong vùng Clarke A; (2) với cửa sổ 3 giờ, khác biệt giữa RNN, LSTM và GRU nhỏ, lợi thế của cổng chỉ rõ ở tầm xa; (3) giới hạn chính là thông tin, không phải kiến trúc: bữa ăn và insulin quyết định quỹ đạo sau 1 giờ. Ba chương vừa qua làm việc với dữ liệu \emph{có cấu trúc đều}: bảng, lưới ảnh, chuỗi. Chương 5 chuyển sang tri thức dạng văn bản và đồ thị.

@@ -2,6 +2,8 @@
 Mô tả các bộ dữ liệu huấn luyện của nhánh DB → ML/DL.
 
 - nhanes: NHANES 2011–2018 (CDC, dữ liệu thật), nhãn ĐTĐ xác định bằng xét nghiệm + chẩn đoán của bác sĩ.
+- brfss: BRFSS 2011–2023 (CDC, 7 năm lẻ, 3.172.819 người), nhãn ĐTĐ tự khai — mô hình quy mô lớn,
+  dùng làm ý kiến thứ hai của PredictionAgent (scripts/fetch_brfss.py).
 - vn: vietnam_diabetes_dataset.csv (150.000 mẫu, chưa rõ nguồn, nhiều dấu hiệu là dữ liệu mô phỏng).
 
 Cả hai dùng chung quy ước: đặc trưng chưa biết = NaN (không điền trung vị), vì người dùng chatbot thường
@@ -65,6 +67,23 @@ def _nhanes_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
     }
 
 
+# ---------------------------------------------------------------- BRFSS 2011–2023
+BRFSS_FEATURES = ["age_years", "sex", "bmi", "high_bp", "high_chol", "smoker", "phys_activity", "heart_disease",
+                  "stroke", "heavy_alcohol", "gen_hlth"]
+BRFSS_VI = {f: NHANES_VI[f] for f in BRFSS_FEATURES if f in NHANES_VI} | {
+    "heavy_alcohol": "Uống nhiều rượu bia", "gen_hlth": "Sức khỏe chung tự đánh giá"}
+
+
+def _brfss_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
+    return {
+        "age_years": _num(profile, "age_years"), "sex": _num(profile, "sex"), "bmi": _num(profile, "bmi"),
+        "high_bp": _b(profile, "high_bp"), "high_chol": _b(profile, "high_chol"), "smoker": _b(profile, "smoker"),
+        "phys_activity": _b(profile, "phys_activity"), "heart_disease": _b(profile, "heart_disease"),
+        "stroke": _b(profile, "stroke"), "heavy_alcohol": _b(profile, "heavy_alcohol"),
+        "gen_hlth": _num(profile, "gen_hlth"),
+    }
+
+
 # ---------------------------------------------------------------- bộ dữ liệu VN
 VN_FEATURES = ["HighBP", "HighChol", "BMI", "Waist_cm", "CentralObesity_VN", "Smoker", "Stroke",
                "HeartDiseaseorAttack", "PhysActivity", "Veggies", "HvyAlcoholConsump", "FamilyHistory", "GenHlth",
@@ -107,6 +126,12 @@ DATASETS: Dict[str, DatasetSpec] = {
         features=NHANES_FEATURES, feature_vi=NHANES_VI, core_features=["age_years", "bmi"],
         label="diabetes", profile_to_row=_nhanes_row, subgroup="asian",
     ),
+    "brfss": DatasetSpec(
+        name="brfss", title="BRFSS 2011–2023 (CDC, 3,17 triệu người)", table="brfss_samples",
+        csv_path=str(BASE_DIR / "data" / "brfss" / "brfss_diabetes.csv.gz"),
+        features=BRFSS_FEATURES, feature_vi=BRFSS_VI, core_features=["age_years", "bmi"],
+        label="diabetes", profile_to_row=_brfss_row, subgroup="asian",
+    ),
     "vn": DatasetSpec(
         name="vn", title="vietnam_diabetes_dataset (150k, chưa rõ nguồn)", table="training_samples",
         csv_path=str(settings.dataset_csv), features=VN_FEATURES, feature_vi=VN_VI, core_features=["Age", "BMI"],
@@ -116,14 +141,18 @@ DATASETS: Dict[str, DatasetSpec] = {
 
 
 def load_dataframe(spec: DatasetSpec, engine, reload: bool = False) -> pd.DataFrame:
-    """Đọc dữ liệu huấn luyện từ PostgreSQL (khối DB trên sơ đồ); nạp CSV vào DB nếu bảng chưa có."""
+    """Đọc dữ liệu huấn luyện từ DB quan hệ (khối DB trên sơ đồ); nạp CSV vào DB nếu bảng chưa có."""
     has_rows = inspect(engine).has_table(spec.table) and \
         pd.read_sql(text(f"SELECT EXISTS (SELECT 1 FROM {spec.table})"), engine).iat[0, 0]
     if reload or not has_rows:
         csv = pd.read_csv(spec.csv_path)
-        # chia lô để số tham số mỗi câu INSERT dưới giới hạn 65.535 của Postgres
-        csv.to_sql(spec.table, engine, if_exists="replace", index=False,
-                   chunksize=max(100, 60_000 // len(csv.columns)), method="multi")
+        if engine.dialect.name == "sqlite":
+            # SQLite: executemany theo lô lớn nhanh hơn nhiều so với INSERT nhiều dòng (hàng triệu mẫu BRFSS)
+            csv.to_sql(spec.table, engine, if_exists="replace", index=False, chunksize=200_000)
+        else:
+            # Postgres: chia lô để số tham số mỗi câu INSERT dưới giới hạn 65.535
+            csv.to_sql(spec.table, engine, if_exists="replace", index=False,
+                       chunksize=max(100, 60_000 // len(csv.columns)), method="multi")
         print(f"Đã nạp {len(csv):,} mẫu vào bảng {spec.table}")
     cols = spec.features + [spec.label] + ([spec.subgroup] if spec.subgroup else [])
     return pd.read_sql(text(f"SELECT {', '.join(chr(34) + c + chr(34) for c in cols)} FROM {spec.table}"), engine)

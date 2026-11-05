@@ -1,0 +1,127 @@
+% Chương 4 — phần bổ sung của tiểu luận final: RNN cài đặt bằng ba cách, LSTM 5 lớp dạng hợp các hàm, đối chiếu tài chính.
+
+\section{Mạng hồi quy cài đặt bằng ba cách}
+\label{sec:ch4-three}
+
+Phần này đặt lại bài toán ở dạng gọn hơn để so sánh \emph{cách cài đặt}: từ 12 lần đo gần nhất (3 giờ), dự báo glucose \textbf{sau 30 phút}. Mỗi bước thời gian có 3 đặc trưng: glucose chuẩn hóa, $\sin$ và $\cos$ của giờ trong ngày (để mô hình biết bữa ăn và nhịp ngày đêm). Mọi mô hình dự báo \emph{phần chênh} so với lần đo cuối, trong thang chuẩn hóa: $\hat y = g_{t} + s\cdot f(\mathbf x_{t-11:t})$, với $s=53{,}3$ mg/dL là độ lệch chuẩn của tập huấn luyện. Dữ liệu chia \textbf{theo bệnh nhân} như các mục trên: 78 / 17 / 17 bệnh nhân, tương ứng 91.333 / 16.839 / 18.056 cửa sổ.
+
+\begin{itemize}
+  \item \textbf{NumPy}: RNN một lớp (16 đơn vị ẩn) viết tay, lan truyền xuôi $\mathbf h_t=\tanh(W_{xh}\mathbf x_t+W_{hh}\mathbf h_{t-1}+\mathbf b_h)$ và lan truyền ngược qua thời gian (BPTT) có cắt chuẩn gradient, huấn luyện bằng SGD từng mẫu. Vì vòng lặp Python chậm, bản này chỉ học trên 12.000 cửa sổ trong 8 epoch và được đánh giá trên 5.000 cửa sổ kiểm tra lấy ngẫu nhiên.
+  \item \textbf{Keras} (TensorFlow, CPU) và \textbf{PyTorch} (GPU): SimpleRNN, LSTM, GRU 64 đơn vị và LSTM \emph{xếp chồng 5 lớp}; Adam ($\eta=2\cdot10^{-3}$, cắt chuẩn gradient 1,0), lô 512, dừng sớm theo validation (6 epoch), giảm tốc độ học khi chững lại.
+\end{itemize}
+
+\begin{code}{Một bước BPTT của RNN NumPy (kế thừa \texttt{tl3/ch4\_scratch.py} của nhóm, rút gọn)}
+\label{lst:ch4-bptt}
+\begin{minted}{python}
+def backward(self, yhat, y):
+    """delta_T = W_hy^T (y_hat - y); delta_{t-1} = W_hh^T [(1 - h_t^2) * delta_t]; cộng dồn gradient dùng chung."""
+    p, hs, x = self.p, self.hs, self.x
+    g = {k: np.zeros_like(v) for k, v in p.items()}
+    dy = yhat - y
+    g["Why"], g["by"] = dy * hs[-1][None, :], np.array([dy])
+    dh = p["Why"][0] * dy
+    for t in range(len(x), 0, -1):
+        da = (1.0 - hs[t] ** 2) * dh            # qua đạo hàm tanh
+        g["Wxh"] += np.outer(da, x[t - 1])
+        g["Whh"] += np.outer(da, hs[t - 1])      # cùng một W_hh ở mọi bước → cộng dồn
+        g["bh"] += da
+        dh = p["Whh"].T @ da                    # truyền về bước t − 1
+    return g
+\end{minted}
+\end{code}
+
+\begin{table}[H]
+\centering
+\caption{Dự báo glucose 30 phút trên 17 bệnh nhân kiểm tra (18.056 cửa sổ): ba cách cài đặt}
+\label{tab:ch4-three}
+\small
+\begin{tabular}{@{}llccccrr@{}}
+\toprule
+\textbf{Cách} & \textbf{Mô hình} & \textbf{RMSE} & \textbf{MAE} & \textbf{MARD (\%)} & \textbf{Clarke A} & \textbf{Tham số} & \textbf{Train (s)} \\
+\midrule
+— & Persistence (giữ giá trị cuối) & 19,05 & 12,99 & 8,82 & 90,0\% & 0 & — \\
+— & AR tuyến tính (Ridge, 12 trễ) & 14,77 & 10,31 & 7,26 & 94,4\% & 13 & <1 \\
+\midrule
+NumPy & SimpleRNN (16) & 15,02$^{*}$ & 10,47 & 7,20 & 95,1\% & 337 & 67 \\
+\midrule
+Keras & SimpleRNN & 14,29 & 9,99 & 7,04 & 94,9\% & 4.417 & 57 \\
+Keras & LSTM & 13,84 & 9,61 & 6,73 & 95,4\% & 17.473 & 135 \\
+Keras & GRU & 13,92 & 9,67 & 6,78 & 95,2\% & 13.313 & 97 \\
+Keras & LSTM 5 lớp & 13,79 & 9,54 & 6,67 & 95,4\% & 149.569 & 1.009 \\
+\midrule
+PyTorch & SimpleRNN & 14,26 & 10,02 & 7,08 & 94,9\% & 4.481 & 32 \\
+PyTorch & LSTM & 13,82 & 9,63 & 6,75 & 95,4\% & 17.729 & 23 \\
+PyTorch & GRU & 13,91 & 9,66 & 6,77 & 95,3\% & 13.313 & 22 \\
+PyTorch & LSTM 5 lớp & \textbf{13,66} & \textbf{9,48} & \textbf{6,65} & \textbf{95,5\%} & 150.849 & 47 \\
+\bottomrule
+\multicolumn{8}{@{}l}{\footnotesize $^{*}$ Huấn luyện trên 12.000 cửa sổ, đánh giá trên 5.000 cửa sổ kiểm tra lấy ngẫu nhiên. Đơn vị RMSE, MAE: mg/dL.}
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét.} (i) \emph{Keras và PyTorch cho cùng kết quả} với cùng kiến trúc (LSTM 13,84 so với 13,82; GRU 13,92 so với 13,91; LSTM 5 lớp 13,79 so với 13,66; PyTorch có thêm một vector độ chệch ở mỗi lớp hồi quy nên hơn 64–256 tham số mỗi lớp), nên chênh lệch giữa các mô hình là thật, không do framework. PyTorch trên GPU nhanh gấp 2–20 lần Keras trên CPU. (ii) Bản NumPy với 337 tham số, chỉ thấy 13\% dữ liệu, vẫn vượt xa persistence (15,0 so với 19,1) và đạt 95,1\% vùng Clarke A. Đây là phép kiểm chứng BPTT tự viết là đúng. (iii) Thứ tự LSTM 5 lớp < LSTM ≈ GRU < SimpleRNN < AR tuyến tính < persistence giữ nguyên ở cả ba cách, đúng như lý thuyết về cổng nhớ. Khác biệt giữa các mạng có cổng chỉ khoảng 0,1–0,4 mg/dL. (iv) LSTM 5 lớp tốt nhất nhưng chỉ hơn LSTM một lớp 0,05–0,16 mg/dL với số tham số gấp 8,5 lần. Với cửa sổ 12 bước, độ sâu theo \emph{không gian} không thêm được nhiều, vì giới hạn nằm ở thông tin còn thiếu (bữa ăn, insulin), không ở sức biểu diễn.
+
+\section{LSTM xếp chồng 5 lớp dưới dạng hợp các hàm}
+\label{sec:ch4-compose}
+
+Một LSTM xếp chồng là hợp của các hàm theo \emph{hai chiều}: theo thời gian (cùng một hàm cập nhật trạng thái lặp lại 12 lần) và theo độ sâu (5 hàm như vậy chồng lên nhau). Gọi $\Phi^{(l)}$ là hàm cập nhật của lớp $l$:
+\begin{equation}
+(\mathbf h^{(l)}_t, \mathbf c^{(l)}_t) = \Phi^{(l)}\big(\mathbf h^{(l-1)}_t,\ \mathbf h^{(l)}_{t-1},\ \mathbf c^{(l)}_{t-1}\big), \qquad \mathbf h^{(0)}_t = \mathbf x_t ,
+\end{equation}
+trong đó $\Phi^{(l)}$ chính là các phương trình cổng ở đầu chương (cổng quên $\mathbf f$, cổng vào $\mathbf i$, cổng ra $\mathbf o$, ứng viên $\tilde{\mathbf c}$). Đầu ra của mô hình là
+\begin{equation}
+\hat y = g_t + s\cdot \big(L \circ D \circ \pi_T \circ \Phi^{(5)}_{1:T} \circ \Phi^{(4)}_{1:T} \circ \Phi^{(3)}_{1:T} \circ \Phi^{(2)}_{1:T} \circ \Phi^{(1)}_{1:T}\big)(\mathbf x_{1:T}),
+\end{equation}
+với $\Phi^{(l)}_{1:T}$ là việc chạy $\Phi^{(l)}$ qua cả 12 bước và trả về \emph{chuỗi} trạng thái ẩn, $\pi_T$ chỉ lấy trạng thái ẩn ở bước cuối, $D$ là dropout và $L$ là lớp affine $64\to1$. Ý nghĩa của từng hàm:
+\begin{itemize}
+  \item Lớp 1 đọc trực tiếp glucose và giờ trong ngày, học các mẫu cục bộ: đang tăng, đang giảm, dao động sau ăn.
+  \item Các lớp 2–5 nhận \emph{chuỗi} trạng thái của lớp dưới, nên học được mẫu của mẫu, ví dụ ``tăng nhanh rồi chậm lại'' báo hiệu đỉnh sau ăn.
+  \item $\pi_T$ nén cả chuỗi thành một vector; $L$ đổi vector đó thành độ thay đổi glucose; phép cộng $g_t$ là lối tắt (residual) giúp mô hình chỉ phải học phần chênh.
+\end{itemize}
+Trong Keras, $\Phi^{(1)}_{1:T},\dots,\Phi^{(4)}_{1:T}$ là \texttt{LSTM(64, return\_sequences=True)} và $\pi_T\circ\Phi^{(5)}_{1:T}$ là \texttt{LSTM(64)}. Trong PyTorch, cả năm lớp gộp trong \texttt{nn.LSTM(3, 64, num\_layers=5, dropout=0,2)}, còn $\pi_T$ là \texttt{out[:, -1]}. Gradient của $W$ ở lớp 1 phải đi qua 5 lớp và 12 bước, nên LSTM 5 lớp cần cắt chuẩn gradient và dropout giữa các lớp mới học ổn định.
+
+\section{Đối chiếu trên chuỗi tài chính và thương mại}
+\label{sec:ch4-domains}
+
+Cùng bốn kiến trúc (SimpleRNN, LSTM, GRU, BiLSTM; 64 đơn vị, cửa sổ 30 bước, chia 70/15/15 \emph{theo thời gian}) được chạy bằng PyTorch và Keras trên ba chuỗi khác (mã nguồn kế thừa của nhóm): giá đóng cửa \textbf{AAPL} phiên kế tiếp, giá quỹ vàng \textbf{GLD} cùng 12 chỉ báo liên thị trường, và \textbf{doanh thu ngày} của một cửa hàng thương mại điện tử (gộp từ 5.000 đơn hàng). Mốc so sánh là dự báo ``ngây thơ'' (giữ nguyên giá trị hôm trước), chính là persistence ở bài toán glucose.
+
+\begin{table}[H]
+\centering
+\caption{Đối chiếu: LSTM và GRU so với dự báo ngây thơ trên ba chuỗi khác (tập kiểm tra theo thời gian)}
+\label{tab:ch4-domains}
+\small
+\begin{tabular}{@{}llccc|c@{}}
+\toprule
+\textbf{Chuỗi} & \textbf{Mô hình} & \textbf{RMSE} & \textbf{MAPE (\%)} & \textbf{Đúng hướng} & \textbf{RMSE so với ngây thơ} \\
+\midrule
+AAPL (USD) & Ngây thơ & 2,259 & 1,38 & — & — \\
+ & LSTM – PyTorch / Keras & 2,259 / 2,277 & 1,38 / 1,40 & 52\% / 47\% & 0\% / +0,8\% \\
+ & GRU – PyTorch / Keras & 2,257 / 2,272 & 1,38 / 1,39 & 51\% / 49\% & −0,1\% / +0,6\% \\
+\midrule
+GLD (USD) & Ngây thơ & 0,738 & 0,46 & — & — \\
+ & LSTM – PyTorch / Keras & 0,738 / 0,737 & 0,46 / 0,46 & 53\% / 50\% & 0\% / −0,1\% \\
+ & GRU – PyTorch / Keras & 0,751 / 0,747 & 0,47 / 0,47 & 48\% / 47\% & +1,8\% / +1,2\% \\
+\midrule
+Doanh thu (TRY) & Ngây thơ & 10.596 & 117,6 & — & — \\
+ & LSTM – PyTorch / Keras & 6.836 / 7.290 & 91,6 / 90,4 & 76\% / 76\% & −35\% / −31\% \\
+ & GRU – PyTorch / Keras & 7.415 / 7.013 & 85,1 / 86,7 & 79\% / 79\% & −30\% / −34\% \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Glucose CGM 30 phút (\tabref{tab:ch4-three}), LSTM – PyTorch}} & 13,82 & — & — & −27\% so với persistence \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét.} Kết quả đối chiếu cho bài học quan trọng nhất về mô hình chuỗi: \emph{RNN chỉ hữu ích khi chuỗi có cấu trúc dự báo được}. Với giá AAPL và vàng, mọi kiến trúc ở cả hai framework đều trùng với dự báo ngây thơ đến phần nghìn, và đoán đúng hướng tăng/giảm chỉ quanh 50\%, tức bằng tung đồng xu. Mô hình đã học đúng điều duy nhất có thể học được là ``giá mai ≈ giá hôm nay'', phù hợp với giả thuyết thị trường hiệu quả. Ngược lại, doanh thu ngày có chu kỳ tuần và xu hướng, nên LSTM giảm RMSE 31–35\% so với ngây thơ. Glucose nằm giữa: chuỗi sinh lý có quán tính và nhịp ngày đêm, nên LSTM giảm 27\% sai số và có ý nghĩa lâm sàng (95\% vùng Clarke A). Trên cả ba miền, PyTorch và Keras cho kết quả gần nhau, khẳng định lại kết luận của Mục~\ref{sec:ch4-three}: khác biệt đến từ \emph{dữ liệu}, không đến từ framework.
+
+\section{Thực nghiệm trên Notebook và Demo Localhost}
+\label{sec:ch4-notebook-demo}
+
+Notebook \texttt{notebooks/ch4\_rnn\_cgm.ipynb} (các ô \texttt{RNN-00} đến \texttt{RNN-04}) minh họa chi tiết cách chia tập dữ liệu độc lập theo bệnh nhân và kiểm chứng toán học của thuật toán BPTT:
+\begin{itemize}
+  \item \textbf{Ô \texttt{RNN-01} (Chia theo bệnh nhân 78/17/17 và mã hóa chu kỳ ngày đêm)}: Ô \texttt{RNN-01} gọi \texttt{load\_cgm\_windows(seq\_len=12, horizon\_steps=2)} để tách 112 bệnh nhân ShanghaiT1DM/T2DM thành 78 người huấn luyện ($91.333$ cửa sổ 3 giờ, glucose trung bình $140{,}4\pm 53{,}1$ mg/dL), 17 người kiểm định ($16.839$ cửa sổ, $153{,}1\pm 59{,}3$ mg/dL) và 17 người kiểm tra ($18.056$ cửa sổ, $145{,}7\pm 53{,}9$ mg/dL). Việc không để bất kỳ bệnh nhân nào xuất hiện ở cả hai tập đảm bảo đánh giá đúng khả năng tổng quát hóa sang bệnh nhân mới; đồng thời hai đặc trưng $\sin(2\pi h/24)$ và $\cos(2\pi h/24)$ bảo toàn tính liên tục qua mốc nửa đêm ($23\text{h}\to 0\text{h}$).
+  \item \textbf{Ô \texttt{RNN-02} (Kiểm chứng đạo hàm ngược qua thời gian BPTT trên cửa sổ CGM thật)}: Ô \texttt{RNN-02} khởi tạo \texttt{RNNScratch(n\_in=3, n\_hid=8)}, chạy lan truyền xuôi và ngược qua 12 bước thời gian của cửa sổ CGM đầu tiên để lấy gradient giải tích $\partial L/\partial W_{hh}[0,0] = 0{,}006106$ (tổng cộng dồn qua cả 12 bước thời gian do dùng chung trọng số $W_{hh}$). Khi đối chiếu với đạo hàm sai phân hữu hạn trung tâm ($\varepsilon=10^{-5}$), sai lệch tuyệt đối chỉ là $1{,}71\times 10^{-12}$, xác nhận vòng lặp truyền ngược $\delta_{t-1} = W_{hh}^\top\big[(1-h_t^2)\odot\delta_t\big]$ hoàn toàn chính xác.
+\end{itemize}
+
+Trên ứng dụng web cục bộ tại \texttt{http://localhost:8095} (\figref{fig:app_ch4_dm_cgm}), tab \textbf{Ch.4 — RNN/LSTM · Đường huyết CGM (Shanghai)} nạp đồng thời cả 11 mô hình của ba cách cài đặt (\texttt{persistence}, \texttt{ridge\_ar}, \texttt{numpy\_rnn1}, cùng 4 kiến trúc \texttt{rnn1}/\texttt{lstm1}/\texttt{gru1}/\texttt{lstm5} của cả Keras và PyTorch). Khi chọn một bệnh nhân kiểm tra hoặc sửa trực tiếp chuỗi 12 điểm đo 3 giờ gần nhất, hệ thống trả về ngay dự báo sau 30 phút (mg/dL), sai số tuyệt đối và vùng lưới Clarke tương ứng của từng mô hình.
+
+\figw[0.92\linewidth]{app_ch4_dm_cgm}{Giao diện thử nghiệm Chương 4 trên \texttt{http://localhost:8095}: dự báo đường huyết sau 30 phút bằng 11 mô hình (NumPy BPTT, Keras và PyTorch từ 1 đến 5 lớp) trên cửa sổ CGM 3 giờ}
+

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block content %}
+<section class="intro">
+  <div>
+    <p class="kicker">{{ icon('drop', 15) }} Phát triển hệ thống thông minh · Tiểu luận final</p>
+    <h1>AI cho bệnh đái tháo đường</h1>
+    <p class="lede">Từ học máy, CNN, RNN đến Knowledge Graph, RAG, học sâu trên đồ thị và hệ đa tác tử. Mỗi chương lấy
+      một bài toán tiểu đường làm mạch chính và đối chiếu với một miền dữ liệu khác. Chọn một thực nghiệm để nhập dữ liệu
+      và xem mô hình đã huấn luyện trả lời ngay trên máy.</p>
+  </div>
+  <dl class="kpis">
+    <div><dt>Chương</dt><dd>7</dd></div>
+    <div><dt>Thực nghiệm trực tuyến</dt><dd>{{ total }}</dd></div>
+    <div><dt>Thuộc mạch tiểu đường</dt><dd>{{ n_dm }}</dd></div>
+  </dl>
+</section>
+
+<section class="board">
+  <div class="board-head">
+    <h2>Danh mục chương</h2>
+    <span class="legend"><i class="dot dm"></i> tiểu đường <i class="dot"></i> đối chiếu</span>
+  </div>
+  <div class="rows">
+    {% for c in chapters %}
+    <article class="row" id="{{ c.id }}" style="--c: {{ c.color }}">
+      <div class="row-id"><span class="badge">{{ icon(c.icon, 20) }}</span><span class="row-no">{{ '%02d' % c.no }}</span></div>
+      <div class="row-body">
+        <h3>{{ c.title }}</h3>
+        <p>{{ c.desc }}</p>
+        <div class="row-data">
+          <span class="pill dm">{{ c.focus }}</span>
+          {% if c.others != '—' %}<span class="pill">{{ c.others }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="row-exps">
+        {% if c.exps %}
+          {% for e in c.exps %}
+          <a href="/exp/{{ e.id }}" class="exp-link {{ 'dm' if e.diabetes }}">
+            <i class="dot {{ 'dm' if e.diabetes }}"></i><span>{{ e.title }}</span><small>{{ e.kind }} · {{ e.n_models }} mô hình</small>
+          </a>
+          {% endfor %}
+          {% if c.id == 'ch7' %}<a href="/catmouse" class="exp-link"><i class="dot"></i><span>Mèo đuổi chuột: Q-learning so với tác tử luật</span><small>Học tăng cường · 3 tác tử</small></a>{% endif %}
+        {% elif c.id == 'ch7' %}
+          <a href="/catmouse" class="exp-link"><i class="dot"></i><span>Mèo đuổi chuột: Q-learning so với tác tử luật</span><small>Học tăng cường · 3 tác tử</small></a>
+        {% elif c.status == 'none' %}
+          <span class="muted-note">Chương lý thuyết, minh họa trong báo cáo</span>
+        {% else %}
+          <span class="muted-note wait">Đang cập nhật mô hình</span>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

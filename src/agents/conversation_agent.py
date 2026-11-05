@@ -1,7 +1,9 @@
 """
 Tác tử Hội thoại (Conversation / Text Intake Agent)
 Bóc tách chỉ số lâm sàng từ tin nhắn tự do của người dùng thành PatientProfile.
-LLM (structured output) là nhánh chính; regex là nhánh dự phòng.
+LLM (structured output) là nhánh chính; regex luôn chạy song song và bù các trường LLM bỏ sót
+(model dự phòng khi Gemini quá tải đôi khi chỉ trích được vài trường), nên cùng một tin nhắn luôn cho
+ít nhất cùng một tập chỉ số.
 """
 
 import re
@@ -22,13 +24,20 @@ class ConversationAgent(BaseAgent):
         # Kèm câu chatbot vừa hỏi để hiểu câu trả lời cụt (ví dụ bot hỏi tuổi, người dùng chỉ gõ "62")
         prompt = (f"Câu chatbot vừa hỏi người dùng:\n{previous}\n\n" if previous else "") + f"Tin nhắn của người dùng:\n{text}"
         extracted = await llm.parse(EXTRACTION_SYSTEM, [prompt], ExtractedClinicalData)
-        if extracted is not None:
-            profile, method = extracted.to_profile("text"), "llm"
+        rules = extract_profile(text, "text")
+        # Câu trả lời chỉ là một con số cho câu hỏi tuổi vừa rồi
+        if previous and "bao nhiêu tuổi" in previous.lower() and re.fullmatch(r"\s*(\d{1,3})\s*", text):
+            rules.set("age_years", int(text), "text", 0.9, f"Trả lời câu hỏi tuổi: {text}")
+        if extracted is None:
+            profile, method = rules, "rules"
         else:
-            profile, method = extract_profile(text, "text"), "rules"
-            # Câu trả lời chỉ là một con số cho câu hỏi tuổi vừa rồi
-            if previous and "bao nhiêu tuổi" in previous.lower() and re.fullmatch(r"\s*(\d{1,3})\s*", text):
-                profile.set("age_years", int(text), "text", 0.9, f"Trả lời câu hỏi tuổi: {text}")
+            profile, method = extracted.to_profile("text"), "llm"
+            filled = [n for n in rules.fields if n not in profile.fields]
+            for name in filled:  # LLM ưu tiên; regex chỉ bù trường LLM bỏ sót
+                profile.fields[name] = rules.fields[name]
+            if filled:
+                method = "llm+rules"
+                profile.derive()
 
         return self.reply(msg, "PATIENT_DATA_EXTRACTED", {
             "profile_delta": profile.model_dump(),

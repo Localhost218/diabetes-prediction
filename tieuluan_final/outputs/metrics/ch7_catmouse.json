@@ -1,0 +1,686 @@
+{
+ "A": {
+  "n_cells": 54,
+  "n_states": 2916,
+  "eval": [
+   {
+    "agent": "Random Agent",
+    "catch_rate": 0.023333333333333334,
+    "avg_steps": 98.53,
+    "avg_reward": -154.29333333333332
+   },
+   {
+    "agent": "Rule-Based Chaser",
+    "catch_rate": 0.24333333333333335,
+    "avg_steps": 82.52666666666667,
+    "avg_reward": -189.45
+   },
+   {
+    "agent": "Q-Learning Agent",
+    "catch_rate": 1.0,
+    "avg_steps": 15.263333333333334,
+    "avg_reward": 83.83666666666667
+   }
+  ],
+  "curve": [
+   {
+    "episode": 375,
+    "catch_rate": 0.029333333333333333,
+    "avg_steps": 98.88
+   },
+   {
+    "episode": 750,
+    "catch_rate": 0.02666666666666667,
+    "avg_steps": 98.272
+   },
+   {
+    "episode": 1125,
+    "catch_rate": 0.021333333333333333,
+    "avg_steps": 98.91733333333333
+   },
+   {
+    "episode": 1500,
+    "catch_rate": 0.058666666666666666,
+    "avg_steps": 97.40266666666666
+   },
+   {
+    "episode": 1875,
+    "catch_rate": 0.06666666666666667,
+    "avg_steps": 96.18666666666667
+   },
+   {
+    "episode": 2250,
+    "catch_rate": 0.14133333333333334,
+    "avg_steps": 93.112
+   },
+   {
+    "episode": 2625,
+    "catch_rate": 0.2693333333333333,
+    "avg_steps": 87.05866666666667
+   },
+   {
+    "episode": 3000,
+    "catch_rate": 0.31733333333333336,
+    "avg_steps": 84.97866666666667
+   },
+   {
+    "episode": 3375,
+    "catch_rate": 0.39466666666666667,
+    "avg_steps": 80.78933333333333
+   },
+   {
+    "episode": 3750,
+    "catch_rate": 0.504,
+    "avg_steps": 74.61333333333333
+   },
+   {
+    "episode": 4125,
+    "catch_rate": 0.56,
+    "avg_steps": 73.008
+   },
+   {
+    "episode": 4500,
+    "catch_rate": 0.6693333333333333,
+    "avg_steps": 65.584
+   },
+   {
+    "episode": 4875,
+    "catch_rate": 0.76,
+    "avg_steps": 58.245333333333335
+   },
+   {
+    "episode": 5250,
+    "catch_rate": 0.8373333333333334,
+    "avg_steps": 55.349333333333334
+   },
+   {
+    "episode": 5625,
+    "catch_rate": 0.8853333333333333,
+    "avg_steps": 48.97866666666667
+   },
+   {
+    "episode": 6000,
+    "catch_rate": 0.896,
+    "avg_steps": 45.33866666666667
+   },
+   {
+    "episode": 6375,
+    "catch_rate": 0.9493333333333334,
+    "avg_steps": 40.330666666666666
+   },
+   {
+    "episode": 6750,
+    "catch_rate": 0.9493333333333334,
+    "avg_steps": 37.8
+   },
+   {
+    "episode": 7125,
+    "catch_rate": 0.9893333333333333,
+    "avg_steps": 31.88533333333333
+   },
+   {
+    "episode": 7500,
+    "catch_rate": 0.992,
+    "avg_steps": 31.325333333333333
+   },
+   {
+    "episode": 7875,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 26.109333333333332
+   },
+   {
+    "episode": 8250,
+    "catch_rate": 1.0,
+    "avg_steps": 22.546666666666667
+   },
+   {
+    "episode": 8625,
+    "catch_rate": 0.9946666666666667,
+    "avg_steps": 22.56
+   },
+   {
+    "episode": 9000,
+    "catch_rate": 1.0,
+    "avg_steps": 20.952
+   },
+   {
+    "episode": 9375,
+    "catch_rate": 1.0,
+    "avg_steps": 19.597333333333335
+   },
+   {
+    "episode": 9750,
+    "catch_rate": 1.0,
+    "avg_steps": 17.736
+   },
+   {
+    "episode": 10125,
+    "catch_rate": 1.0,
+    "avg_steps": 16.989333333333335
+   },
+   {
+    "episode": 10500,
+    "catch_rate": 1.0,
+    "avg_steps": 16.770666666666667
+   },
+   {
+    "episode": 10875,
+    "catch_rate": 1.0,
+    "avg_steps": 18.168
+   },
+   {
+    "episode": 11250,
+    "catch_rate": 1.0,
+    "avg_steps": 15.810666666666666
+   },
+   {
+    "episode": 11625,
+    "catch_rate": 1.0,
+    "avg_steps": 16.973333333333333
+   },
+   {
+    "episode": 12000,
+    "catch_rate": 1.0,
+    "avg_steps": 16.685333333333332
+   },
+   {
+    "episode": 12375,
+    "catch_rate": 1.0,
+    "avg_steps": 17.338666666666665
+   },
+   {
+    "episode": 12750,
+    "catch_rate": 1.0,
+    "avg_steps": 16.522666666666666
+   },
+   {
+    "episode": 13125,
+    "catch_rate": 1.0,
+    "avg_steps": 17.194666666666667
+   },
+   {
+    "episode": 13500,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 17.485333333333333
+   },
+   {
+    "episode": 13875,
+    "catch_rate": 1.0,
+    "avg_steps": 16.805333333333333
+   },
+   {
+    "episode": 14250,
+    "catch_rate": 1.0,
+    "avg_steps": 15.984
+   },
+   {
+    "episode": 14625,
+    "catch_rate": 1.0,
+    "avg_steps": 16.464
+   },
+   {
+    "episode": 15000,
+    "catch_rate": 1.0,
+    "avg_steps": 16.088
+   }
+  ],
+  "train_s": 6.4372992515563965
+ },
+ "B": {
+  "n_states": 157464,
+  "rule_rule": {
+   "catch_rate": 0.52,
+   "avg_steps": 61.86333333333334
+  },
+  "iql": {
+   "catch_rate": 0.9966666666666667,
+   "avg_steps": 22.133333333333333
+  },
+  "curve": [
+   {
+    "episode": 1000,
+    "catch_rate": 0.075,
+    "avg_steps": 95.58
+   },
+   {
+    "episode": 2000,
+    "catch_rate": 0.105,
+    "avg_steps": 94.755
+   },
+   {
+    "episode": 3000,
+    "catch_rate": 0.082,
+    "avg_steps": 95.909
+   },
+   {
+    "episode": 4000,
+    "catch_rate": 0.075,
+    "avg_steps": 95.476
+   },
+   {
+    "episode": 5000,
+    "catch_rate": 0.076,
+    "avg_steps": 96.312
+   },
+   {
+    "episode": 6000,
+    "catch_rate": 0.092,
+    "avg_steps": 94.989
+   },
+   {
+    "episode": 7000,
+    "catch_rate": 0.104,
+    "avg_steps": 95.033
+   },
+   {
+    "episode": 8000,
+    "catch_rate": 0.106,
+    "avg_steps": 94.128
+   },
+   {
+    "episode": 9000,
+    "catch_rate": 0.119,
+    "avg_steps": 94.483
+   },
+   {
+    "episode": 10000,
+    "catch_rate": 0.16,
+    "avg_steps": 91.996
+   },
+   {
+    "episode": 11000,
+    "catch_rate": 0.171,
+    "avg_steps": 91.67
+   },
+   {
+    "episode": 12000,
+    "catch_rate": 0.181,
+    "avg_steps": 90.961
+   },
+   {
+    "episode": 13000,
+    "catch_rate": 0.212,
+    "avg_steps": 89.389
+   },
+   {
+    "episode": 14000,
+    "catch_rate": 0.258,
+    "avg_steps": 86.957
+   },
+   {
+    "episode": 15000,
+    "catch_rate": 0.297,
+    "avg_steps": 85.143
+   },
+   {
+    "episode": 16000,
+    "catch_rate": 0.348,
+    "avg_steps": 82.101
+   },
+   {
+    "episode": 17000,
+    "catch_rate": 0.383,
+    "avg_steps": 80.74
+   },
+   {
+    "episode": 18000,
+    "catch_rate": 0.46,
+    "avg_steps": 76.367
+   },
+   {
+    "episode": 19000,
+    "catch_rate": 0.517,
+    "avg_steps": 73.118
+   },
+   {
+    "episode": 20000,
+    "catch_rate": 0.595,
+    "avg_steps": 68.815
+   },
+   {
+    "episode": 21000,
+    "catch_rate": 0.671,
+    "avg_steps": 62.394
+   },
+   {
+    "episode": 22000,
+    "catch_rate": 0.724,
+    "avg_steps": 60.142
+   },
+   {
+    "episode": 23000,
+    "catch_rate": 0.811,
+    "avg_steps": 52.243
+   },
+   {
+    "episode": 24000,
+    "catch_rate": 0.818,
+    "avg_steps": 51.055
+   },
+   {
+    "episode": 25000,
+    "catch_rate": 0.879,
+    "avg_steps": 45.769
+   },
+   {
+    "episode": 26000,
+    "catch_rate": 0.923,
+    "avg_steps": 39.617
+   },
+   {
+    "episode": 27000,
+    "catch_rate": 0.933,
+    "avg_steps": 38.113
+   },
+   {
+    "episode": 28000,
+    "catch_rate": 0.944,
+    "avg_steps": 35.913
+   },
+   {
+    "episode": 29000,
+    "catch_rate": 0.958,
+    "avg_steps": 34.49
+   },
+   {
+    "episode": 30000,
+    "catch_rate": 0.968,
+    "avg_steps": 33.627
+   },
+   {
+    "episode": 31000,
+    "catch_rate": 0.974,
+    "avg_steps": 31.807
+   },
+   {
+    "episode": 32000,
+    "catch_rate": 0.977,
+    "avg_steps": 30.85
+   },
+   {
+    "episode": 33000,
+    "catch_rate": 0.988,
+    "avg_steps": 29.384
+   },
+   {
+    "episode": 34000,
+    "catch_rate": 0.982,
+    "avg_steps": 29.11
+   },
+   {
+    "episode": 35000,
+    "catch_rate": 0.991,
+    "avg_steps": 28.055
+   },
+   {
+    "episode": 36000,
+    "catch_rate": 0.986,
+    "avg_steps": 26.355
+   },
+   {
+    "episode": 37000,
+    "catch_rate": 0.993,
+    "avg_steps": 25.086
+   },
+   {
+    "episode": 38000,
+    "catch_rate": 0.995,
+    "avg_steps": 25.246
+   },
+   {
+    "episode": 39000,
+    "catch_rate": 0.995,
+    "avg_steps": 25.133
+   },
+   {
+    "episode": 40000,
+    "catch_rate": 0.997,
+    "avg_steps": 23.973
+   }
+  ],
+  "train_s": 78.22126126289368
+ },
+ "C": {
+  "table": [
+   {
+    "cat": "Q (học với chuột luật)",
+    "mouse": "chuột luật (chạy trốn)",
+    "catch_rate": 1.0,
+    "avg_steps": 15.263333333333334
+   },
+   {
+    "cat": "Q (học với chuột luật)",
+    "mouse": "chuột Q (học đối kháng)",
+    "catch_rate": 0.03666666666666667,
+    "avg_steps": 97.31666666666666
+   },
+   {
+    "cat": "Q (học đối kháng)",
+    "mouse": "chuột luật (chạy trốn)",
+    "catch_rate": 1.0,
+    "avg_steps": 16.336666666666666
+   },
+   {
+    "cat": "Q (học đối kháng)",
+    "mouse": "chuột Q (học đối kháng)",
+    "catch_rate": 0.7466666666666667,
+    "avg_steps": 42.29
+   },
+   {
+    "cat": "Rule-Based",
+    "mouse": "chuột luật (chạy trốn)",
+    "catch_rate": 0.24333333333333335,
+    "avg_steps": 82.52666666666667
+   },
+   {
+    "cat": "Rule-Based",
+    "mouse": "chuột Q (học đối kháng)",
+    "catch_rate": 0.04666666666666667,
+    "avg_steps": 96.25
+   }
+  ],
+  "curve": [
+   {
+    "episode": 750,
+    "catch_rate": 0.47333333333333333,
+    "avg_steps": 74.27733333333333
+   },
+   {
+    "episode": 1500,
+    "catch_rate": 0.5586666666666666,
+    "avg_steps": 69.84
+   },
+   {
+    "episode": 2250,
+    "catch_rate": 0.6626666666666666,
+    "avg_steps": 61.525333333333336
+   },
+   {
+    "episode": 3000,
+    "catch_rate": 0.7146666666666667,
+    "avg_steps": 58.10666666666667
+   },
+   {
+    "episode": 3750,
+    "catch_rate": 0.796,
+    "avg_steps": 54.12
+   },
+   {
+    "episode": 4500,
+    "catch_rate": 0.8706666666666667,
+    "avg_steps": 46.965333333333334
+   },
+   {
+    "episode": 5250,
+    "catch_rate": 0.9146666666666666,
+    "avg_steps": 43.678666666666665
+   },
+   {
+    "episode": 6000,
+    "catch_rate": 0.92,
+    "avg_steps": 41.78666666666667
+   },
+   {
+    "episode": 6750,
+    "catch_rate": 0.956,
+    "avg_steps": 36.04533333333333
+   },
+   {
+    "episode": 7500,
+    "catch_rate": 0.9613333333333334,
+    "avg_steps": 35.624
+   },
+   {
+    "episode": 8250,
+    "catch_rate": 0.9786666666666667,
+    "avg_steps": 32.73866666666667
+   },
+   {
+    "episode": 9000,
+    "catch_rate": 0.9866666666666667,
+    "avg_steps": 29.726666666666667
+   },
+   {
+    "episode": 9750,
+    "catch_rate": 0.9866666666666667,
+    "avg_steps": 29.402666666666665
+   },
+   {
+    "episode": 10500,
+    "catch_rate": 0.9893333333333333,
+    "avg_steps": 27.496
+   },
+   {
+    "episode": 11250,
+    "catch_rate": 0.9933333333333333,
+    "avg_steps": 27.16
+   },
+   {
+    "episode": 12000,
+    "catch_rate": 0.9906666666666667,
+    "avg_steps": 25.626666666666665
+   },
+   {
+    "episode": 12750,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 24.772
+   },
+   {
+    "episode": 13500,
+    "catch_rate": 0.9933333333333333,
+    "avg_steps": 25.157333333333334
+   },
+   {
+    "episode": 14250,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 23.612
+   },
+   {
+    "episode": 15000,
+    "catch_rate": 0.992,
+    "avg_steps": 24.162666666666667
+   },
+   {
+    "episode": 15750,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 23.390666666666668
+   },
+   {
+    "episode": 16500,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 23.588
+   },
+   {
+    "episode": 17250,
+    "catch_rate": 1.0,
+    "avg_steps": 22.237333333333332
+   },
+   {
+    "episode": 18000,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 21.68
+   },
+   {
+    "episode": 18750,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 21.588
+   },
+   {
+    "episode": 19500,
+    "catch_rate": 1.0,
+    "avg_steps": 23.744
+   },
+   {
+    "episode": 20250,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 24.229333333333333
+   },
+   {
+    "episode": 21000,
+    "catch_rate": 1.0,
+    "avg_steps": 22.690666666666665
+   },
+   {
+    "episode": 21750,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 23.222666666666665
+   },
+   {
+    "episode": 22500,
+    "catch_rate": 1.0,
+    "avg_steps": 23.809333333333335
+   },
+   {
+    "episode": 23250,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 22.362666666666666
+   },
+   {
+    "episode": 24000,
+    "catch_rate": 1.0,
+    "avg_steps": 21.637333333333334
+   },
+   {
+    "episode": 24750,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 23.624
+   },
+   {
+    "episode": 25500,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 24.301333333333332
+   },
+   {
+    "episode": 26250,
+    "catch_rate": 1.0,
+    "avg_steps": 26.022666666666666
+   },
+   {
+    "episode": 27000,
+    "catch_rate": 0.9986666666666667,
+    "avg_steps": 24.309333333333335
+   },
+   {
+    "episode": 27750,
+    "catch_rate": 1.0,
+    "avg_steps": 23.026666666666667
+   },
+   {
+    "episode": 28500,
+    "catch_rate": 0.9973333333333333,
+    "avg_steps": 24.826666666666668
+   },
+   {
+    "episode": 29250,
+    "catch_rate": 0.996,
+    "avg_steps": 26.256
+   },
+   {
+    "episode": 30000,
+    "catch_rate": 0.9946666666666667,
+    "avg_steps": 25.977333333333334
+   }
+  ],
+  "train_s": 15.991880178451538
+ }
+}

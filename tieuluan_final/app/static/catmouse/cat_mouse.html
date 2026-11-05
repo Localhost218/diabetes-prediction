@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mèo Đuổi Chuột</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --text: #1d2330;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --brand: #0f766e;
+    --brand-rgb: 15, 118, 110;
+    --brand-soft: #e6f4f2;
+    --on-brand: #ffffff;
+    --wall: #374151;
+    --cell: #f9fafb;
+    --good: #16a34a;
+    --bad: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --surface: #181b21; --text: #e6e8ec; --muted: #9aa1ad; --line: #2a2f38;
+      --brand: #2dd4bf; --brand-rgb: 45, 212, 191; --brand-soft: #12302d; --on-brand: #04201d;
+      --wall: #4b5563; --cell: #1f232b; --good: #4ade80; --bad: #f87171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14.5px; line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+  header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  header p { margin: 4px 0 18px; color: var(--muted); }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+  .stack { display: grid; gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .card h2 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+
+  /* Bàn cờ */
+  .status { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .status strong { font-size: 16px; }
+  .status span { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; aspect-ratio: 1; user-select: none; }
+  .cell {
+    position: relative; border-radius: 6px; background: var(--cell);
+    display: grid; place-items: center; cursor: pointer; overflow: hidden;
+  }
+  .cell.wall { background: var(--wall); cursor: default; }
+  .cell .heat { position: absolute; inset: 0; background: rgb(var(--brand-rgb)); opacity: 0; transition: opacity .15s; }
+  .cell .arrow { position: relative; font-size: clamp(11px, 2.2vw, 16px); color: var(--brand); opacity: .75; font-weight: 700; }
+  .cell .trail { position: absolute; right: 12%; bottom: 12%; width: 16%; height: 16%; border-radius: 50%; background: #f59e0b; opacity: .8; }
+  .cell .token { position: absolute; font-size: clamp(22px, 5.2vw, 38px); line-height: 1; transition: transform .12s; }
+  .cell.caught { outline: 3px solid var(--good); outline-offset: -3px; }
+  .cell:not(.wall):hover { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .info { min-height: 2.6em; margin: 10px 0 4px; font-size: 13px; color: var(--muted); }
+
+  .controls { display: grid; gap: 10px; margin-top: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .label { font-size: 12.5px; color: var(--muted); min-width: 64px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--bg); flex-wrap: wrap; }
+  .seg button { font: inherit; border: 0; background: transparent; color: var(--text); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+  .seg button.on { background: var(--surface); color: var(--brand); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .btn { font: inherit; cursor: pointer; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 7px 14px; }
+  .btn:hover { border-color: var(--brand); }
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 600; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  input[type=range] { accent-color: var(--brand); flex: 1; min-width: 100px; }
+  label.check { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; font-size: 13px; }
+  label.check input { accent-color: var(--brand); }
+
+  /* Bảng so sánh */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 0 6px 6px; }
+  td { padding: 8px 6px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  td.num, th.num { text-align: right; }
+  .rate { display: flex; align-items: center; gap: 8px; }
+  .rate .track { flex: 1; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; min-width: 40px; }
+  .rate .track i { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
+  tr.me td:first-child { font-weight: 600; }
+
+  /* Biểu đồ */
+  .chart { position: relative; }
+  .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart .tip {
+    position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    white-space: nowrap; display: none;
+  }
+  .caption { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+
+  .form { display: grid; gap: 10px; }
+  .form .label { min-width: 104px; }
+  .form .row output { font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; font-weight: 600; }
+  select { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
+
+  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: var(--bg); border-radius: 8px; padding: 10px 12px; overflow-x: auto; }
+  ul.plain { margin: 8px 0 0; padding-left: 18px; }
+  ul.plain li { margin: 2px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🐱 Mèo đuổi chuột 🐭</h1>
+    <p>Tác tử mèo tự học cách bắt chuột bằng Q-Learning, so với mèo đi theo luật và mèo đi ngẫu nhiên.</p>
+  </header>
+
+  <div class="layout">
+    <section class="card">
+      <div class="status">
+        <strong id="statusText">Sẵn sàng</strong>
+        <span id="statusMeta"></span>
+      </div>
+      <div class="board" id="board" aria-label="Ma trận 8x8"></div>
+      <div class="info" id="info">Bấm vào một ô trống để đặt chuột hoặc mèo. Rê chuột lên ô để xem giá trị Q.</div>
+
+      <div class="controls">
+        <div class="row">
+          <span class="label">Mèo</span>
+          <div class="seg" id="agentSeg">
+            <button data-v="q_learning" class="on">Q-Learning</button>
+            <button data-v="rule_based">Theo luật</button>
+            <button data-v="random">Ngẫu nhiên</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">Bấm ô để</span>
+          <div class="seg" id="placeSeg">
+            <button data-v="mouse" class="on">Đặt 🐭</button>
+            <button data-v="cat">Đặt 🐱</button>
+          </div>
+          <label class="check"><input type="checkbox" id="heatToggle" checked> Hiện bảng Q</label>
+        </div>
+        <div class="row">
+          <span class="label">Tốc độ</span>
+          <span class="caption" style="margin:0">Chậm</span>
+          <input type="range" id="speed" min="40" max="600" value="220" step="20" style="direction: rtl" aria-label="Tốc độ">
+          <span class="caption" style="margin:0">Nhanh</span>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="runBtn">▶ Chạy</button>
+          <button class="btn" id="stepBtn">Từng bước</button>
+          <button class="btn" id="shuffleBtn">Vị trí ngẫu nhiên</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="stack">
+      <section class="card">
+        <h2>So sánh trên 300 ván thử</h2>
+        <table>
+          <thead><tr><th>Tác tử</th><th>Bắt được</th><th class="num">Số bước TB</th><th class="num">Reward TB</th></tr></thead>
+          <tbody id="evalBody"></tbody>
+        </table>
+        <p class="caption">Cùng 300 vị trí xuất phát cho cả 3 tác tử, tối đa 100 bước mỗi ván.</p>
+      </section>
+
+      <section class="card">
+        <h2>Đường cong học</h2>
+        <div class="chart" id="chart"></div>
+        <p class="caption" id="chartCaption"></p>
+      </section>
+
+      <section class="card">
+        <h2>Huấn luyện lại</h2>
+        <div class="form">
+          <div class="row"><span class="label">Số tập</span><input type="range" id="fEp" min="500" max="30000" step="500" value="15000"><output id="oEp">15000</output></div>
+          <div class="row"><span class="label">α (học)</span><input type="range" id="fAlpha" min="0.05" max="1" step="0.05" value="0.2"><output id="oAlpha">0.20</output></div>
+          <div class="row"><span class="label">γ (chiết khấu)</span><input type="range" id="fGamma" min="0.5" max="0.99" step="0.01" value="0.95"><output id="oGamma">0.95</output></div>
+          <div class="row">
+            <span class="label">Chuột</span>
+            <div class="seg" id="mouseSeg">
+              <button data-v="flee" class="on">Biết chạy trốn</button>
+              <button data-v="random">Đi lung tung</button>
+            </div>
+          </div>
+          <div class="row"><button class="btn primary" id="trainBtn">Huấn luyện</button><span class="caption" id="trainMsg" style="margin:0"></span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Mèo học như thế nào</h2>
+        <div class="formula">Q(s,a) ← Q(s,a) + α · [ r + γ · max Q(s′,·) − Q(s,a) ]</div>
+        <ul class="plain">
+          <li><b>Trạng thái s</b> = (ô của mèo, ô của chuột) → <span id="nStates">2.916</span> trạng thái.</li>
+          <li><b>Hành động</b>: lên, xuống, trái, phải. Mèo đi trước, chuột đi sau.</li>
+          <li><b>Phần thưởng</b>: −1 mỗi bước, −3 khi đâm tường, +100 khi bắt được chuột.</li>
+          <li><b>Khám phá</b>: ε-greedy, ε giảm từ 1 xuống 0,05 trong 70% số tập đầu.</li>
+          <li>Ô càng đậm màu trên bàn cờ thì max Q càng cao: mèo đứng ở đó có lợi, mũi tên là hướng nó sẽ chọn.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const ARROWS = ['↑', '↓', '←', '→'];
+const AGENT_NAMES = { q_learning: 'Q-Learning', rule_based: 'Theo luật Manhattan', random: 'Ngẫu nhiên' };
+
+let model = null;          // dữ liệu từ /api/v1/catmouse/model
+let cellIndex = new Map(); // "r,c" -> chỉ số ô trống
+let pos = { cat: null, mouse: null };
+let agent = 'q_learning';
+let placing = 'mouse';
+let trail = [];
+let caughtAt = null;
+let playback = null;       // { frames, i, timer }
+
+const key = c => c[0] + ',' + c[1];
+
+function seg(id, onChange) {
+  const el = $(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    el.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    onChange(b.dataset.v);
+  });
+}
+
+function buildBoard() {
+  const board = $('board');
+  board.innerHTML = '';
+  model.layout.forEach((row, r) => [...row].forEach((ch, c) => {
+    const d = document.createElement('div');
+    d.className = 'cell' + (ch === '#' ? ' wall' : '');
+    d.dataset.r = r; d.dataset.c = c;
+    if (ch !== '#') d.innerHTML = '<div class="heat"></div><span class="arrow"></span>';
+    board.appendChild(d);
+  }));
+}
+
+function cellEl(c) { return $('board').children[c[0] * 8 + c[1]]; }
+
+function render() {
+  const showHeat = $('heatToggle').checked && pos.mouse;
+  const m = pos.mouse ? cellIndex.get(key(pos.mouse)) : null;
+  let vmin = Infinity, vmax = -Infinity;
+  if (showHeat) {
+    model.cells.forEach((c, i) => {
+      if (i === m) return;
+      const v = Math.max(...model.q_values[i][m]);
+      vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
+    });
+  }
+  const trailSet = new Set(trail.map(key));
+  model.cells.forEach((c, i) => {
+    const el = cellEl(c);
+    const heat = el.querySelector('.heat'), arrow = el.querySelector('.arrow');
+    if (showHeat && i !== m) {
+      const q = model.q_values[i][m];
+      const v = Math.max(...q);
+      heat.style.opacity = (0.05 + 0.55 * (v - vmin) / ((vmax - vmin) || 1)).toFixed(3);
+      arrow.textContent = ARROWS[q.indexOf(v)];
+    } else {
+      heat.style.opacity = 0;
+      arrow.textContent = '';
+    }
+    el.querySelectorAll('.token, .trail').forEach(x => x.remove());
+    el.classList.toggle('caught', caughtAt !== null && key(c) === key(caughtAt));
+    if (trailSet.has(key(c))) el.insertAdjacentHTML('beforeend', '<span class="trail"></span>');
+    const isCat = pos.cat && key(c) === key(pos.cat), isMouse = pos.mouse && key(c) === key(pos.mouse);
+    if (isCat) el.insertAdjacentHTML('beforeend', '<span class="token">🐱</span>');
+    else if (isMouse) el.insertAdjacentHTML('beforeend', '<span class="token">🐭</span>');
+  });
+}
+
+function setStatus(text, meta = '') { $('statusText').textContent = text; $('statusMeta').textContent = meta; }
+
+function randomPositions() {
+  const cells = model.cells;
+  while (true) {
+    const a = cells[Math.floor(Math.random() * cells.length)], b = cells[Math.floor(Math.random() * cells.length)];
+    if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) >= 4) return { cat: a, mouse: b };
+  }
+}
+
+function resetRound(newPos) {
+  stopPlayback();
+  pos = newPos; trail = []; caughtAt = null;
+  setStatus('Sẵn sàng', AGENT_NAMES[agent]);
+  render();
+}
+
+function stopPlayback() {
+  if (playback?.timer) clearTimeout(playback.timer);
+  playback = null;
+  $('runBtn').textContent = '▶ Chạy';
+}
+
+async function loadEpisode() {
+  if (caughtAt) resetRound(randomPositions());
+  const r = await fetch('/api/v1/catmouse/episode', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ agent, cat: pos.cat, mouse: pos.mouse, seed: Math.floor(Math.random() * 1e9) }),
+  });
+  if (!r.ok) { setStatus('Lỗi', (await r.json()).detail); return null; }
+  const ep = await r.json();
+  return { frames: ep.frames, i: 0, total: 0, timer: null };
+}
+
+function showFrame() {
+  const f = playback.frames[playback.i];
+  pos = { cat: f.cat, mouse: f.mouse };
+  playback.total += f.reward;
+  if (playback.i > 0) trail.push(playback.frames[playback.i - 1].cat);
+  const last = playback.i === playback.frames.length - 1;
+  const caught = last && key(f.cat) === key(f.mouse);
+  if (caught) caughtAt = f.cat;
+  const meta = `Bước ${playback.i} · Reward ${playback.total}`;
+  if (caught) setStatus(`Bắt được sau ${playback.i} bước! 🎉`, meta);
+  else if (last) setStatus('Hết 100 bước, chuột thoát 🐭', meta);
+  else setStatus(f.action ? `Mèo đi ${f.action.toLowerCase()}${f.reward === -3 ? ' (đâm tường)' : ''}` : 'Bắt đầu', meta);
+  render();
+  return last;
+}
+
+async function run() {
+  if (playback?.timer) { clearTimeout(playback.timer); playback.timer = null; $('runBtn').textContent = '▶ Tiếp tục'; return; }
+  if (!playback) { playback = await loadEpisode(); if (!playback) return; trail = []; }
+  $('runBtn').textContent = '⏸ Dừng';
+  const tick = () => {
+    if (showFrame()) { stopPlayback(); return; }
+    playback.i++;
+    playback.timer = setTimeout(tick, +$('speed').value);
+  };
+  tick();
+}
+
+async function step() {
+  if (playback?.timer) { clearTimeout(playback.timer); playback.timer = null; }
+  if (!playback) { playback = await loadEpisode(); if (!playback) return; trail = []; }
+  $('runBtn').textContent = '▶ Tiếp tục';
+  if (showFrame()) stopPlayback(); else playback.i++;
+}
+
+function onCellClick(e) {
+  const el = e.target.closest('.cell');
+  if (!el || el.classList.contains('wall')) return;
+  const c = [+el.dataset.r, +el.dataset.c];
+  const other = placing === 'cat' ? pos.mouse : pos.cat;
+  if (other && key(other) === key(c)) return;
+  resetRound({ ...pos, [placing]: c });
+}
+
+function onCellHover(e) {
+  const el = e.target.closest('.cell');
+  if (!el || el.classList.contains('wall') || !pos.mouse) return;
+  const c = [+el.dataset.r, +el.dataset.c];
+  const i = cellIndex.get(key(c)), m = cellIndex.get(key(pos.mouse));
+  if (i === m) { $('info').textContent = `Chuột đang ở ô (${c[0]}, ${c[1]}).`; return; }
+  const q = model.q_values[i][m];
+  $('info').textContent = `Nếu mèo ở (${c[0]}, ${c[1]}) và chuột ở (${pos.mouse[0]}, ${pos.mouse[1]}): `
+    + ['Lên', 'Xuống', 'Trái', 'Phải'].map((n, k) => `${n} ${q[k].toFixed(1)}`).join(' · ');
+}
+
+function renderEval() {
+  $('evalBody').innerHTML = model.evaluation.map(e => `
+    <tr class="${e.id === 'q_learning' ? 'me' : ''}">
+      <td>${AGENT_NAMES[e.id]}</td>
+      <td><div class="rate"><div class="track"><i style="width:${e.catch_rate * 100}%"></i></div>${Math.round(e.catch_rate * 100)}%</div></td>
+      <td class="num">${e.avg_steps.toFixed(1)}</td>
+      <td class="num">${e.avg_reward.toFixed(1)}</td>
+    </tr>`).join('');
+}
+
+function renderChart() {
+  const pts = model.learning_curve;
+  const W = 340, H = 170, L = 34, R = 8, T = 10, B = 26;
+  const maxX = pts[pts.length - 1].episode;
+  const maxY = Math.ceil(Math.max(...pts.map(p => p.avg_steps)) / 20) * 20;
+  const x = v => L + (W - L - R) * v / maxX;
+  const y = v => T + (H - T - B) * (1 - v / maxY);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.episode).toFixed(1)},${y(p.avg_steps).toFixed(1)}`).join('');
+  const yTicks = [0, maxY / 2, maxY];
+  const xTicks = [0, maxX / 2, maxX];
+  const fmt = n => n >= 1000 ? (n / 1000).toFixed(n % 1000 ? 1 : 0) + 'k' : n;
+  $('chart').innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Số bước trung bình để bắt chuột theo số tập huấn luyện">
+      ${yTicks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/>
+        <text x="${L - 6}" y="${y(t) + 4}" text-anchor="end" font-size="10" fill="var(--muted)">${t}</text>`).join('')}
+      ${xTicks.map(t => `<text x="${x(t)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${fmt(t)}</text>`).join('')}
+      <path d="${line}" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <line id="cross" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/>
+      <circle id="dot" r="4" fill="var(--brand)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>
+      <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hit"/>
+    </svg>
+    <div class="tip" id="tip"></div>`;
+  const svg = $('chart').querySelector('svg'), tip = $('tip');
+  const hide = () => { $('cross').setAttribute('visibility', 'hidden'); $('dot').setAttribute('visibility', 'hidden'); tip.style.display = 'none'; };
+  $('hit').addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    const sx = (e.clientX - rect.left) * W / rect.width;
+    const p = pts.reduce((best, q) => Math.abs(x(q.episode) - sx) < Math.abs(x(best.episode) - sx) ? q : best);
+    $('cross').setAttribute('x1', x(p.episode)); $('cross').setAttribute('x2', x(p.episode));
+    $('cross').setAttribute('visibility', 'visible');
+    $('dot').setAttribute('cx', x(p.episode)); $('dot').setAttribute('cy', y(p.avg_steps)); $('dot').setAttribute('visibility', 'visible');
+    tip.innerHTML = `<b>Tập ${p.episode.toLocaleString('vi')}</b><br>${p.avg_steps.toFixed(1)} bước TB · bắt được ${Math.round(p.catch_rate * 100)}%`;
+    tip.style.display = 'block';
+    const px = x(p.episode) * rect.width / W;
+    tip.style.left = Math.min(px + 10, rect.width - tip.offsetWidth) + 'px';
+    tip.style.top = '0px';
+  });
+  $('hit').addEventListener('mouseleave', hide);
+  const first = pts[0], last = pts[pts.length - 1];
+  $('chartCaption').textContent = `Số bước trung bình mỗi ván để bắt chuột: từ ${first.avg_steps.toFixed(0)} bước lúc mới học xuống ${last.avg_steps.toFixed(0)} bước. `
+    + `Huấn luyện ${maxX.toLocaleString('vi')} tập trong ${model.train_time_s}s.`;
+}
+
+function applyModel(m) {
+  model = m;
+  cellIndex = new Map(m.cells.map((c, i) => [key(c), i]));
+  $('nStates').textContent = m.n_states.toLocaleString('vi');
+  buildBoard();
+  renderEval();
+  renderChart();
+  resetRound(pos.cat && cellIndex.has(key(pos.cat)) ? pos : randomPositions());
+}
+
+// Form huấn luyện
+let mouseMode = 'flee';
+seg('mouseSeg', v => mouseMode = v);
+[['fEp', 'oEp', v => v], ['fAlpha', 'oAlpha', v => (+v).toFixed(2)], ['fGamma', 'oGamma', v => (+v).toFixed(2)]]
+  .forEach(([i, o, f]) => $(i).addEventListener('input', () => $(o).textContent = f($(i).value)));
+
+$('trainBtn').onclick = async () => {
+  const btn = $('trainBtn');
+  btn.disabled = true;
+  $('trainMsg').textContent = `Đang huấn luyện… (khoảng ${Math.max(1, Math.round($('fEp').value / 4000))}s)`;
+  try {
+    const r = await fetch('/api/v1/catmouse/train', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ episodes: +$('fEp').value, alpha: +$('fAlpha').value, gamma: +$('fGamma').value, mouse_mode: mouseMode }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    applyModel(await r.json());
+    $('trainMsg').textContent = `Xong sau ${model.train_time_s}s.`;
+  } catch (e) {
+    $('trainMsg').textContent = 'Lỗi: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+seg('agentSeg', v => { agent = v; resetRound(pos); });
+seg('placeSeg', v => placing = v);
+$('heatToggle').onchange = render;
+$('runBtn').onclick = run;
+$('stepBtn').onclick = step;
+$('shuffleBtn').onclick = () => resetRound(randomPositions());
+$('board').addEventListener('click', onCellClick);
+$('board').addEventListener('mouseover', onCellHover);
+
+fetch('/api/v1/catmouse/model').then(r => r.json()).then(applyModel)
+  .catch(e => setStatus('Không tải được mô hình', e.message));
+</script>
+</body>
+</html>

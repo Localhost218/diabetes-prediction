@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ spec.title }} — Tiểu luận 03{% endblock %}
+{% block content %}
+<div class="exp-head" style="--c: {{ meta.color }}">
+  <a class="back" href="/#{{ meta.id }}">← Chương {{ meta.no }}: {{ meta.title }}</a>
+  <h1><span class="card-icon">{{ meta.icon }}</span>{{ spec.title }}</h1>
+  <div class="tags"><span class="tag">{{ kind_label }}</span><span class="tag">{{ spec.models | length }} mô hình</span><span class="tag mono">{{ exp_id }}</span></div>
+  {% if spec.description %}<p class="lead">{{ spec.description }}</p>{% endif %}
+  {% if siblings | length > 1 %}
+  <nav class="tabs">{% for s in siblings %}<a href="/exp/{{ s.id }}" class="{{ 'on' if s.id == exp_id }}">{{ s.title }}</a>{% endfor %}</nav>
+  {% endif %}
+</div>
+
+<div class="panes kind-{{ spec.kind }}" style="--c: {{ meta.color }}">
+  <section class="pane form-pane">
+    <h3>Đầu vào</h3>
+    <form id="form" autocomplete="off"></form>
+    <div class="actions">
+      <button type="button" class="btn ghost" id="fill-example">Điền ví dụ</button>
+      <button type="button" class="btn" id="run">Dự đoán</button>
+    </div>
+  </section>
+  <section class="pane result-pane" id="result-pane">
+    <h3>Kết quả</h3>
+    <div id="result" class="result empty"><div class="placeholder">Nhập dữ liệu và bấm <b>Dự đoán</b>.</div></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.EXP = {{ {"id": exp_id, "spec": spec, "color": meta.color} | tojson }};</script>
+{% if spec.kind == 'series' %}<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>{% endif %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

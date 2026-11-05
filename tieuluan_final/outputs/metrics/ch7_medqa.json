@@ -1,0 +1,51 @@
+{
+ "n": 150,
+ "systems": {
+  "direct": {
+   "n": 150,
+   "accuracy": 0.64,
+   "no_answer": 0.0,
+   "calls": 1.0,
+   "tokens_out": 4.0,
+   "seconds": 0.21602666666666664,
+   "errors": {
+    "knowledge": 54
+   }
+  },
+  "cot": {
+   "n": 150,
+   "accuracy": 0.5733333333333334,
+   "no_answer": 0.006666666666666667,
+   "calls": 1.0,
+   "tokens_out": 98.53333333333333,
+   "seconds": 4.955313333333334,
+   "errors": {
+    "knowledge": 63,
+    "no_answer": 1
+   }
+  },
+  "rag": {
+   "n": 150,
+   "accuracy": 0.54,
+   "no_answer": 0.0,
+   "calls": 1.0,
+   "tokens_out": 31.733333333333334,
+   "seconds": 2.042393333333333,
+   "errors": {
+    "knowledge": 69
+   }
+  },
+  "multi": {
+   "n": 150,
+   "accuracy": 0.56,
+   "no_answer": 0.0,
+   "calls": 2.84,
+   "tokens_out": 207.89333333333335,
+   "seconds": 8.92264,
+   "errors": {
+    "knowledge": 43,
+    "coordination": 23
+   }
+  }
+ }
+}

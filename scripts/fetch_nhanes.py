@@ -9,7 +9,7 @@ Tải dữ liệu NHANES (CDC, công khai) và dựng bộ dữ liệu đái th�
   HOẶC glucose lúc đói ≥ 126 mg/dL. Nhãn phụ: tiền đái tháo đường (HbA1c 5,7–6,4% hoặc FPG 100–125).
 - Đặc trưng chỉ gồm những gì người dùng có thể tự khai với chatbot (không dùng xét nghiệm làm đặc trưng để tránh rò nhãn).
 
-Kết quả: data/nhanes/nhanes_diabetes.csv và bảng nhanes_samples trong PostgreSQL.
+Kết quả: data/nhanes/nhanes_diabetes.csv và bảng nhanes_samples trong DB quan hệ (SQLite).
 """
 
 import sys

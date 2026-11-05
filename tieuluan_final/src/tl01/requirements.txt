@@ -1,0 +1,16 @@
+numpy
+pandas
+scipy
+scikit-learn
+statsmodels
+matplotlib
+joblib
+pyarrow
+torch           # bản CUDA: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+torchvision
+tensorflow      # TensorFlow >= 2.11 trên Windows chỉ chạy CPU
+keras
+yfinance
+flask
+pillow
+playwright      # chỉ để chụp ảnh giao diện: playwright install chromium

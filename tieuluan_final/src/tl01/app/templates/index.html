@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hệ thống Thông minh · Tiểu luận</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo">◆</span> Intelligent Systems Lab
+    <small>Học máy · CNN · RNN — Nguyễn Duy Nghĩa, B23DCCN600</small></div>
+  <nav>
+    <button class="tab on" data-tab="diabetes">Tiểu đường</button>
+    <button class="tab" data-tab="house">Giá nhà</button>
+    <button class="tab" data-tab="sentiment">Cảm xúc</button>
+    <button class="tab" data-tab="vision">Thị giác</button>
+    <button class="tab" data-tab="stock">Cổ phiếu</button>
+    <button class="tab" data-tab="churn">Rời bỏ</button>
+  </nav>
+</header>
+<main>
+<!-- ===================================================== Tiểu đường -->
+<section id="diabetes" class="pane on">
+  <h2>Sàng lọc nguy cơ tiểu đường <span class="tag">MLP PyTorch · Random Forest</span></h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Chỉ số lâm sàng</h3>
+      <div class="form">
+        <label>Giới tính<select id="d-gender"><option>Female</option><option>Male</option></select></label>
+        <label>Tuổi<input id="d-age" type="number" value="58"></label>
+        <label>Tăng huyết áp<select id="d-hyp"><option value="0">Không</option><option value="1" selected>Có</option></select></label>
+        <label>Bệnh tim<select id="d-heart"><option value="0">Không</option><option value="1">Có</option></select></label>
+        <label>Hút thuốc<select id="d-smoke"><option>never</option><option>former</option><option>current</option><option>No Info</option></select></label>
+        <label>BMI<input id="d-bmi" type="number" step="0.1" value="31.4"></label>
+        <label>HbA1c (%)<input id="d-hba" type="number" step="0.1" value="7.2"></label>
+        <label>Đường huyết (mg/dL)<input id="d-glu" type="number" value="200"></label>
+      </div>
+      <button class="run" id="d-run">Đánh giá nguy cơ</button>
+    </div>
+    <div class="card result" id="d-out"><p class="muted">Nhập chỉ số rồi bấm “Đánh giá nguy cơ”.</p></div>
+  </div>
+</section>
+<!-- ===================================================== Giá nhà -->
+<section id="house" class="pane">
+  <h2>Định giá bất động sản Việt Nam <span class="tag">Random Forest · MLP PyTorch</span></h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Thông tin căn nhà</h3>
+      <div class="form">
+        <label>Tỉnh/thành<select id="h-prov"><option>Hà Nội</option><option>Hồ Chí Minh</option><option>Đà Nẵng</option><option>Bình Dương</option></select></label>
+        <label>Quận/huyện<input id="h-dist" value="Cầu Giấy"></label>
+        <label>Diện tích (m²)<input id="h-area" type="number" value="52"></label>
+        <label>Số tầng<input id="h-floors" type="number" value="5"></label>
+        <label>Phòng ngủ<input id="h-bed" type="number" value="4"></label>
+        <label>Phòng tắm<input id="h-bath" type="number" value="4"></label>
+        <label>Mặt tiền (m)<input id="h-front" type="number" step="0.1" value="4.5"></label>
+        <label>Đường vào (m)<input id="h-road" type="number" step="0.5" value="3"></label>
+        <label>Pháp lý<select id="h-legal"><option>Have certificate</option><option>Sale contract</option><option value="">Không rõ</option></select></label>
+        <label>Nội thất<select id="h-furn"><option>Full</option><option>Basic</option><option value="">Không rõ</option></select></label>
+      </div>
+      <button class="run" id="h-run">Định giá</button>
+    </div>
+    <div class="card result" id="h-out"><p class="muted">Điền thông tin rồi bấm “Định giá”.</p></div>
+  </div>
+</section>
+<!-- ===================================================== Cảm xúc -->
+<section id="sentiment" class="pane">
+  <h2>Phân tích cảm xúc nhận xét khách hàng <span class="tag">TF-IDF · MLP PyTorch · Logistic Regression</span></h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Nhận xét (tiếng Anh)</h3>
+      <textarea id="s-text" rows="6">Love the color and the fabric is soft, but the sizing runs small so I had to exchange it. Still a cute top for summer.</textarea>
+      <div class="chips"><span class="chip" data-t="Absolutely gorgeous dress, fits perfectly and the quality is amazing. Will buy again!">Tích cực</span>
+        <span class="chip" data-t="Cheap material, see-through and the seams came apart after one wash. Very disappointed, returning it.">Tiêu cực</span>
+        <span class="chip" data-t="It is okay. The fit is a bit boxy and the color is not as shown, but wearable.">Trung tính</span></div>
+      <button class="run" id="s-run">Phân tích</button>
+    </div>
+    <div class="card result" id="s-out"><p class="muted">Nhập nhận xét rồi bấm “Phân tích”.</p></div>
+  </div>
+</section>
+<!-- ===================================================== Thị giác -->
+<section id="vision" class="pane">
+  <h2>Vision AI: phân loại ảnh và bản đồ kích hoạt CAM <span class="tag">ResNet-18 · MobileNetV2</span></h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Nguồn ảnh</h3>
+      <div class="form">
+        <label>Phân hệ<select id="v-ds"><option value="eurosat">Ảnh vệ tinh EuroSAT</option><option value="svhn">Số nhà SVHN</option></select></label>
+        <label>Kiến trúc<select id="v-arch"><option value="resnet18">ResNet-18</option><option value="mobilenetv2">MobileNetV2</option></select></label>
+        <label>Ảnh kiểm thử số<input id="v-idx" type="number" value="17"></label>
+        <label>Hoặc tải ảnh lên<input id="v-file" type="file" accept="image/*"></label>
+      </div>
+      <button class="run" id="v-run">Nhận diện</button> <button class="ghost" id="v-rand">Ảnh ngẫu nhiên</button>
+    </div>
+    <div class="card result" id="v-out"><p class="muted">Chọn ảnh rồi bấm “Nhận diện”.</p></div>
+  </div>
+</section>
+<!-- ===================================================== Cổ phiếu -->
+<section id="stock" class="pane">
+  <h2>Dự báo giá cổ phiếu FPT.VN <span class="tag">Simple RNN · LSTM · GRU · BiLSTM</span></h2>
+  <div class="toolbar">
+    <div class="seg" id="st-cell"><button data-c="rnn">Simple RNN</button><button data-c="lstm" class="on">LSTM</button><button data-c="gru">GRU</button><button data-c="bilstm">BiLSTM</button></div>
+    <label>Số phiên hiển thị <input id="st-days" type="range" min="40" max="700" value="160"><b id="st-dv">160</b></label>
+    <button class="run" id="st-run">Dự báo</button>
+  </div>
+  <div class="grid wide">
+    <div class="card"><h3>Giá thực tế và dự báo trên tập kiểm thử (nghìn đồng)</h3><div id="st-chart" class="chart"></div></div>
+    <div class="card result" id="st-out"><p class="muted">Chọn mô hình rồi bấm “Dự báo”.</p></div>
+  </div>
+</section>
+<!-- ===================================================== Rời bỏ -->
+<section id="churn" class="pane">
+  <h2>Dự đoán khách hàng rời bỏ dịch vụ KKBox <span class="tag">chuỗi 31 ngày × 8 đặc trưng</span></h2>
+  <div class="toolbar">
+    <div class="seg" id="c-group"><button data-g="any" class="on">Ngẫu nhiên</button><button data-g="churn">Người đã rời bỏ</button><button data-g="loyal">Người ở lại</button></div>
+    <button class="run" id="c-run">Lấy người dùng &amp; dự đoán</button>
+  </div>
+  <div class="grid wide">
+    <div class="card"><h3>Quỹ đạo nghe nhạc 31 ngày (phút/ngày)</h3><div id="c-chart" class="chart"></div></div>
+    <div class="card result" id="c-out"><p class="muted">Bấm nút để lấy một người dùng trong tập kiểm thử.</p></div>
+  </div>
+</section>
+</main>
+<footer>Mô hình chạy trên CPU của máy chủ Flask · số liệu kiểm thử lấy từ outputs/metrics</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

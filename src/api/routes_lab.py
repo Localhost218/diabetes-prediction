@@ -24,7 +24,6 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from sqlalchemy import text
 
 from src.config import BASE_DIR
 from src.knowledge.entity_linking import link_entities
@@ -205,40 +204,30 @@ def _kg_nodes() -> List[str]:
     return sorted({t["head"] for t in triples} | {t["tail"] for t in triples})
 
 
-VECTOR_SQL = text("""SELECT c.id, c.heading, c.content, d.title, d.id AS document_id,
-                     1 - (c.embedding <=> CAST(:qvec AS vector)) AS score
-                     FROM kb_chunks c JOIN kb_documents d ON d.id = c.document_id
-                     ORDER BY c.embedding <=> CAST(:qvec AS vector) LIMIT :k""")
-FTS_SQL = text("""SELECT c.id, c.heading, c.content, d.title, d.id AS document_id, ts_rank_cd(c.tsv, q) AS score
-                  FROM kb_chunks c JOIN kb_documents d ON d.id = c.document_id,
-                       websearch_to_tsquery('simple', immutable_unaccent(:q)) AS q
-                  WHERE c.tsv @@ q ORDER BY score DESC LIMIT :k""")
-
-
 def _search(q: SearchIn) -> Dict[str, Any]:
     from src.knowledge.embedder import get_embedder
     from src.storage.db import session_scope
     from src.storage.graph_store import get_graph_store
-    from src.storage.vector_store import FTS_OR_SQL, PgVectorStore, _clean
+    from src.storage.vector_store import get_vector_store
     t0 = time.perf_counter()
     graph = None
     with session_scope() as s:
+        store = get_vector_store(s)
         if q.mode == "fulltext":
-            or_q = s.execute(FTS_OR_SQL, {"q": _clean(q.query)}).scalar() or ""
-            rows = [dict(r) for r in s.execute(FTS_SQL, {"q": or_q, "k": q.k}).mappings()]
+            rows = store.fulltext_search(q.query, k=q.k)
         else:
             vec = get_embedder().embed([q.query])[0]
             if q.mode == "vector":
-                rows = [dict(r) for r in s.execute(VECTOR_SQL, {"qvec": str(list(vec)), "k": q.k}).mappings()]
+                rows = store.vector_search(vec, k=q.k)
             else:
-                rows = PgVectorStore(s).hybrid_search(q.query, vec, k=q.k)
+                rows = store.hybrid_search(q.query, vec, k=q.k)
         if q.mode == "graphrag":
             ents = link_entities(q.query, _kg_nodes())
             edges = get_graph_store(s).neighborhood(ents, max_hops=1, limit=30) if ents else []
             ids = [r["id"] for r in rows]
             extra = [c for e in edges for c in e["chunk_ids"] if c not in ids]
             extra = list(dict.fromkeys(extra))[: max(0, q.k - 2)]
-            linked = PgVectorStore(s).chunks_by_ids(extra)
+            linked = store.chunks_by_ids(extra)
             # GraphRAG: giữ 2 đoạn tốt nhất của truy xuất lai, bổ sung đoạn được nối từ đồ thị
             rows = rows[:2] + [{**c, "score": None, "via": "graph"} for c in linked] + rows[2:]
             rows = rows[: q.k]

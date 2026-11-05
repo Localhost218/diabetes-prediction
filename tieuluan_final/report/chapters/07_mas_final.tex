@@ -1,0 +1,300 @@
+\chapter{Hệ đa tác tử}
+\label{chap:mas}
+
+Sáu chương trước xây dựng các ``chuyên gia'' riêng lẻ: một mô hình cho bảng, một cho ảnh, một cho chuỗi, một cho văn bản, một cho đồ thị. Chương này hỏi câu hỏi còn lại: khi \emph{nhiều} tác tử cùng hành động trong một môi trường, chúng phối hợp, cạnh tranh và học như thế nào. Chương gồm hai bài thực nghiệm bổ sung cho nhau. \textbf{Bài 1} là hệ đa tác tử \emph{học tăng cường} kinh điển: mèo đuổi chuột trên lưới, trong đó các tác tử học chính sách từ phần thưởng, hợp tác (hai mèo) hoặc đối kháng (mèo và chuột cùng học). \textbf{Bài 2} là hệ đa tác tử dựa trên \emph{mô hình ngôn ngữ lớn}: nhiều tác tử LLM cùng trả lời câu hỏi trắc nghiệm y khoa về đái tháo đường bằng cách suy luận, tra cứu và tranh luận.
+
+\section{Từ tác tử đơn đến hệ đa tác tử}
+
+\subsection{Tác tử}
+
+Theo Russell và Norvig \cite{russell2021}, \emph{tác tử} là thực thể nhận tri giác từ môi trường qua cảm biến và tác động lên môi trường qua cơ cấu chấp hành. Một tác tử được đặc tả bằng bộ \textbf{PEAS}: thước đo hiệu năng (Performance), môi trường (Environment), cơ cấu chấp hành (Actuators) và cảm biến (Sensors). Wooldridge \cite{wooldridge2009} nhấn mạnh bốn tính chất của tác tử thông minh: \emph{tự chủ}, \emph{phản ứng}, \emph{chủ động} và \emph{xã hội}. Theo cách ra quyết định, có năm loại tác tử tăng dần độ phức tạp: phản xạ đơn giản (luật điều kiện–hành động), phản xạ có mô hình, dựa trên mục tiêu, dựa trên lợi ích và tác tử học.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả PEAS của các tác tử trong hai bài thực nghiệm}
+\label{tab:ch7-peas}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.4cm}YYYY@{}}
+\toprule
+\textbf{Tác tử} & \textbf{Hiệu năng} & \textbf{Môi trường} & \textbf{Chấp hành} & \textbf{Cảm biến} \\
+\midrule
+Mèo (Bài 1) & Tỷ lệ bắt được, số bước, tổng phần thưởng & Lưới 8×8 có tường, chuột, mèo khác & Đi lên/xuống/trái/phải & Ô của mình, ô của chuột (và mèo kia) \\
+Chuột (Bài 1) & Số lượt sống sót & Lưới, mèo & Đi 4 hướng hoặc đứng yên & Ô của mình, ô của mèo \\
+Tác tử LLM (Bài 2) & Tỷ lệ trả lời đúng, chi phí (lượt gọi, token) & Câu hỏi, kho tri thức, tác tử khác & Sinh văn bản, gọi công cụ tra cứu & Câu hỏi, bằng chứng, lập luận của tác tử khác \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Hệ đa tác tử}
+
+Hệ đa tác tử (Multi-Agent System, MAS) gồm nhiều tác tử tương tác trong cùng một môi trường \cite{wooldridge2009,jennings1998}. Có ba kiểu quan hệ: \emph{hợp tác} (cùng mục tiêu, ví dụ hai mèo cùng bắt một chuột), \emph{cạnh tranh / đối kháng} (mục tiêu ngược nhau, mèo và chuột) và \emph{hỗn hợp}. Các tác tử phối hợp qua những mô hình tổ chức như \emph{điều phối viên} (một tác tử giao việc và tổng hợp), \emph{bảng đen} (vùng nhớ dùng chung), \emph{đấu thầu} (Contract Net) hoặc \emph{tranh biện ngang hàng}, và giao tiếp bằng thông điệp có ý định rõ ràng như chuẩn FIPA-ACL \cite{fipa2002}.
+
+\textbf{Học trong hệ đa tác tử} khó hơn học đơn tác tử ở một điểm cốt lõi: \emph{môi trường không dừng}. Với một tác tử, các tác tử khác là một phần của môi trường. Khi chúng cũng đang học, ``môi trường'' thay đổi theo thời gian, nên các giả thiết hội tụ của Q-learning đơn tác tử không còn đúng \cite{busoniu2008}. Hai cách tiếp cận cơ bản là \emph{học độc lập} (Independent Q-Learning, IQL: mỗi tác tử tự học như thể tác tử khác là môi trường \cite{tan1993}) và mô hình hóa tường minh bằng \emph{trò chơi Markov} \cite{littman1994}. Bài 1 dùng IQL và đo trực tiếp hệ quả của tính không dừng.
+
+\textbf{Tác tử dựa trên LLM} dùng mô hình ngôn ngữ làm ``bộ não'': suy luận từng bước (chain-of-thought \cite{wei2022cot}), gọi công cụ (tra cứu, chạy mã \cite{gao2023pal}) và trao đổi bằng ngôn ngữ tự nhiên. Các khung như AutoGen \cite{wu2023autogen} và MetaGPT \cite{hong2024metagpt} ghép nhiều tác tử LLM với vai trò khác nhau; Du và cộng sự \cite{du2024debate} cho thấy tranh luận giữa nhiều LLM cải thiện tính đúng đắn. Bài 2 kiểm tra điều đó với một LLM nhỏ chạy cục bộ.
+
+\section{Bài 1: Hệ đa tác tử học tăng cường — mèo đuổi chuột}
+\label{sec:ch7-catmouse}
+
+\subsection{Môi trường và bài toán}
+
+Môi trường là lưới 8×8 với 10 ô tường, còn 54 ô trống (\figref{fig:ch7_catmouse_grid}). Mỗi lượt, mèo đi trước một bước theo 4 hướng; nếu chưa bắt được thì chuột di chuyển. Ván kết thúc khi mèo vào ô của chuột hoặc sau 100 lượt. Đây là một \emph{quá trình quyết định Markov} với:
+\begin{itemize}
+  \item Trạng thái $s=(\text{ô mèo},\ \text{ô chuột})$: $54\times54=2.916$ trạng thái (với hai mèo: $54^3=157.464$).
+  \item Hành động $a\in\{\text{lên},\text{xuống},\text{trái},\text{phải}\}$.
+  \item Phần thưởng: $-1$ mỗi bước (khuyến khích bắt nhanh), $-3$ khi đâm tường (đứng yên), $+100$ khi bắt được.
+  \item Chuột ``luật chạy trốn'': mỗi lượt di chuyển với xác suất 0,8; khi di chuyển, 80\% chọn ô xa mèo nhất theo khoảng cách đường đi (BFS, có tính tường), 20\% đi ngẫu nhiên.
+\end{itemize}
+Mã nguồn môi trường và ba tác tử mèo cơ sở là bài tập Agent trước đó của tác giả; chương này mở rộng thành hai thí nghiệm đa tác tử.
+
+\subsection{Ba loại tác tử mèo}
+
+\begin{itemize}
+  \item \textbf{Ngẫu nhiên} — mốc dưới.
+  \item \textbf{Theo luật} (phản xạ đơn giản): chọn hướng làm khoảng cách Manhattan tới chuột giảm nhiều nhất. Luật này không biết tường nên dễ kẹt.
+  \item \textbf{Q-learning} (tác tử học) \cite{watkins1992,sutton2018}: học bảng $Q(s,a)$ bằng cập nhật sai phân thời gian
+  \begin{equation}
+  Q(s,a)\leftarrow Q(s,a)+\alpha\big[r+\gamma\max_{a'}Q(s',a')-Q(s,a)\big],\quad \alpha=0{,}2,\ \gamma=0{,}95,
+  \end{equation}
+  với chính sách $\epsilon$-tham lam, $\epsilon$ giảm tuyến tính từ 1 về 0,05 trong 70\% số tập đầu.
+\end{itemize}
+
+\begin{code}{Vòng huấn luyện Q-learning của tác tử mèo (\texttt{src/dm/catmouse\_base.py}, rút gọn)}
+\label{lst:ch7-qcat}
+\begin{minted}{python}
+for ep in range(episodes):
+    eps = max(eps_min, 1.0 - ep / decay_until)           # khám phá giảm dần
+    cat, mouse = env.random_start(rng)
+    s = env.state(cat, mouse)
+    while n < env.max_steps:
+        q = Q[s]
+        a = rng.randrange(4) if rng.random() < eps else q.index(max(q))   # epsilon-tham lam
+        cat, mouse, r, caught = env.step(cat, mouse, a, rng)
+        s2 = env.state(cat, mouse)
+        target = r if caught else r + gamma * max(Q[s2])  # mục tiêu Bellman; trạng thái cuối không có tương lai
+        q[a] += alpha * (target - q[a])
+        s, n = s2, n + 1
+        if caught:
+            break
+\end{minted}
+\end{code}
+
+\subsection{Hai mở rộng đa tác tử}
+
+\textbf{Hợp tác — hai mèo.} Thêm một mèo; hai mèo đi lần lượt, rồi chuột chạy xa mèo \emph{gần nhất}. Hai mèo nhận chung một phần thưởng (bắt được bởi mèo nào cũng +100 cho cả đội). Mỗi mèo học một bảng Q riêng trên trạng thái chung $(\text{mèo 1},\text{mèo 2},\text{chuột})$ theo kiểu \emph{học độc lập} (IQL): mèo này coi mèo kia là một phần của môi trường. So sánh với hai mèo cùng dùng luật Manhattan.
+
+\textbf{Đối kháng — cả hai cùng học.} Chuột không còn theo luật mà cũng là một tác tử Q-learning, với phần thưởng ngược: $+1$ mỗi lượt sống sót, $-100$ khi bị bắt. Kết quả nước đi của chuột chỉ biết sau lượt kế tiếp của mèo, nên cập nhật Q của chuột được hoãn một lượt. Hai bảng Q học đồng thời trong 30.000 tập. Sau đó bốn cặp (mèo × chuột) được đấu với nhau trên cùng 300 vị trí xuất phát.
+
+\subsection{Kết quả}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả ba thí nghiệm mèo đuổi chuột (300 ván kiểm tra, vị trí xuất phát cố định, chính sách tham lam)}
+\label{tab:ch7-catmouse}
+\small
+\begin{tabular}{@{}llccr@{}}
+\toprule
+\textbf{Thí nghiệm} & \textbf{Tác tử mèo} & \textbf{Bắt được} & \textbf{Số bước TB} & \textbf{Huấn luyện} \\
+\midrule
+A. Một mèo vs chuột luật & Ngẫu nhiên & 2,3\% & 98,5 & — \\
+ & Theo luật (Manhattan) & 24,3\% & 82,5 & — \\
+ & Q-learning (15.000 tập) & \textbf{100\%} & \textbf{15,3} & 10 s \\
+\midrule
+B. Hai mèo vs chuột luật & Hai mèo theo luật & 52,0\% & 61,9 & — \\
+ & Hai mèo IQL (40.000 tập) & \textbf{99,7\%} & \textbf{22,1} & 78 s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\figw[0.95\linewidth]{ch7_catmouse_grid}{Một ván từ cùng vị trí xuất phát: mèo theo luật kẹt sau tường; mèo Q-learning vòng qua tường và bắt được sau 12 bước}
+
+\figw[0.95\linewidth]{ch7_catmouse_curves}{Đường cong học (tỷ lệ bắt được và số bước theo số tập, khi huấn luyện còn khám phá $\epsilon$)}
+
+\figw[0.62\linewidth]{ch7_catmouse_matrix}{Thí nghiệm C — ma trận đối kháng: hàng là mèo, cột là chuột}
+
+\textbf{Nhận xét.} (i) \emph{Học thắng luật khi môi trường có cấu trúc}: luật Manhattan đúng trên lưới trống nhưng không biết tường, nên chỉ bắt 24\%. Q-learning học được giá trị của từng cặp vị trí, tức đã ngầm học bản đồ, nên bắt 100\% trong trung bình 15 bước (\figref{fig:ch7_catmouse_grid}). (ii) \emph{Hợp tác}: thêm một mèo theo luật nâng tỷ lệ bắt từ 24\% lên 52\%, vì hai mèo tiếp cận từ hai phía nên chuột khó thoát hơn. Hai mèo IQL đạt 99,7\%, nhưng cần 40.000 tập (gấp 2,7 lần) và học chậm hơn hẳn ở giai đoạn đầu (\figref{fig:ch7_catmouse_curves}): không gian trạng thái lớn gấp 54 lần, và mỗi mèo học trong một môi trường thay đổi theo chính sách của mèo kia. (iii) \emph{Đối kháng và tính không dừng} (\figref{fig:ch7_catmouse_matrix}) là kết quả quan trọng nhất. Mèo Q-learning học với chuột luật bắt 100\% chuột luật, nhưng chỉ \textbf{4\%} chuột đã học: chính sách quá khớp với đúng một đối thủ. Mèo học đối kháng bắt 100\% chuột luật \emph{và} 75\% chuột đã học. Đây là minh họa trực tiếp cho lý thuyết: trong hệ đa tác tử, một chính sách chỉ ``tối ưu'' so với chính sách của các tác tử còn lại, và phải được huấn luyện cùng các đối thủ đang thích nghi thì mới bền vững. Chuột đã học cũng đánh bại mèo theo luật (5\%), cho thấy một tác tử học dễ dàng khai thác điểm yếu cố định của tác tử luật.
+
+\section{Bài 2: Hệ đa tác tử LLM — trắc nghiệm đái tháo đường}
+\label{sec:ch7-llm}
+
+\subsection{Bài toán và dữ liệu}
+
+Câu hỏi lấy từ \textbf{MedMCQA} \cite{pal2022medmcqa}, bộ đề thi tuyển sinh sau đại học y khoa của Ấn Độ: lọc 1.421 câu một đáp án có chủ đề đái tháo đường, insulin, HbA1c, hạ đường huyết, metformin, nhiễm toan ceton; lấy mẫu cố định \textbf{150 câu} (nội khoa 35, dược lý 31, sản 12, hóa sinh 10\ldots). Mỗi câu có 4 phương án A–D và một đáp án đúng. Kho tri thức cho tác tử tra cứu là \textbf{MedQuAD — phần NIDDK} \cite{benabacha2019} (1.192 cặp hỏi–đáp của Viện Đái tháo đường, Tiêu hóa và Bệnh thận Hoa Kỳ), chỉ mục BM25. Mọi tác tử dùng chung một LLM chạy cục bộ trên GPU 4 GB: \textbf{Qwen2.5-1.5B-Instruct} \cite{qwen2024}, giải mã tham lam để kết quả tái lập được.
+
+\subsection{Bốn hệ và đặc tả tác tử}
+
+\begin{table}[H]
+\centering
+\caption{Bốn hệ được so sánh trên cùng 150 câu}
+\label{tab:ch7-systems}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.2cm}L{3.6cm}Y@{}}
+\toprule
+\textbf{Hệ} & \textbf{Tác tử} & \textbf{Luồng xử lý} \\
+\midrule
+Direct & 1 tác tử & Đọc câu hỏi, trả lời ngay một chữ cái \\
+CoT & 1 tác tử & Suy luận từng bước (tối đa 6 câu), rồi trả lời \\
+RAG-agent & 1 tác tử + công cụ & Gọi công cụ tra cứu BM25 lấy 3 đoạn NIDDK, suy luận có trích dẫn, rồi trả lời \\
+Đa tác tử & Solver-CoT, Solver-RAG, Critic, Solver-CoT\#2, Điều phối & Hai solver giải độc lập. Đồng thuận thì chấp nhận ngay; bất đồng thì Critic đọc cả hai lập luận cùng bằng chứng để phân xử, thêm một mẫu CoT ở nhiệt độ 0,7, rồi biểu quyết đa số (hòa phiếu thì tin Critic) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Trạng thái dùng chung của một lượt giải là \emph{vết} (\texttt{Trace}): danh sách các bước \texttt{(vai trò, nội dung)}, số lượt gọi LLM, số token vào/ra và thời gian. Mỗi tác tử là một vai trò (system prompt) dùng chung LLM; mỗi lần \texttt{act()} là một thông điệp được ghi vào vết. Khung \texttt{Agent}/\texttt{Trace} kế thừa mã nguồn của thành viên nhóm 07; bài toán, dữ liệu, công cụ tra cứu và giao thức tranh luận là của tiểu luận này.
+
+\subsection{Hệ đa tác tử dưới dạng hợp các hàm}
+
+Gọi $q$ là câu hỏi, $E=\mathrm{search}(q)$ là bằng chứng tra cứu. Hai solver là hai hàm $a_1=f_{\mathrm{CoT}}(q)$ và $a_2=f_{\mathrm{RAG}}(q,E)$. Hệ đa tác tử là
+\begin{equation}
+\mathrm{MAS}(q)=\begin{cases} a_1 & \text{nếu } a_1=a_2,\\ \mathrm{vote}\big(a_1,\,a_2,\,f_{\mathrm{Critic}}(q,E,a_1,a_2),\,f^{T=0{,}7}_{\mathrm{CoT}}(q)\big) & \text{ngược lại,}\end{cases}
+\end{equation}
+trong đó $\mathrm{vote}$ là biểu quyết đa số, hòa phiếu thì lấy phiếu của Critic. Điều kiện dừng rất đơn giản: đồng thuận ở vòng một thì dừng sau 2 lượt gọi LLM; bất đồng thì dừng sau đúng 4 lượt. Không có vòng lặp mở nên chi phí bị chặn.
+
+\begin{code}{Hệ đa tác tử trả lời trắc nghiệm (\texttt{src/dm/ch7\_medqa.py}, rút gọn)}
+\label{lst:ch7-multi}
+\begin{minted}{python}
+def solve_multi(llm, row, tool):
+    tr, q = Trace(), format_q(row)
+    cot_text = Agent(llm, "Solver-CoT", SYS_COT).act(q, tr)
+    a_cot = to_letter(cot_text)
+    ev = evidence_block(tool, row, tr)                   # công cụ: BM25 trên MedQuAD-NIDDK
+    rag_text = Agent(llm, "Solver-RAG", SYS_RAG).act(f"Reference passages:\n{ev}\n\n{q}", tr)
+    a_rag = to_letter(rag_text)
+    if a_cot and a_cot == a_rag:                         # đồng thuận -> dừng sớm
+        return a_cot, tr
+    critic = to_letter(Agent(llm, "Critic", SYS_CRITIC).act(
+        f"{q}\n\n{ev}\n\nColleague 1 chose {a_cot}:\n{cot_text}\n\nColleague 2 chose {a_rag}:\n{rag_text}", tr))
+    extra = to_letter(Agent(llm, "Solver-CoT#2", SYS_COT, temperature=0.7).act(q, tr))
+    votes = Counter(v for v in (a_cot, a_rag, critic, extra) if v)
+    best, n = votes.most_common(1)[0]
+    return (critic or best) if n <= 1 else best, tr      # hòa phiếu: tin Critic
+\end{minted}
+\end{code}
+
+\subsection{Kết quả và phân tích lỗi}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả bốn hệ tác tử trên 150 câu hỏi trắc nghiệm đái tháo đường MedMCQA (Qwen2.5-1.5B-Instruct chạy cục bộ)}
+\label{tab:ch7-medqa}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccrr@{}}
+\toprule
+\textbf{Hệ} & \textbf{Đúng / 150} & \textbf{Accuracy} & \textbf{Lượt gọi / câu} & \textbf{Token ra / câu} & \textbf{Thời gian / câu} & \textbf{Phân loại lỗi (66–69 câu sai)} \\
+\midrule
+Direct & 96 & \textbf{64,0\%} & 1,00 & 4,0 & \textbf{0,22 s} & 54 tri thức \\
+CoT & 86 & 57,3\% & 1,00 & 98,5 & 4,96 s & 63 tri thức, 1 không đáp án \\
+RAG-agent & 81 & 54,0\% & 1,00 & 31,7 & 2,04 s & 69 tri thức \\
+Đa tác tử (MAS) & 84 & 56,0\% & 2,84 & 207,9 & 8,92 s & 43 tri thức, \textbf{23 phối hợp} \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{MAS — nhóm đồng thuận vòng 1 (87/150 câu, 58,0\%)}} & \textbf{70,1\%} & 2,00 & 112,4 & 6,18 s & 26 cả hai cùng sai \\
+\multicolumn{2}{@{}l}{\emph{MAS — nhóm bất đồng (63/150 câu, 42,0\%)}} & 36,5\% & 4,00 & 339,8 & 12,71 s & 17 tri thức, 23 phối hợp \\
+\multicolumn{2}{@{}l}{\emph{Cận trên Oracle ($\ge 1$ trong CoT/RAG/Critic đúng)}} & \textbf{71,3\%} & — & — & — & 43 không tác tử nào biết \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw[0.95\linewidth]{ch7_medqa}{Hiệu năng, chi phí và cơ cấu đồng thuận/lỗi của bốn hệ tác tử trên 150 câu trắc nghiệm đái tháo đường MedMCQA}
+
+\textbf{Nhận xét.} Kết quả trên \tabref{tab:ch7-medqa} và \figref{fig:ch7_medqa} cho ba phát hiện thực nghiệm rất đáng chú ý khi dùng một LLM nhỏ (1,5 tỷ tham số) cho bài toán y khoa:
+\begin{enumerate}
+  \item \emph{Trên câu hỏi trắc nghiệm y khoa đòi hỏi hồi tưởng tri thức sự kiện, trả lời trực tiếp (\texttt{Direct}) đạt 64,0\%, cao hơn \texttt{CoT} (57,3\%) và \texttt{RAG-agent} (54,0\%).} Khác với bài toán tính toán nhiều bước, câu hỏi MedMCQA thường hỏi trực tiếp một mối liên hệ lâm sàng hoặc dược lý (cơ chế thuốc, kiểu gen HLA, tiêu chuẩn chẩn đoán). Ở chế độ \texttt{Direct}, LLM chọn ngay phương án có xác suất tiên nghiệm cao nhất từ trọng số tiền huấn luyện. Ngược lại, khi ép mô hình 1,5B viết chuỗi suy luận dài (\texttt{CoT}), mô hình thường ``nghĩ quá mức'' (\emph{overthinking}): tự sinh ra một giả định sinh lý bệnh sai ở câu thứ hai rồi bị chính lập luận đó dẫn sang đáp án nhiễu. Tương tự, kho MedQuAD-NIDDK là tài liệu hỏi–đáp phổ biến kiến thức cho bệnh nhân, trong khi đề thi MedMCQA hỏi ở mức bác sĩ nội trú; khi 3 đoạn BM25 chỉ chứa thông tin tổng quát, \texttt{Solver-RAG} dễ bị các từ khóa bề mặt trong đoạn văn kéo lệch khỏi đáp án đúng.
+  \item \emph{Cổng đồng thuận hai cơ chế độc lập là bộ lọc độ tin cậy rất mạnh.} Trong 150 câu, có \textbf{87 câu (58,0\%)} mà \texttt{Solver-CoT} (dựa vào bộ nhớ tham số) và \texttt{Solver-RAG} (dựa vào văn bản NIDDK) độc lập chọn cùng một chữ cái ngay ở vòng 1. Trên 87 câu này, độ chính xác đạt \textbf{70,1\%} (61/87) — vượt \texttt{Direct} 6,1 điểm phần trăm với chi phí đúng 2 lượt gọi LLM mỗi câu. Điều này cho thấy khi suy luận nội tại và bằng chứng truy xuất đồng thuận, xác suất đúng tăng vọt.
+  \item \emph{Khoảng cách giữa cận trên Oracle (71,3\%) và kết quả thực tế của MAS (56,0\%) nằm ở 23 lỗi phối hợp.} Tính trên cả 150 câu, có tới \textbf{107 câu (71,3\%)} mà ít nhất một trong ba tác tử (\texttt{Solver-CoT}, \texttt{Solver-RAG} hoặc \texttt{Critic}) chọn đúng đáp án, chỉ có 43 câu (28,7\%) là lỗi tri thức thuần túy (cả ba đều sai). Tuy nhiên, ở 63 câu bất đồng vòng 1, độ chính xác sau phân xử chỉ đạt \textbf{36,5\%} (23/63), làm phát sinh \textbf{23 lỗi phối hợp} (đã có tác tử đúng nhưng quyết định cuối cùng lại chọn phương án sai). Nguyên nhân cốt lõi là \texttt{Critic} dùng cùng một mô hình 1,5B với các solver: khi không có công cụ kiểm chứng tất định (như trình thông dịch code ở bài toán toán học), \texttt{Critic} thường bị thuyết phục bởi lập luận nào viết trôi chảy hơn thay vì lập luận đúng về y khoa.
+\end{enumerate}
+
+\textbf{Phân tích vết tranh luận thật (\texttt{outputs/ch7/rows\_multi.jsonl}).} Hai câu cụ thể trong tập kiểm tra minh họa rõ khi nào các tác tử cứu nhau:
+\begin{itemize}
+  \item \emph{Câu \texttt{\#18} (Nhi khoa — \texttt{RAG} cứu \texttt{CoT}): ``Which of the following is a risk factor for developing Type 1 Diabetes mellitus?'' (A: Male Gender, B: Old age, C: Gestational diabetes, D: HLA DR3; đáp án đúng: \textbf{D}).} \texttt{Solver-CoT} suy luận chung chung về bệnh tự miễn rồi chọn nhầm \texttt{C} (vốn là yếu tố nguy cơ của ĐTĐ típ 2). Công cụ BM25 truy xuất đoạn \emph{Causes of Diabetes} từ MedQuAD-NIDDK nêu rõ vai trò của các biến thể gen HLA trong ĐTĐ típ 1, giúp \texttt{Solver-RAG} chọn đúng \texttt{D}. Khi hai bên bất đồng, \texttt{Critic} đọc đoạn trích NIDDK, bác bỏ phương án \texttt{C} và chốt đáp án đúng \texttt{D}.
+  \item \emph{Câu \texttt{\#101} (Nội khoa — \texttt{CoT} và \texttt{Critic} cứu \texttt{RAG}): ``Diabetes mellitus is diagnosed when:'' (A: Fasting glucose $>100$, B: $\text{HbA1c}>6{,}5\%$, C: Postprandial $>140$, D: Fasting $>110$; đáp án đúng: \textbf{B}).} Ba đoạn MedQuAD trả về nói về quy trình lấy máu xét nghiệm A1C và FPG mà không chứa đúng con số ngưỡng ở câu đầu, khiến \texttt{Solver-RAG} lúng túng chọn \texttt{D}. Ngược lại, \texttt{Solver-CoT}, \texttt{Critic} và \texttt{Solver-CoT\#2} đều nhớ chắc ngưỡng chuẩn ADA $\text{HbA1c}\ge 6{,}5\%$ và biểu quyết 3–1 chọn đúng \texttt{B}.
+\end{itemize}
+
+\subsection{Đối chiếu: giải toán GSM8K}
+
+Để kiểm chứng giả thuyết rằng hiệu quả của suy luận từng bước và đa tác tử phụ thuộc vào \emph{bản chất bài toán} và \emph{khả năng kiểm chứng của công cụ}, cùng mô hình \textbf{Qwen2.5-1.5B-Instruct} được chạy trên \textbf{40 bài toán đố tiếng Anh GSM8K} \cite{cobbe2021gsm8k} (lấy mẫu phân tầng theo số bước giải từ khung mã kế thừa của nhóm 07). Ở miền này, công cụ không phải là BM25 mà là \textbf{trình thông dịch Python} (\texttt{PAL} \cite{gao2023pal}): tác tử sinh hàm \texttt{solution()} và thực thi trong hộp cát để lấy kết quả số học chính xác. Hệ đa tác tử gồm \texttt{Planner}, \texttt{Reasoner} (CoT), \texttt{Coder} (viết Python, có tối đa 1 lượt sửa lỗi nếu code không chạy được), \texttt{Verifier} (kiểm tra đồng thuận giữa \texttt{Reasoner} và \texttt{Coder}) và \texttt{Judge} (phân xử khi hai nhánh ra hai số khác nhau).
+
+\begin{table}[H]
+\centering
+\caption{Đối chiếu: cùng LLM Qwen2.5-1.5B-Instruct trên 40 bài toán GSM8K và 150 câu y khoa MedMCQA}
+\label{tab:ch7-gsm8k}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}llccccr@{}}
+\toprule
+\textbf{Miền bài toán} & \textbf{Hệ} & \textbf{Accuracy} & \textbf{Lượt gọi} & \textbf{Token ra} & \textbf{Thời gian / câu} & \textbf{Cơ cấu lỗi chính} \\
+\midrule
+GSM8K (40 câu, & Direct & 17,5\% & 1,00 & 3,6 & 0,11 s & 33 suy luận \\
+toán nhiều bước + & CoT & 70,0\% & 1,00 & 268,7 & 5,90 s & 10 suy luận, 2 số học \\
+công cụ Python) & PAL (1 tác tử + Python) & 55,0\% & 1,33 & 119,5 & 2,67 s & 17 suy luận, 1 không đáp án \\
+ & Đa tác tử (CoT + PAL + Judge) & \textbf{72,5\%} & 5,00 & 757,4 & 10,99 s & 6 suy luận, 1 số học, 4 phối hợp \\
+ & \emph{— khi CoT = PAL (18/40 câu, 45\%)} & \textbf{94,4\%} & 3,78 & — & 6,90 s & \emph{Oracle toàn tập: 82,5\%} \\
+\midrule
+MedMCQA (150 câu, & Direct & \textbf{64,0\%} & 1,00 & 4,0 & 0,22 s & 54 tri thức \\
+trắc nghiệm ĐTĐ + & CoT & 57,3\% & 1,00 & 98,5 & 4,96 s & 63 tri thức, 1 không đáp án \\
+công cụ BM25) & RAG-agent (1 tác tử + BM25) & 54,0\% & 1,00 & 31,7 & 2,04 s & 69 tri thức \\
+ & Đa tác tử (CoT + RAG + Critic) & 56,0\% & 2,84 & 207,9 & 8,92 s & 43 tri thức, 23 phối hợp \\
+ & \emph{— khi CoT = RAG (87/150 câu, 58\%)} & \textbf{70,1\%} & 2,00 & 112,4 & 6,18 s & \emph{Oracle toàn tập: 71,3\%} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw[0.95\linewidth]{ch7_k1}{Kết quả bốn hệ tác tử trên bài toán giải toán nhiều bước GSM8K (Qwen2.5-1.5B-Instruct)}
+
+\textbf{Nhận xét đối chiếu.} \tabref{tab:ch7-gsm8k} cho thấy bức tranh đối xứng rất sáng tỏ giữa hai miền:
+\begin{itemize}
+  \item \emph{Tính toán chuỗi bước (GSM8K) đối lập với hồi tưởng sự kiện (MedMCQA)}: Trên GSM8K, \texttt{Direct} chỉ đạt \textbf{17,5\%} (và 0\% ở các bài từ 4 bước trở lên), vì mạng Transformer không thể nhẩm nhiều phép tính số học nối tiếp chỉ trong một bước sinh token. \texttt{CoT} nâng accuracy vọt lên \textbf{70,0\%} (+52,5 điểm), và hệ đa tác tử đạt đỉnh \textbf{72,5\%} (ở nhóm bài khó $\ge 5$ bước, đa tác tử đạt 80\% so với 60\% của CoT và 20\% của PAL). Ngược lại, ở MedMCQA, câu trả lời nằm sẵn trong liên kết khái niệm nên \texttt{Direct} đã đạt 64,0\%, còn suy luận dài của LLM nhỏ lại tạo nhiễu.
+  \item \emph{Công cụ tất định (Python) so với công cụ bất định (BM25 văn bản)}: Khi \texttt{Coder} viết được hàm Python chạy ra một con số trùng với kết quả suy luận bằng lời của \texttt{Reasoner} (18/40 bài GSM8K), độ chính xác đạt tới \textbf{94,4\%} (17/18 bài đúng) — vì xác suất hai cơ chế hoàn toàn khác bản chất (ngôn ngữ tự nhiên và thực thi mã máy) tình cờ mắc cùng một lỗi số học là cực thấp. Trên MedMCQA, cổng đồng thuận \texttt{CoT = RAG} cũng nâng độ chính xác lên \textbf{70,1\%}, nhưng khi bất đồng thì công cụ BM25 không trả về kết quả ``đúng/sai'' tất định như Python nên \texttt{Critic} khó phân xử hơn nhiều (accuracy nhóm bất đồng 36,5\% so với 54,5\% trên GSM8K).
+\end{itemize}
+
+\section{So sánh một tác tử và đa tác tử}
+
+\begin{table}[H]
+\centering
+\caption{Một tác tử và đa tác tử qua hai bài thực nghiệm}
+\label{tab:ch7-single-multi}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.0cm}YY@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Một tác tử} & \textbf{Đa tác tử} \\
+\midrule
+Chất lượng & Bài 1: một mèo Q bắt 100\% chuột luật & Bài 1: hai mèo theo luật bắt gấp đôi một mèo (52\% so với 24\%); huấn luyện đối kháng cho chính sách bền vững hơn (75\% so với 4\%). Bài 2: thắng trên toán nhiều bước GSM8K (72,5\% so với 70,0\% CoT, 17,5\% Direct); trên MedMCQA, nhóm đồng thuận đạt 70,1\% (Oracle 71,3\%) nhưng toàn tập đạt 56,0\% do lỗi phân xử của Critic 1,5B \\
+Chi phí & Thấp: một bảng Q, một lượt gọi LLM (0,1–5 s) & Cao: không gian trạng thái ×54 (hai mèo); 2,84–5,00 lượt gọi LLM mỗi câu (9–11 s) \\
+Học & Môi trường dừng, Q-learning hội tụ & Môi trường không dừng: đối thủ thay đổi, chính sách quá khớp với một đối thủ (4\% so với 100\%) \\
+Giải thích được & Một chuỗi suy luận & Vết đầy đủ: ai nói gì, bất đồng ở đâu, Critic phân xử thế nào \\
+Lỗi đặc thù & Thiếu tri thức, ảo giác, tính nhẩm sai & Thêm lỗi phối hợp (23/150 câu MedMCQA, 4/40 câu GSM8K): đã có tác tử đúng nhưng cơ chế tổng hợp chọn sai \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Thực nghiệm trên Notebook và Demo trên Localhost}
+\label{sec:ch7-demo}
+
+Toàn bộ kết quả của cả hai bài thực nghiệm được đóng gói trong notebook \texttt{notebooks/ch7\_mas\_tieu\_duong.ipynb} (các ô \texttt{MAS-00} đến \texttt{MAS-04}) và phục vụ trực tiếp trên ứng dụng web \textbf{Diabetes AI Lab} tại \texttt{http://localhost:8095}:
+\begin{itemize}
+  \item \textbf{Ô \texttt{MAS-01} (Tổng hợp 3 thí nghiệm học tăng cường Mèo đuổi chuột)}: Ô \texttt{MAS-01} nạp tệp \texttt{outputs/metrics/ch7\_catmouse.json} và in trực tiếp bảng so sánh: ở Thí nghiệm A, Q-learning đạt tỷ lệ bắt $100\%$ với số bước trung bình $15{,}26$ và tổng phần thưởng $+83{,}84$ (so với $24{,}3\%$ và $-189{,}45$ của mèo theo luật Manhattan); ở Thí nghiệm B, không gian trạng thái mở rộng lên $157.464$ bộ ba vị trí, hai mèo IQL đạt tỷ lệ bắt $99{,}67\%$ sau $22{,}13$ bước; ở Thí nghiệm C, ma trận đối kháng $3\times 2$ chỉ rõ sự sụt giảm từ $100\%$ xuống $4{,}0\%$ của mèo Q đơn tác tử khi gặp chuột Q-learning, và sự phục hồi lên $75{,}0\%$ nhờ huấn luyện đối kháng.
+  \item \textbf{Ô \texttt{MAS-03} và \texttt{MAS-04} (Giải phẫu cổng đồng thuận, cận trên Oracle và vết tranh luận thật trên MedMCQA)}: Ô \texttt{MAS-03} duyệt qua 150 dòng nhật ký trong \texttt{outputs/ch7/rows\_multi.jsonl}, tách riêng 87 câu đồng thuận vòng 1 ($\text{Accuracy}=0{,}701$) và 63 câu bất đồng ($\text{Accuracy}=0{,}365$), đồng thời tính cận trên Oracle ($107/150 = 0{,}713$). Tiếp đó, ô \texttt{MAS-04} in nguyên văn vết thông điệp \texttt{(agent, text)} của câu \texttt{\#18} (nơi \texttt{Solver-RAG} dùng bằng chứng NIDDK cứu \texttt{Solver-CoT}) và câu \texttt{\#101} (nơi \texttt{Solver-CoT} và \texttt{Critic} cứu \texttt{Solver-RAG}).
+\end{itemize}
+
+Trên ứng dụng web cục bộ tại \texttt{http://localhost:8095}:
+\begin{itemize}
+  \item Trang \texttt{http://localhost:8095/catmouse} (\figref{fig:app_catmouse}) cho phép xem trực quan từng bước di chuyển trên lưới $8\times 8$ có tường của ba chế độ: \emph{1 mèo (so sánh Q-learning vs Luật trên cùng vị trí xuất phát)}, \emph{2 mèo hợp tác (IQL)} và \emph{Đối kháng (Mèo Q đấu Chuột Q)}, kèm biểu đồ đường cong học và ma trận đối kháng.
+  \item Tab \textbf{Ch.7 — Đa tác tử LLM · Trắc nghiệm ĐTĐ (MedMCQA)} trên trang chính (\figref{fig:app_ch7_dm_medqa}) cho phép chọn câu hỏi mẫu hoặc nhập câu hỏi mới, đối chiếu đáp án và thời gian của cả 4 hệ (\texttt{Direct}, \texttt{CoT}, \texttt{RAG-agent}, \texttt{Đa tác tử}) và hiển thị chi tiết từng bước trong vết tranh luận (\texttt{Solver-CoT} $\to$ \texttt{Tool:search} $\to$ \texttt{Solver-RAG} $\to$ \texttt{Critic} $\to$ \texttt{Solver-CoT\#2}).
+\end{itemize}
+
+\figw[0.92\linewidth]{app_catmouse}{Giao diện mô phỏng tương tác Bài 1 (Mèo đuổi chuột đa tác tử) tại \texttt{http://localhost:8095/catmouse}}
+
+\figw[0.92\linewidth]{app_ch7_dm_medqa}{Giao diện thử nghiệm Bài 2 (Hệ đa tác tử LLM giải trắc nghiệm đái tháo đường MedMCQA) tại \texttt{http://localhost:8095}}
+
+\section{Tiểu kết chương 7}
+
+Chương 7 khép lại hành trình của tiểu luận bằng cách chuyển từ một mô hình đơn lẻ sang \emph{nhiều tác tử cùng tương tác và học}. Hai bài thực nghiệm đại diện cho hai nhánh lớn của hệ đa tác tử hiện đại và dẫn tới bốn kết luận cốt lõi:
+\begin{enumerate}
+  \item \textbf{Hợp tác mở rộng năng lực nhưng làm tăng chi phí phối hợp}: Trong lưới có vật cản, hai mèo theo luật bắt gấp đôi một mèo (52\% so với 24\%); hai mèo học độc lập (IQL) bắt được 99,7\% nhưng cần số tập huấn luyện gấp 2,7 lần do không gian trạng thái tăng 54 lần và mỗi mèo phải thích nghi với chính sách đang thay đổi của đồng đội.
+  \item \textbf{Tính không dừng là thách thức bản chất của học đa tác tử đối kháng}: Một tác tử Q-learning đạt 100\% trước đối thủ cố định thực chất chỉ học cách khai thác điểm yếu riêng của đối thủ đó, và sụp xuống 4\% khi đối thủ cũng biết học. Huấn luyện đối kháng đồng thời (cùng học trong trò chơi Markov) là điều kiện cần để thu được chính sách bền vững (75\% trước chuột học và 100\% trước chuột luật).
+  \item \textbf{Với tác tử LLM, lợi ích của suy luận nhiều bước và đa tác tử phụ thuộc chặt vào cấu trúc bài toán}: Trên bài toán tính toán nhiều bước có công cụ kiểm chứng tất định (GSM8K + Python), suy luận từng bước và đa tác tử nâng độ chính xác từ 17,5\% (\texttt{Direct}) lên 70,0\% (\texttt{CoT}) và 72,5\% (\texttt{MAS}). Ngược lại, trên câu hỏi trắc nghiệm y khoa kiểm tra hồi tưởng tri thức với LLM nhỏ 1,5B (MedMCQA), trả lời trực tiếp (\texttt{Direct}, 64,0\%) ít bị nhiễu tự sinh hơn \texttt{CoT} (57,3\%) và \texttt{RAG} trên kho phổ thông (54,0\%).
+  \item \textbf{Cổng đồng thuận đa cơ chế đáng tin cậy hơn bộ phân xử dùng LLM nhỏ}: Ở cả hai miền, khi hai tác tử dùng hai cơ chế độc lập (suy luận nội tại và công cụ tra cứu/mã nguồn) đồng thuận ngay vòng đầu, độ chính xác đều vượt trội (\textbf{70,1\%} trên MedMCQA và \textbf{94,4\%} trên GSM8K). Tuy nhiên, khi các tác tử bất đồng, việc dùng chính LLM 1,5B làm trọng tài (\texttt{Critic}) tạo ra nút thắt cổ chai về lỗi phối hợp (23 câu trên MedMCQA, làm kết quả chung 56,0\% thấp hơn nhiều so với cận trên Oracle 71,3\%). Để khai thác hết tiềm năng Oracle của hệ đa tác tử trong y tế, bộ phân xử cần dựa vào quy tắc lâm sàng tường minh, đồ thị tri thức (Chương 5) hoặc một mô hình thẩm định chuyên biệt mạnh hơn các solver thành phần.
+\end{enumerate}
+

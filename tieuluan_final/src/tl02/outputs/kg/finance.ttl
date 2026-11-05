@@ -1,0 +1,501 @@
+@prefix ex: <http://tl02.ptit.local/kg#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Asset a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:Commodity a rdfs:Class ;
+    rdfs:subClassOf ex:Asset .
+
+ex:Event a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:Exchange a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:FinancialEntity a rdfs:Class ;
+    rdfs:subClassOf ex:Thing .
+
+ex:GlobalFactor a rdfs:Class ;
+    rdfs:subClassOf ex:MacroFactor .
+
+ex:GoldAsset a rdfs:Class ;
+    rdfs:subClassOf ex:Commodity .
+
+ex:Index a rdfs:Class ;
+    rdfs:subClassOf ex:Asset .
+
+ex:Indicator a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:MacroFactor a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:MarketFlow a rdfs:Class ;
+    rdfs:subClassOf ex:MacroFactor .
+
+ex:PolicyTool a rdfs:Class ;
+    rdfs:subClassOf ex:MacroFactor .
+
+ex:Regulation a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:Sector a rdfs:Class ;
+    rdfs:subClassOf ex:FinancialEntity .
+
+ex:Stock a rdfs:Class ;
+    rdfs:subClassOf ex:Asset .
+
+ex:Thing a rdfs:Class .
+
+ex:stmt0 a rdf:Statement ;
+    ex:mechanism "chi phí cơ hội nắm giữ vàng tăng"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:XAU_USD ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Lai_Suat_Fed .
+
+ex:stmt1 a rdf:Statement ;
+    ex:mechanism "lãi suất USD cao làm USD mạnh lên"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:DXY ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Lai_Suat_Fed .
+
+ex:stmt10 a rdf:Statement ;
+    ex:mechanism "doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND"@vi ;
+    ex:source "f05-fpt"@vi ;
+    rdf:object ex:FPT ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:USD_VND .
+
+ex:stmt11 a rdf:Statement ;
+    ex:mechanism "nhập quặng sắt, than cốc bằng USD; lỗ tỷ giá nợ vay"@vi ;
+    ex:source "f06-hpg"@vi ;
+    rdf:object ex:HPG ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:USD_VND .
+
+ex:stmt12 a rdf:Statement ;
+    ex:mechanism "gánh nặng nợ vay ngoại tệ tăng"@vi ;
+    ex:source "f08-vic"@vi ;
+    rdf:object ex:VIC ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:USD_VND .
+
+ex:stmt13 a rdf:Statement ;
+    ex:mechanism "nhu cầu tích trữ tăng khi lạm phát"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Chenh_Lech_SJC ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Lam_Phat .
+
+ex:stmt14 a rdf:Statement ;
+    ex:mechanism "lãi suất VND thấp hơn USD gây áp lực tỷ giá"@vi ;
+    ex:source "f04-chinh-sach-tien-te"@vi ;
+    rdf:object ex:USD_VND ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Lai_Suat_NHNN .
+
+ex:stmt15 a rdf:Statement ;
+    ex:mechanism "lãi suất cao làm giảm nhu cầu xây dựng, bất động sản"@vi ;
+    ex:source "f06-hpg"@vi ;
+    rdf:object ex:HPG ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Lai_Suat_NHNN .
+
+ex:stmt16 a rdf:Statement ;
+    ex:mechanism "lãi suất thấp, tín dụng tăng làm lợi nhuận ngân hàng tăng"@vi ;
+    ex:source "f07-vcb"@vi ;
+    rdf:object ex:VCB ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Lai_Suat_NHNN .
+
+ex:stmt17 a rdf:Statement ;
+    ex:mechanism "lãi suất vay mua nhà và chi phí tài chính"@vi ;
+    ex:source "f08-vic"@vi ;
+    rdf:object ex:VIC ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Lai_Suat_NHNN .
+
+ex:stmt18 a rdf:Statement ;
+    ex:mechanism "hút thanh khoản VND, giảm đầu cơ USD"@vi ;
+    ex:source "f04-chinh-sach-tien-te"@vi ;
+    rdf:object ex:USD_VND ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Tin_Phieu_NHNN .
+
+ex:stmt19 a rdf:Statement ;
+    ex:mechanism "tăng nhu cầu thép xây dựng"@vi ;
+    ex:source "f06-hpg"@vi ;
+    rdf:object ex:HPG ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Dau_Tu_Cong .
+
+ex:stmt2 a rdf:Statement ;
+    ex:mechanism "vàng định giá bằng USD, biến động ngược chiều DXY"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:XAU_USD ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:DXY .
+
+ex:stmt20 a rdf:Statement ;
+    ex:mechanism "dòng vốn vào cổ phiếu vốn hóa lớn"@vi ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:VN30 ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Khoi_Ngoai .
+
+ex:stmt21 a rdf:Statement ;
+    ex:mechanism "thu hút vốn ngoại"@vi ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:Khoi_Ngoai ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Nang_Hang_FTSE .
+
+ex:stmt22 a rdf:Statement ;
+    ex:mechanism "độc quyền, không nhập vàng nguyên liệu, cung giới hạn"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Chenh_Lech_SJC ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:ND_24_2012 .
+
+ex:stmt23 a rdf:Statement ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Vang_SJC ;
+    rdf:predicate ex:QUY_DINH_VE ;
+    rdf:subject ex:ND_24_2012 .
+
+ex:stmt24 a rdf:Statement ;
+    ex:mechanism "bãi bỏ độc quyền, tăng cung hợp pháp"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Chenh_Lech_SJC ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:ND_232_2025 .
+
+ex:stmt25 a rdf:Statement ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:ND_24_2012 ;
+    rdf:predicate ex:SUA_DOI ;
+    rdf:subject ex:ND_232_2025 .
+
+ex:stmt26 a rdf:Statement ;
+    ex:mechanism "tăng cung, chênh lệch thu hẹp"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Chenh_Lech_SJC ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:NHNN_Ban_Vang_2024 .
+
+ex:stmt27 a rdf:Statement ;
+    ex:mechanism "XAU/USD × USD/VND × 1,2057"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:Vang_Quy_Doi ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:XAU_USD .
+
+ex:stmt28 a rdf:Statement ;
+    ex:mechanism "giá trong nước = quy đổi + phần bù"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:Vang_SJC ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Vang_Quy_Doi .
+
+ex:stmt29 a rdf:Statement ;
+    ex:mechanism "vàng nhẫn bám sát giá quy đổi"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Vang_Nhan ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Vang_Quy_Doi .
+
+ex:stmt3 a rdf:Statement ;
+    ex:mechanism "USD mạnh lên toàn cầu gây áp lực tỷ giá"@vi ;
+    ex:source "f03-ty-gia"@vi ;
+    rdf:object ex:USD_VND ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:DXY .
+
+ex:stmt30 a rdf:Statement ;
+    ex:mechanism "giá trong nước = quy đổi + phần bù"@vi ;
+    ex:source "f01-vang-mieng-sjc"@vi ;
+    rdf:object ex:Vang_SJC ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Chenh_Lech_SJC .
+
+ex:stmt31 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:VN30 ;
+    rdf:predicate ex:THUOC_VE ;
+    rdf:subject ex:FPT .
+
+ex:stmt32 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:Nganh_CNTT ;
+    rdf:predicate ex:THUOC_NGANH ;
+    rdf:subject ex:FPT .
+
+ex:stmt33 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:VN30 ;
+    rdf:predicate ex:THUOC_VE ;
+    rdf:subject ex:HPG .
+
+ex:stmt34 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:Nganh_Thep ;
+    rdf:predicate ex:THUOC_NGANH ;
+    rdf:subject ex:HPG .
+
+ex:stmt35 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:VN30 ;
+    rdf:predicate ex:THUOC_VE ;
+    rdf:subject ex:VCB .
+
+ex:stmt36 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:Nganh_Ngan_Hang ;
+    rdf:predicate ex:THUOC_NGANH ;
+    rdf:subject ex:VCB .
+
+ex:stmt37 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:VN30 ;
+    rdf:predicate ex:THUOC_VE ;
+    rdf:subject ex:VIC .
+
+ex:stmt38 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:Nganh_BDS ;
+    rdf:predicate ex:THUOC_NGANH ;
+    rdf:subject ex:VIC .
+
+ex:stmt39 a rdf:Statement ;
+    ex:source "f09-vn30"@vi ;
+    rdf:object ex:HOSE ;
+    rdf:predicate ex:THUOC_VE ;
+    rdf:subject ex:VN30 .
+
+ex:stmt4 a rdf:Statement ;
+    ex:mechanism "nhu cầu tài sản trú ẩn"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:XAU_USD ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Bat_On_Dia_Chinh_Tri .
+
+ex:stmt5 a rdf:Statement ;
+    ex:mechanism "cầu vàng của ngân hàng trung ương"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:XAU_USD ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:NHTW_Mua_Vang .
+
+ex:stmt6 a rdf:Statement ;
+    ex:mechanism "Nhật Bản là thị trường xuất khẩu lớn nhất"@vi ;
+    ex:source "f05-fpt"@vi ;
+    rdf:object ex:FPT ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:Dong_Yen .
+
+ex:stmt7 a rdf:Statement ;
+    ex:mechanism "giá nguyên liệu tăng làm co biên lợi nhuận"@vi ;
+    ex:source "f06-hpg"@vi ;
+    rdf:object ex:HPG ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:Gia_Quang_Sat .
+
+ex:stmt8 a rdf:Statement ;
+    ex:mechanism "XAU/USD × USD/VND × 1,2057"@vi ;
+    ex:source "f02-gia-vang-the-gioi"@vi ;
+    rdf:object ex:Vang_Quy_Doi ;
+    rdf:predicate ex:TAC_DONG_CUNG_CHIEU ;
+    rdf:subject ex:USD_VND .
+
+ex:stmt9 a rdf:Statement ;
+    ex:mechanism "lợi nhuận quy đổi ra USD giảm, khối ngoại bán ròng"@vi ;
+    ex:source "f03-ty-gia"@vi ;
+    rdf:object ex:Khoi_Ngoai ;
+    rdf:predicate ex:TAC_DONG_NGUOC_CHIEU ;
+    rdf:subject ex:USD_VND .
+
+ex:Bat_On_Dia_Chinh_Tri a ex:GlobalFactor ;
+    rdfs:label "Bất ổn địa chính trị"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:XAU_USD .
+
+ex:Dau_Tu_Cong a ex:MacroFactor ;
+    rdfs:label "Giải ngân đầu tư công"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:HPG .
+
+ex:Dong_Yen a ex:GlobalFactor ;
+    rdfs:label "Sức mạnh đồng yên (JPY)"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:FPT .
+
+ex:Gia_Quang_Sat a ex:GlobalFactor ;
+    rdfs:label "Giá quặng sắt, than cốc"@vi ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:HPG .
+
+ex:Lam_Phat a ex:MacroFactor ;
+    rdfs:label "Lạm phát"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Chenh_Lech_SJC .
+
+ex:NHNN_Ban_Vang_2024 a ex:PolicyTool ;
+    rdfs:label "NHNN đấu thầu và bán vàng miếng (2024)"@vi ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:Chenh_Lech_SJC ;
+    ex:year 2024 .
+
+ex:NHTW_Mua_Vang a ex:GlobalFactor ;
+    rdfs:label "Ngân hàng trung ương mua vàng"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:XAU_USD .
+
+ex:Nang_Hang_FTSE a ex:Event ;
+    rdfs:label "FTSE nâng hạng thị trường mới nổi thứ cấp"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Khoi_Ngoai ;
+    ex:effective "9/2026"@vi .
+
+ex:QUY_DINH_VE a rdf:Property ;
+    rdfs:label "quy định về"@vi ;
+    rdfs:domain ex:Regulation ;
+    rdfs:range ex:Asset .
+
+ex:SUA_DOI a rdf:Property ;
+    rdfs:label "sửa đổi, bổ sung"@vi ;
+    rdfs:domain ex:Regulation ;
+    rdfs:range ex:Regulation .
+
+ex:Tin_Phieu_NHNN a ex:PolicyTool ;
+    rdfs:label "Phát hành tín phiếu NHNN"@vi ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:USD_VND .
+
+ex:HOSE a ex:Exchange ;
+    rdfs:label "Sở GDCK TP.HCM (HOSE)"@vi .
+
+ex:Lai_Suat_Fed a ex:GlobalFactor ;
+    rdfs:label "Lãi suất Fed"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:DXY ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:XAU_USD .
+
+ex:ND_232_2025 a ex:Regulation ;
+    rdfs:label "Nghị định 232/2025/NĐ-CP"@vi ;
+    ex:SUA_DOI ex:ND_24_2012 ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:Chenh_Lech_SJC ;
+    ex:year 2025 .
+
+ex:Nganh_BDS a ex:Sector ;
+    rdfs:label "Bất động sản"@vi .
+
+ex:Nganh_CNTT a ex:Sector ;
+    rdfs:label "Công nghệ thông tin"@vi .
+
+ex:Nganh_Ngan_Hang a ex:Sector ;
+    rdfs:label "Ngân hàng"@vi .
+
+ex:Nganh_Thep a ex:Sector ;
+    rdfs:label "Thép"@vi .
+
+ex:Vang_Nhan a ex:GoldAsset ;
+    rdfs:label "Vàng nhẫn 9999"@vi .
+
+ex:DXY a ex:GlobalFactor ;
+    rdfs:label "Chỉ số USD (DXY)"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:USD_VND ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:XAU_USD ;
+    ex:series "DXY"@vi .
+
+ex:Lai_Suat_NHNN a ex:PolicyTool ;
+    rdfs:label "Lãi suất điều hành NHNN"@vi ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:HPG,
+        ex:USD_VND,
+        ex:VCB,
+        ex:VIC ;
+    ex:refinancing_rate 4.5e+00 .
+
+ex:ND_24_2012 a ex:Regulation ;
+    rdfs:label "Nghị định 24/2012/NĐ-CP"@vi ;
+    ex:QUY_DINH_VE ex:Vang_SJC ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Chenh_Lech_SJC ;
+    ex:year 2012 .
+
+ex:THUOC_NGANH a rdf:Property ;
+    rdfs:label "thuộc ngành"@vi ;
+    rdfs:domain ex:Stock ;
+    rdfs:range ex:Sector .
+
+ex:VCB a ex:Stock ;
+    rdfs:label "VCB (Vietcombank)"@vi ;
+    ex:THUOC_NGANH ex:Nganh_Ngan_Hang ;
+    ex:THUOC_VE ex:VN30 ;
+    ex:series "VCB"@vi .
+
+ex:Khoi_Ngoai a ex:MarketFlow ;
+    rdfs:label "Khối ngoại mua ròng"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:VN30 .
+
+ex:THUOC_VE a rdf:Property,
+        owl:TransitiveProperty ;
+    rdfs:label "thuộc về"@vi ;
+    rdfs:domain ex:FinancialEntity ;
+    rdfs:range ex:FinancialEntity .
+
+ex:FPT a ex:Stock ;
+    rdfs:label "FPT (Tập đoàn FPT)"@vi ;
+    ex:THUOC_NGANH ex:Nganh_CNTT ;
+    ex:THUOC_VE ex:VN30 ;
+    ex:series "FPT"@vi .
+
+ex:VIC a ex:Stock ;
+    rdfs:label "VIC (Vingroup)"@vi ;
+    ex:THUOC_NGANH ex:Nganh_BDS ;
+    ex:THUOC_VE ex:VN30 ;
+    ex:series "VIC"@vi .
+
+ex:Vang_Quy_Doi a ex:GoldAsset ;
+    rdfs:label "Giá vàng thế giới quy đổi (VND/lượng)"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Vang_Nhan,
+        ex:Vang_SJC ;
+    ex:factor 1.2057e+00 ;
+    ex:series "GOLD_VND"@vi .
+
+ex:Vang_SJC a ex:GoldAsset ;
+    rdfs:label "Vàng miếng SJC"@vi .
+
+ex:Chenh_Lech_SJC a ex:Indicator ;
+    rdfs:label "Phần bù vàng miếng SJC so với thế giới"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Vang_SJC .
+
+ex:XAU_USD a ex:GoldAsset ;
+    rdfs:label "Giá vàng thế giới (XAU/USD)"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:Vang_Quy_Doi ;
+    ex:series "XAU"@vi .
+
+ex:HPG a ex:Stock ;
+    rdfs:label "HPG (Hòa Phát)"@vi ;
+    ex:THUOC_NGANH ex:Nganh_Thep ;
+    ex:THUOC_VE ex:VN30 ;
+    ex:series "HPG"@vi .
+
+ex:USD_VND a ex:MacroFactor ;
+    rdfs:label "Tỷ giá USD/VND"@vi ;
+    ex:TAC_DONG_CUNG_CHIEU ex:FPT,
+        ex:Vang_Quy_Doi ;
+    ex:TAC_DONG_NGUOC_CHIEU ex:HPG,
+        ex:Khoi_Ngoai,
+        ex:VIC ;
+    ex:series "USDVND"@vi .
+
+ex:VN30 a ex:Index ;
+    rdfs:label "Chỉ số VN30"@vi ;
+    ex:THUOC_VE ex:HOSE ;
+    ex:series "VN30ETF"@vi .
+
+ex:TAC_DONG_NGUOC_CHIEU a rdf:Property ;
+    rdfs:label "tác động ngược chiều (−)"@vi ;
+    rdfs:domain ex:FinancialEntity ;
+    rdfs:range ex:FinancialEntity .
+
+ex:TAC_DONG_CUNG_CHIEU a rdf:Property ;
+    rdfs:label "tác động cùng chiều (+)"@vi ;
+    rdfs:domain ex:FinancialEntity ;
+    rdfs:range ex:FinancialEntity .
+

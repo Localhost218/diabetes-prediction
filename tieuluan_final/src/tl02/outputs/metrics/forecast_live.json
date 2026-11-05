@@ -1,0 +1,92 @@
+{
+ "FPT": {
+  "model": "BiLSTM (PyTorch)",
+  "target": "FPT",
+  "last_date": "2026-09-30",
+  "last_price": 63000.0,
+  "pred_price": 63314.69921875,
+  "pred_return_pct": 0.49828001856803894,
+  "mc_std_pct": 0.10072358697652817,
+  "interval90": [
+   61104.110467375154,
+   65662.59177017512
+  ],
+  "prob_up": 0.595,
+  "test_dir_acc": 0.5025906735751295,
+  "test_rmse_vs_naive": 1.1535447086419335,
+  "rmse_pct": 2.343624271452427,
+  "width_pct": 7.235684607618988
+ },
+ "HPG": {
+  "model": "BiLSTM (PyTorch)",
+  "target": "HPG",
+  "last_date": "2026-09-30",
+  "last_price": 20150.0,
+  "pred_price": 20147.380859375,
+  "pred_return_pct": -0.012996616773307323,
+  "mc_std_pct": 0.014806732535362244,
+  "interval90": [
+   19616.317873086475,
+   20732.76619231442
+  ],
+  "prob_up": 0.51,
+  "test_dir_acc": 0.4796747967479675,
+  "test_rmse_vs_naive": 0.9999706162716681,
+  "rmse_pct": 1.8255887553095818,
+  "width_pct": 5.5406864477813595
+ },
+ "VCB": {
+  "model": "BiLSTM (PyTorch)",
+  "target": "VCB",
+  "last_date": "2026-09-30",
+  "last_price": 58000.0,
+  "pred_price": 57945.265625,
+  "pred_return_pct": -0.09441806375980377,
+  "mc_std_pct": 0.020463235676288605,
+  "interval90": [
+   55764.01926538903,
+   60356.20692266417
+  ],
+  "prob_up": 0.505,
+  "test_dir_acc": 0.5248618784530387,
+  "test_rmse_vs_naive": 1.0067711283496585,
+  "rmse_pct": 2.606145665049553,
+  "width_pct": 7.91756492633644
+ },
+ "VIC": {
+  "model": "BiLSTM (PyTorch)",
+  "target": "VIC",
+  "last_date": "2026-09-30",
+  "last_price": 227900.0,
+  "pred_price": 227706.625,
+  "pred_return_pct": -0.08488646149635315,
+  "mc_std_pct": 0.015216696076095104,
+  "interval90": [
+   217115.9618793179,
+   239598.22688803877
+  ],
+  "prob_up": 0.51,
+  "test_dir_acc": 0.4096045197740113,
+  "test_rmse_vs_naive": 1.0033513913960979,
+  "rmse_pct": 3.2371308654546738,
+  "width_pct": 9.86496928860064
+ },
+ "GOLD_VND": {
+  "model": "BiLSTM (PyTorch)",
+  "target": "GOLD_VND",
+  "last_date": "2026-10-21",
+  "last_price": 128.68718990188358,
+  "pred_price": 128.7686767578125,
+  "pred_return_pct": 0.0632973238825798,
+  "mc_std_pct": 0.009235009551048279,
+  "interval90": [
+   125.7820005288528,
+   132.04095544060004
+  ],
+  "prob_up": 0.525,
+  "test_dir_acc": 0.5275938189845475,
+  "test_rmse_vs_naive": 0.9987921901257608,
+  "rmse_pct": 1.595601812005043,
+  "width_pct": 4.863696935584128
+ }
+}

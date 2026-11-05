@@ -1,0 +1,976 @@
+{
+ "rows": [
+  {
+   "id": 0,
+   "domain": "health",
+   "q": "Tôi bị tiểu đường típ 2 đang uống Metformin 500mg, tối nay đi tiệc có uống bia được không?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 6,
+   "n_citations": 0,
+   "total_ms": 10191.680599999017,
+   "llm_s": 9.212012999998478,
+   "tool_ms": {
+    "kg_y_te": 0.176199999259552,
+    "truy_xuat_rag": 960.0100999996357
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu) [1]\n- Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2) [2]\n- Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp) [3]\n- Rượu bia làm tăng nguy cơ nhiễm toan lactic ở người dùng metformin. Cơ chế là cả metformin và ethanol đều cản trở gan chuyển lactate thành glucose, khiến lactate tích tụ trong máu. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài. Tờ hướng dẫn sử dụng metformin khuyến cáo người bệnh tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Người nghiện rượu hoặc có bệnh gan do rượu là đối tượng cần thận trọng đặc biệt khi dùng metformin. Khuyến cáo thực hành cho người đang dùng metformin: tốt nhất không uống rượu bia; nếu có dịp bắt buộc thì chỉ uống rất ít, không uống khi đói, phải ăn kèm thức ăn có tinh bột, và theo dõi dấu hiệu bất thường như mệt lả, đau cơ, khó thở, đau bụng. [4]\n- Các bữa liên hoan, đám cưới, giỗ chạp ở Việt Nam thường kèm rượu bia và món chiên, xào nhiều dầu mỡ. Người bệnh đang dùng metformin nên chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng. Về thức ăn trong bữa tiệc, nên ưu tiên món luộc, hấp, rau xanh; ăn rau trước, ăn đạm sau và ăn tinh bột cuối cùng; hạn chế món chiên rán, da gà, lòng, mỡ; và kiểm soát lượng cơm, xôi, bánh. [5]\n- Nếu người bệnh đái tháo đường được bác sĩ cho phép uống rượu, giới hạn khuyến cáo là không quá 1 đơn vị cồn mỗi ngày với nữ và không quá 2 đơn vị cồn mỗi ngày với nam. Một đơn vị cồn chuẩn tương đương khoảng 10 g cồn nguyên chất, xấp xỉ một lon bia 330 mL nồng độ 4 đến 5% hoặc một chén rượu mạnh 30 mL. Người có biến chứng thần kinh, bệnh gan, viêm tụy, tăng triglycerid nặng hoặc tiền sử hạ glucose huyết nặng nên kiêng rượu hoàn toàn. [6]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Dùng Metformin không ảnh hưởng đến việc uống bia, nhưng bạn nên kiểm tra với bác sĩ để đảm bảo an toàn.",
+   "llm_only_s": 1.1250808000004326,
+   "entities": [
+    "DTD_Tip2",
+    "Metformin",
+    "Ruou_Bia"
+   ]
+  },
+  {
+   "id": 1,
+   "domain": "health",
+   "q": "Bị tiểu đường có ăn thịt gà được không?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 5,
+   "n_citations": 0,
+   "total_ms": 3680.6507000001147,
+   "llm_s": 3.082157599999846,
+   "tool_ms": {
+    "kg_y_te": 0.20430000040505547,
+    "truy_xuat_rag": 595.3058999984933
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Đái tháo đường típ 2 —[khuyến nghị ăn]→ Ức gà bỏ da luộc/hấp (reason: đạm nạc 31 g/100 g, không carbohydrate) [1]\n- Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Gà rán, gà chiên, da gà (reason: nhiều chất béo bão hòa, tăng đề kháng insulin) [2]\n- Thịt gà là nguồn đạm tốt cho người đái tháo đường nếu chọn đúng phần và cách chế biến. Ức gà bỏ da chứa khoảng 31 g đạm trong 100 g thịt chín, gần như không có carbohydrate và rất ít chất béo, nên không làm tăng glucose huyết. Ngược lại, gà rán, gà chiên ngập dầu và da gà chứa nhiều chất béo bão hòa, năng lượng cao; nếu chiên dầu dùng lại nhiều lần còn sinh chất béo chuyển hóa. Ăn nhiều chất béo bão hòa làm tăng LDL cholesterol, tăng nguy cơ xơ vữa động mạch và làm nặng thêm đề kháng insulin. Kết luận thực hành: người đái tháo đường được ăn thịt gà, nên chọn ức gà luộc, hấp, nướng không da; hạn chế gà rán, gà chiên, da gà. Cá, đậu phụ, trứng, các loại đậu cũng là nguồn đạm phù hợp. [3]\n- Mô hình đĩa ăn đơn giản: một nửa đĩa là rau không chứa tinh bột, một phần tư là đạm nạc (cá, gà bỏ da, đậu phụ), một phần tư là tinh bột (cơm, gạo lứt, khoai). Uống nước lọc hoặc trà không đường thay nước ngọt. Nên ăn đúng giờ, chia ba bữa chính và có thể thêm bữa phụ nhỏ nếu dùng insulin hoặc sulfonylurea để tránh hạ glucose huyết. Hạn chế muối dưới 5 g mỗi ngày nếu kèm tăng huyết áp. [4]\n- Các bữa liên hoan, đám cưới, giỗ chạp ở Việt Nam thường kèm rượu bia và món chiên, xào nhiều dầu mỡ. Người bệnh đang dùng metformin nên chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng. Về thức ăn trong bữa tiệc, nên ưu tiên món luộc, hấp, rau xanh; ăn rau trước, ăn đạm sau và ăn tinh bột cuối cùng; hạn chế món chiên rán, da gà, lòng, mỡ; và kiểm soát lượng cơm, xôi, bánh. [5]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Có thể ăn thịt gà nếu bạn kiểm soát lượng đường trong máu tốt. Tuy nhiên, cần chú ý cân đối dinh dưỡng và lượng carbohydrate để tránh tăng cân.",
+   "llm_only_s": 1.4271266999985528,
+   "entities": [
+    "DTD_Tip2",
+    "Thit_Ga"
+   ]
+  },
+  {
+   "id": 2,
+   "domain": "health",
+   "q": "Tôi nam 52 tuổi, HbA1c 7.3, đường huyết lúc đói 138, BMI 26.5. Tôi có bị tiểu đường không?",
+   "domain_pred": "health",
+   "tools": [
+    "chan_doan_nguy_co",
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "chan_doan_nguy_co",
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 0.6666666666666666,
+   "used": "template",
+   "n_evidence": 4,
+   "n_citations": 0,
+   "total_ms": 12296.296200000143,
+   "llm_s": 11.578598000000056,
+   "tool_ms": {
+    "chan_doan_nguy_co": 14.93560000017169,
+    "kg_y_te": 0.01610000072105322,
+    "truy_xuat_rag": 699.6402999993734
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- MLP ước lượng xác suất đái tháo đường 100,0% (ngưỡng quyết định 90,2%), mức nguy cơ cao. [1]\n- Chẩn đoán đái tháo đường dựa vào một trong bốn tiêu chuẩn sau: 1. Glucose huyết tương lúc đói ≥ 126 mg/dL (7,0 mmol/L). Bệnh nhân phải nhịn ăn ít nhất 8 giờ, chỉ được uống nước lọc. 2. Glucose huyết tương ở thời điểm 2 giờ sau nghiệm pháp dung nạp glucose đường uống 75 g ≥ 200 mg/dL (11,1 mmol/L). 3. HbA1c ≥ 6,5% (48 mmol/mol), xét nghiệm tại phòng thí nghiệm được chuẩn hóa quốc tế. 4. Ở bệnh nhân có triệu chứng kinh điển của tăng glucose huyết hoặc cơn tăng glucose huyết cấp, glucose huyết tương bất kỳ ≥ 200 mg/dL (11,1 mmol/L). Nếu không có triệu chứng kinh điển, chẩn đoán cần hai kết quả bất thường trên cùng một mẫu máu hoặc ở hai thời điểm khác nhau. [2]\n- Bảng phân loại thường dùng trong sàng lọc: - Bình thường: glucose lúc đói dưới 100 mg/dL và HbA1c dưới 5,7%. - Tiền đái tháo đường: glucose lúc đói từ 100 đến 125 mg/dL (rối loạn glucose huyết đói), hoặc glucose 2 giờ sau nghiệm pháp từ 140 đến 199 mg/dL (rối loạn dung nạp glucose), hoặc HbA1c từ 5,7% đến 6,4%. - Đái tháo đường: đạt một trong bốn tiêu chuẩn chẩn đoán nêu trên. Đơn vị đổi: 1 mmol/L glucose tương đương khoảng 18 mg/dL. [3]\n- Chỉ số khối cơ thể BMI bằng cân nặng (kg) chia bình phương chiều cao (m). Với người châu Á, Tổ chức Y tế Thế giới khu vực Tây Thái Bình Dương (WPRO) đề xuất ngưỡng thấp hơn so với người châu Âu: BMI từ 23 kg/m2 là thừa cân và BMI từ 25 kg/m2 là béo phì. Vòng eo cũng là chỉ báo quan trọng của béo bụng: nam từ 90 cm và nữ từ 80 cm được xem là tăng nguy cơ chuyển hóa ở người châu Á. [4]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Theo thông tin bạn cung cấp, bạn có thể đang có nguy cơ cao mắc bệnh tiểu đường. HbA1c 7.3% (tương đương với mức độ 480 mg/dL) và đường huyết lúc đói 138 mg/dL đều cho thấy bạn có thể đang bị tiểu đường hoặc có nguy cơ cao mắc bệnh này. Tuy nhiên, để xác định chính xác, bạn nên đi kiểm tra lại với bác sĩ chuyên khoa.",
+   "llm_only_s": 4.169034200000169,
+   "entities": [
+    "Glucose_Doi_Cao",
+    "DTD_Tip2",
+    "HbA1c_Cao",
+    "Beo_Phi"
+   ]
+  },
+  {
+   "id": 3,
+   "domain": "health",
+   "q": "Tôi nữ 45 tuổi, HbA1c 5.9, đường huyết 110, BMI 24. Tôi có nguy cơ gì và nên làm gì?",
+   "domain_pred": "health",
+   "tools": [
+    "chan_doan_nguy_co",
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "chan_doan_nguy_co",
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 0.5,
+   "hits": [
+    false,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 0.8,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 4,
+   "n_citations": 0,
+   "total_ms": 13434.352199999921,
+   "llm_s": 12.761401700001443,
+   "tool_ms": {
+    "chan_doan_nguy_co": 5.048299999543815,
+    "kg_y_te": 0.011500000255182385,
+    "truy_xuat_rag": 665.1114999986021
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- MLP ước lượng xác suất đái tháo đường 2,6% (ngưỡng quyết định 90,2%), mức nguy cơ thấp. [1]\n- Chỉ số khối cơ thể BMI bằng cân nặng (kg) chia bình phương chiều cao (m). Với người châu Á, Tổ chức Y tế Thế giới khu vực Tây Thái Bình Dương (WPRO) đề xuất ngưỡng thấp hơn so với người châu Âu: BMI từ 23 kg/m2 là thừa cân và BMI từ 25 kg/m2 là béo phì. Vòng eo cũng là chỉ báo quan trọng của béo bụng: nam từ 90 cm và nữ từ 80 cm được xem là tăng nguy cơ chuyển hóa ở người châu Á. [2]\n- Nhóm sulfonylurea như gliclazide, glimepiride kích thích tế bào beta tụy tiết insulin. Thuốc hạ HbA1c khá mạnh và rẻ, nhưng có nguy cơ hạ glucose huyết và tăng cân. Gliclazide thường được phối hợp với metformin khi đơn trị liệu không đạt mục tiêu. Người cao tuổi, người suy thận, người ăn uống thất thường hoặc uống rượu khi dùng sulfonylurea có nguy cơ hạ glucose huyết cao hơn. [3]\n- Điều trị đái tháo đường típ 2 cần cá thể hóa theo mục tiêu HbA1c, nguy cơ hạ glucose huyết, cân nặng, bệnh tim mạch, bệnh thận mạn, chi phí và mong muốn của người bệnh. Thay đổi lối sống gồm dinh dưỡng hợp lý và vận động luôn đi kèm mọi phác đồ thuốc. Khi HbA1c lúc chẩn đoán cao hơn mục tiêu từ 1,5% trở lên, có thể khởi trị phối hợp hai thuốc. Khi glucose huyết rất cao (HbA1c trên 10% hoặc glucose trên 300 mg/dL) kèm triệu chứng dị hóa như sụt cân, cần cân nhắc dùng insulin ngay từ đầu. [4]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Đây là một số gợi ý cho bạn:\n\n- Bạn có nguy cơ cao mắc bệnh tiểu đường.\n- Đường huyết ổn định hơn với chế độ ăn uống lành mạnh và tập thể dục đều đặn.\n- HbA1c 5.9% là mức độ tiểu đường thứ hai (DM2), nên cần theo dõi thường xuyên.\n- BMI 24 là ở mức cân nặng hợp lý, nhưng vẫn nên kiểm soát cân nặng nếu có thể.\n\nNên:\n- Thực hiện chế độ ăn uống cân bằng, giàu chất xơ và ít chất béo.\n- Tham gia vào các bài tập thể dục đều đặn mỗi ngày.\n- Kiểm tra HbA1c định kỳ để theo dõi tình trạng sức khỏe.\n- Nên gặp bác sĩ để được tư vấn cụ thể hơn về cách quản lý.",
+   "llm_only_s": 6.956407699999545,
+   "entities": [
+    "HbA1c_Cao",
+    "Beo_Phi"
+   ]
+  },
+  {
+   "id": 4,
+   "domain": "health",
+   "q": "Người tiểu đường ăn cơm trắng thế nào cho đúng?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 4,
+   "n_citations": 0,
+   "total_ms": 2660.4279999992286,
+   "llm_s": 2.059526900000492,
+   "tool_ms": {
+    "kg_y_te": 0.11830000039481092,
+    "truy_xuat_rag": 597.9853999997431
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Đái tháo đường típ 2 —[ăn có định lượng]→ Cơm trắng (reason: GI 73, GL 29; tối đa ~1 bát con/bữa, ăn rau trước) [1]\n- Cơm gạo trắng có chỉ số GI trung bình khoảng 73, thuộc nhóm GI cao. Một bát cơm khoảng 150 g chứa khoảng 40 g carbohydrate, tải đường huyết khoảng 29, thuộc nhóm cao. Người đái tháo đường không cần bỏ hoàn toàn cơm vì cơm là nguồn năng lượng chính của bữa ăn Việt, nhưng cần định lượng: khoảng một bát con mỗi bữa, tùy cân nặng và mức vận động. Nên ăn rau trước, ăn cơm sau; chất xơ làm chậm hấp thu carbohydrate và hạ đỉnh glucose sau ăn. [2]\n- Gạo lứt có chỉ số GI khoảng 68, thấp hơn cơm trắng một chút nhưng vẫn thuộc nhóm trung bình. Lợi ích chính của gạo lứt là giàu chất xơ, vitamin nhóm B và magie, giúp no lâu hơn. Có thể thay một phần gạo trắng bằng gạo lứt. Bún và phở làm từ bột gạo có GI khoảng 53, thuộc nhóm thấp đến trung bình, nhưng một bát bún, phở thường chứa nhiều sợi và nước dùng béo. Nên chọn nước dùng trong, ít mỡ, tăng rau và giá, không ăn quá nhiều sợi. Khoai lang luộc có GI khoảng 63, khoai tây luộc có GI khoảng 78, bánh mì trắng có GI khoảng 75, cháo yến mạch có GI khoảng 55. Xôi nếp và bánh làm từ gạo nếp có GI rất cao, nên hạn chế. [3]\n- Mô hình đĩa ăn đơn giản: một nửa đĩa là rau không chứa tinh bột, một phần tư là đạm nạc (cá, gà bỏ da, đậu phụ), một phần tư là tinh bột (cơm, gạo lứt, khoai). Uống nước lọc hoặc trà không đường thay nước ngọt. Nên ăn đúng giờ, chia ba bữa chính và có thể thêm bữa phụ nhỏ nếu dùng insulin hoặc sulfonylurea để tránh hạ glucose huyết. Hạn chế muối dưới 5 g mỗi ngày nếu kèm tăng huyết áp. [4]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Để ăn cơm trắng đúng cách khi bị tiểu đường:\n\n1. Ăn chậm rãi để tránh đói và tăng lượng đường trong máu.\n\n2. Chọn cơm trắng mềm, không quá nhiều.\n\n3. Không ăn quá nhiều nước hoặc đồ uống ngọt.\n\n4. Ăn cùng các loại rau xanh tươi để kiểm soát đường huyết.\n\n5. Hạn chế ăn các món chiên, nướng vì có thể gây tăng đường huyết.\n\n6. Đảm bảo đủ chất dinh dưỡng từ các loại hạt, đậu, thịt gà...\n\n7. Kiểm tra đường huyết thường xuyên để điều chỉnh chế độ ăn phù hợp.",
+   "llm_only_s": 5.363091899998835,
+   "entities": [
+    "DTD_Tip2",
+    "Com_Trang"
+   ]
+  },
+  {
+   "id": 5,
+   "domain": "health",
+   "q": "Bệnh nhân suy thận nặng có dùng metformin được không?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 0.5,
+   "hits": [
+    true,
+    false
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "llm",
+   "n_evidence": 4,
+   "n_citations": 1,
+   "total_ms": 2314.489799999137,
+   "llm_s": 1.7190375000009226,
+   "tool_ms": {
+    "kg_y_te": 0.08270000034826808,
+    "truy_xuat_rag": 591.6133000009722
+   },
+   "answer": "Không, bệnh nhân suy thận nặng (eGFR < 30 mL/phút/1,73 m2) không nên dùng metformin. [1]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Dùng metformin cho bệnh nhân suy thận nặng cần tuân thủ chỉ định của bác sĩ. Metformin thường được sử dụng để điều trị tiểu đường, nhưng nó có thể gây ra các tác dụng phụ như tăng creatinin trong máu, do đó cần cân nhắc kỹ trước khi sử dụng.",
+   "llm_only_s": 2.5939373999990494,
+   "entities": [
+    "Metformin",
+    "Suy_Than_Nang"
+   ]
+  },
+  {
+   "id": 6,
+   "domain": "health",
+   "q": "Đang tiêm insulin mà bị hạ đường huyết thì xử trí thế nào?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 0.6666666666666666,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 3,
+   "n_citations": 3,
+   "total_ms": 9155.54709999924,
+   "llm_s": 8.552393299998585,
+   "tool_ms": {
+    "kg_y_te": 0.07539999933214858,
+    "truy_xuat_rag": 600.470100000166
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Khi người bệnh còn tỉnh, xử trí theo quy tắc 15-15: uống hoặc ăn 15 g carbohydrate hấp thu nhanh, chờ 15 phút rồi đo lại glucose huyết; nếu vẫn dưới 70 mg/dL thì lặp lại. Ví dụ 15 g carbohydrate tương đương 3 đến 4 viên đường, nửa ly nước cam hoặc một thìa canh mật ong. Khi glucose đã trở lại bình thường, nên ăn một bữa nhỏ có tinh bột nếu còn lâu mới đến bữa chính. Nếu người bệnh hôn mê, không được cho ăn uống qua miệng; cần tiêm glucagon nếu có và gọi cấp cứu ngay. [1]\n- Hạ glucose huyết khi glucose huyết dưới 70 mg/dL (3,9 mmol/L). Hạ glucose huyết có ý nghĩa lâm sàng khi dưới 54 mg/dL (3,0 mmol/L). Hạ glucose huyết nặng là khi người bệnh cần người khác giúp đỡ để xử trí, có thể kèm lú lẫn, co giật hoặc hôn mê. [2]\n- Insulin là thuốc hạ glucose huyết mạnh nhất. Insulin bắt buộc cho đái tháo đường típ 1, và được chỉ định ở đái tháo đường típ 2 khi các thuốc uống không đạt mục tiêu, khi có biến chứng cấp, khi mang thai, hoặc khi suy gan, suy thận nặng. Các loại insulin gồm insulin nền (tác dụng kéo dài) và insulin bữa ăn (tác dụng nhanh). Nguy cơ chính của insulin là hạ glucose huyết và tăng cân, vì vậy người bệnh cần được hướng dẫn tự theo dõi glucose huyết. [3]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Khi đang tiêm insulin và bị hạ đường huyết, bạn nên thực hiện các biện pháp sau:\n\n1. Ngừng tiêm insulin ngay lập tức.\n2. Nạp lại đường vào máu bằng cách uống nước hoặc glucose gel/gel.\n3. Nếu có thể, sử dụng thuốc hạ đường huyết như胰岛素 lispro hoặc glargine.\n4. Đảm bảo uống đủ nước để tránh mất nước do tiêu chảy.\n5. Kiểm tra đường huyết thường xuyên và theo dõi phản ứng.\n6. Nếu không cải thiện, cần đến bác sĩ ngay.\n\nHãy nhớ rằng điều này chỉ là hướng dẫn chung và cần được thực hiện dưới sự hướng dẫn của bác sĩ hoặc chuyên gia y tế.",
+   "llm_only_s": 6.024881999999707,
+   "entities": [
+    "Ha_Duong_Huyet",
+    "Insulin_Nen"
+   ]
+  },
+  {
+   "id": 7,
+   "domain": "health",
+   "q": "Tiểu đường kèm suy tim nên ưu tiên thuốc gì?",
+   "domain_pred": "health",
+   "tools": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_y_te",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "llm",
+   "n_evidence": 4,
+   "n_citations": 1,
+   "total_ms": 1866.292999999132,
+   "llm_s": 1.2908888000001753,
+   "tool_ms": {
+    "kg_y_te": 0.06290000055741984,
+    "truy_xuat_rag": 572.5409000006039
+   },
+   "answer": "Tiểu đường kèm suy tim nên ưu tiên thuốc SGLT2 (Empagliflozin). [1]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "llm_only": "Trong trường hợp tiểu đường kèm suy tim, ưu tiên sử dụng thuốc có thể bao gồm:\n\n1. Thiazolidinediones (TZDs) như pioglitazone hoặc rosiglitazone\n2. Sulfonylureas như glimepiride hoặc gliclazide\n3. DPP-4 inhibitors như sitagliptin hoặc vildagliptin\n4. GLP-1 receptor agonists như liraglutide hoặc exenatide\n\nTuy nhiên, việc lựa chọn thuốc cần dựa trên tình trạng sức khỏe cụ thể của từng người và được bác sĩ chỉ định.",
+   "llm_only_s": 5.522578100000828,
+   "entities": [
+    "DTD_Tip2",
+    "Suy_Tim"
+   ]
+  },
+  {
+   "id": 8,
+   "domain": "finance",
+   "q": "Tỷ giá USD/VND tăng mạnh thì cổ phiếu FPT và giá vàng SJC ảnh hưởng thế nào?",
+   "domain_pred": "finance",
+   "tools": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 0.75,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 7,
+   "n_citations": 0,
+   "total_ms": 8501.328000000285,
+   "llm_s": 7.975115999999616,
+   "tool_ms": {
+    "kg_tai_chinh": 0.7264999985636678,
+    "du_lieu_thi_truong": 0.466499999674852,
+    "quy_doi_vang": 0.17120000120485201,
+    "truy_xuat_rag": 519.3573000015022
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Tỷ giá USD/VND tăng → Vàng miếng SJC: tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → Giá vàng thế giới quy đổi (VND/lượng) → Vàng miếng SJC. Cơ chế: XAU/USD × USD/VND × 1,2057; giá trong nước = quy đổi + phần bù. [1]\n- Tỷ giá USD/VND tăng → FPT (Tập đoàn FPT): tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → FPT (Tập đoàn FPT). Cơ chế: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND. [2]\n- FPT đóng cửa 63.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,0%. [3]\n- Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước. [4]\n- Doanh thu xuất khẩu phần mềm của FPT được thanh toán chủ yếu bằng USD, JPY và EUR, trong khi phần lớn chi phí là lương kỹ sư tại Việt Nam trả bằng đồng. Vì vậy khi USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí và biên lợi nhuận được cải thiện. FPT được xem là doanh nghiệp hưởng lợi khi tỷ giá tăng. Ngược lại, đồng yên Nhật suy yếu có thể làm giảm doanh thu quy đổi từ thị trường Nhật Bản, là thị trường xuất khẩu lớn nhất của FPT. [5]\n- Khi USD/VND tăng, doanh nghiệp có doanh thu bằng ngoại tệ và chi phí bằng đồng Việt Nam được hưởng lợi, ví dụ doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt may. Ngược lại doanh nghiệp nhập khẩu nguyên liệu bằng USD hoặc có nợ vay ngoại tệ lớn bị bất lợi do giá vốn tăng và phát sinh lỗ chênh lệch tỷ giá. Tỷ giá tăng mạnh thường đi kèm khối ngoại bán ròng trên thị trường chứng khoán, vì lợi nhuận quy đổi ra USD của nhà đầu tư nước ngoài bị giảm. [6]\n- Tỷ giá USD/VND chịu áp lực tăng khi chỉ số DXY tăng, khi chênh lệch lãi suất giữa USD và VND mở rộng theo hướng có lợi cho USD, khi nhập khẩu tăng nhanh hơn xuất khẩu, hoặc khi dòng vốn ngoại rút ra. Ngược lại, thặng dư thương mại, kiều hối và vốn FDI giải ngân giúp ổn định tỷ giá. Việt Nam là nền kinh tế có độ mở thương mại rất cao, tổng kim ngạch xuất nhập khẩu xấp xỉ 170 đến 200% GDP, nên biến động tỷ giá ảnh hưởng mạnh tới doanh nghiệp. [7]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Khi tỷ giá USD/VND tăng mạnh, có thể gây ra những tác động như sau đối với cổ phiếu FPT và giá vàng SJC:\n\n1. Cổ phiếu FPT: Do giá USD tăng cao hơn so với VND, lợi nhuận của FPT có thể bị giảm nhẹ do chi phí nhập ngoại tăng.\n\n2. Giá vàng SJC: Giá vàng tăng khi tỷ giá USD mạnh lên, điều này có thể làm tăng giá trị của vàng trong các sản phẩm niêm yết như SJC.\n\nTuy nhiên, ảnh hưởng cụ thể còn phụ thuộc vào nhiều yếu tố khác như tình hình kinh tế vĩ mô, xu hướng thị trường chứng khoán và giá trị thực của các sản phẩm.",
+   "llm_only_s": 6.054610200000752,
+   "entities": [
+    "USD_VND",
+    "Vang_SJC",
+    "FPT"
+   ]
+  },
+  {
+   "id": 9,
+   "domain": "finance",
+   "q": "Giá vàng thế giới quy đổi hôm nay khoảng bao nhiêu triệu đồng một lượng?",
+   "domain_pred": "finance",
+   "tools": [
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.5,
+   "faith": 1.0,
+   "faith_llm_only": 0.16666666666666666,
+   "used": "template",
+   "n_evidence": 4,
+   "n_citations": 0,
+   "total_ms": 1753.0176999989635,
+   "llm_s": 1.1341259999990143,
+   "tool_ms": {
+    "quy_doi_vang": 0.28960000054212287,
+    "truy_xuat_rag": 615.5146999990393
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước. [1]\n- Giá vàng thế giới quy đổi sang đồng mỗi lượng được tính gần đúng bằng: giá XAU/USD nhân tỷ giá USD/VND nhân 1,2057, cộng thêm chi phí vận chuyển, bảo hiểm, gia công và thuế phí. Giá vàng miếng trong nước bằng giá quy đổi cộng phần bù cung cầu nội địa. Ví dụ khi XAU/USD là 2.000 USD mỗi ounce và tỷ giá 25.000 đồng mỗi USD, giá quy đổi xấp xỉ 2.000 × 25.000 × 1,2057 ≈ 60,3 triệu đồng mỗi lượng, chưa tính chi phí và phần bù. [2]\n- Từ năm 2014 NHNN gần như không nhập khẩu vàng nguyên liệu để sản xuất thêm vàng miếng SJC. Nguồn cung vàng miếng bị giới hạn trong khi nhu cầu tích trữ của người dân tăng mạnh mỗi khi lạm phát hoặc bất ổn, nên giá vàng miếng SJC thường cao hơn giá vàng thế giới quy đổi. Mức chênh lệch giữa vàng miếng SJC và giá thế giới quy đổi thường dao động vài triệu đồng mỗi lượng, có giai đoạn đầu năm 2024 lên tới khoảng 15 đến 18 triệu đồng mỗi lượng. Chênh lệch lớn tạo động lực buôn lậu vàng và gây áp lực lên tỷ giá. [3]\n- Giá vàng thế giới niêm yết bằng USD cho mỗi ounce troy, ký hiệu XAU/USD. Một ounce troy bằng 31,1035 gam. Ở Việt Nam vàng được tính theo lượng (cây), một lượng bằng 37,5 gam, tức khoảng 1,2057 ounce troy. [4]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Giá vàng thế giới quy đổi vào thời điểm hiện tại (tháng 10/2023) dao động trong khoảng 645-650 USD/ounce. Tương đương với 21.89-22.17 triệu đồng mỗi lượng 1 gram. Giá này có thể thay đổi tùy theo thị trường và các yếu tố khác.",
+   "llm_only_s": 3.3543561000005866,
+   "entities": [
+    "XAU_USD",
+    "Vang_Quy_Doi"
+   ]
+  },
+  {
+   "id": 10,
+   "domain": "finance",
+   "q": "Dự báo giá cổ phiếu FPT phiên tới?",
+   "domain_pred": "finance",
+   "tools": [
+    "du_bao_bilstm",
+    "du_lieu_thi_truong",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "du_bao_bilstm",
+    "du_lieu_thi_truong",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.5,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 5,
+   "n_citations": 0,
+   "total_ms": 2087.8781999999774,
+   "llm_s": 1.5288817999989988,
+   "tool_ms": {
+    "du_lieu_thi_truong": 0.25799999821174424,
+    "du_bao_bilstm": 108.80150000048161,
+    "truy_xuat_rag": 447.2765000009531
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- FPT đóng cửa 63.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,0%. [1]\n- BiLSTM dự báo FPT phiên sau 2026-09-30: 63.314,7 đồng/cổ phiếu (giá gần nhất 63.000,0; khoảng dự báo 90%: 61.104,1 - 65.662,6; xác suất tăng 60%). Trên tập kiểm thử 2025-2026 mô hình đoán đúng chiều 50,3% và không vượt dự báo giữ nguyên giá (RMSE/RMSE ngây thơ = 1,154). [2]\n- Các rủi ro chính gồm cạnh tranh nhân lực công nghệ, chi phí lương tăng, kinh tế Mỹ và Nhật Bản suy giảm làm khách hàng cắt giảm ngân sách công nghệ, và biến động tỷ giá theo chiều bất lợi. Định giá cổ phiếu FPT thường cao hơn mặt bằng thị trường do kỳ vọng tăng trưởng. [3]\n- FPT là tập đoàn công nghệ thông tin hàng đầu Việt Nam, niêm yết trên sàn HOSE và thuộc rổ VN30. Hoạt động gồm ba khối chính: công nghệ (dịch vụ công nghệ thông tin toàn cầu và trong nước), viễn thông (FPT Telecom) và giáo dục (Đại học FPT, hệ thống phổ thông FPT). [4]\n- Nguồn tổng hợp: báo cáo thường niên FPT và báo cáo phân tích ngành công nghệ của các công ty chứng khoán. Tài liệu chỉ dùng cho mục đích học tập, không phải khuyến nghị đầu tư. [5]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Xin lỗi, tôi không có khả năng dự báo giá cổ phiếu cụ thể như FPT. Tuy nhiên, bạn có thể tham khảo các thông tin từ các nguồn tin cậy như công ty FPT, các công ty chứng khoán uy tín hoặc trang web tài chính trực tuyến khác để có cái nhìn tổng quan hơn về tình hình hiện tại và khả năng tăng giảm của cổ phiếu.",
+   "llm_only_s": 3.501502299999629,
+   "entities": [
+    "FPT"
+   ]
+  },
+  {
+   "id": 11,
+   "domain": "finance",
+   "q": "Tỷ giá tăng thì Hòa Phát bị ảnh hưởng ra sao?",
+   "domain_pred": "finance",
+   "tools": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.5,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 5,
+   "n_citations": 0,
+   "total_ms": 3966.0234000002674,
+   "llm_s": 3.4569515000002866,
+   "tool_ms": {
+    "kg_tai_chinh": 0.2055000004475005,
+    "du_lieu_thi_truong": 0.2576000006229151,
+    "truy_xuat_rag": 505.55509999867354
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Tỷ giá USD/VND tăng → HPG (Hòa Phát): tiêu cực (−) (1 đường). Kênh chính: Tỷ giá USD/VND → HPG (Hòa Phát). Cơ chế: nhập quặng sắt, than cốc bằng USD; lỗ tỷ giá nợ vay. [1]\n- HPG đóng cửa 20.150 đồng ngày 30/09/2026, thay đổi 20 phiên −7,6%. [2]\n- Hòa Phát sản xuất thép theo công nghệ lò cao, phải nhập khẩu phần lớn quặng sắt và than mỡ luyện cốc, thanh toán bằng USD. Doanh nghiệp cũng có dư nợ vay ngoại tệ cho các dự án lớn. Vì vậy khi USD/VND tăng, giá vốn hàng bán tăng và phát sinh lỗ chênh lệch tỷ giá, làm giảm biên lợi nhuận. Hòa Phát chịu bất lợi khi tỷ giá tăng. [3]\n- Khi USD/VND tăng, doanh nghiệp có doanh thu bằng ngoại tệ và chi phí bằng đồng Việt Nam được hưởng lợi, ví dụ doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt may. Ngược lại doanh nghiệp nhập khẩu nguyên liệu bằng USD hoặc có nợ vay ngoại tệ lớn bị bất lợi do giá vốn tăng và phát sinh lỗ chênh lệch tỷ giá. Tỷ giá tăng mạnh thường đi kèm khối ngoại bán ròng trên thị trường chứng khoán, vì lợi nhuận quy đổi ra USD của nhà đầu tư nước ngoài bị giảm. [4]\n- Tỷ giá USD/VND chịu áp lực tăng khi chỉ số DXY tăng, khi chênh lệch lãi suất giữa USD và VND mở rộng theo hướng có lợi cho USD, khi nhập khẩu tăng nhanh hơn xuất khẩu, hoặc khi dòng vốn ngoại rút ra. Ngược lại, thặng dư thương mại, kiều hối và vốn FDI giải ngân giúp ổn định tỷ giá. Việt Nam là nền kinh tế có độ mở thương mại rất cao, tổng kim ngạch xuất nhập khẩu xấp xỉ 170 đến 200% GDP, nên biến động tỷ giá ảnh hưởng mạnh tới doanh nghiệp. [5]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Tỷ giá tăng có thể ảnh hưởng đến doanh thu và lợi nhuận của Hòa Phát. Khi tỷ giá tăng, giá trị đồng tiền trong nước giảm so với ngoại tệ, điều này có thể làm giảm lợi nhuận từ xuất khẩu và tăng chi phí nhập khẩu. Tuy nhiên, nếu Hòa Phát có chiến lược kinh doanh phù hợp, có thể tận dụng cơ hội từ sự tăng giá của các mặt hàng xuất khẩu.",
+   "llm_only_s": 3.653221599999597,
+   "entities": [
+    "HPG",
+    "USD_VND"
+   ]
+  },
+  {
+   "id": 12,
+   "domain": "finance",
+   "q": "Lãi suất điều hành NHNN giảm thì VCB và VIC hưởng lợi thế nào?",
+   "domain_pred": "finance",
+   "tools": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "du_lieu_thi_truong",
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 1.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 7,
+   "n_citations": 0,
+   "total_ms": 6328.44120000118,
+   "llm_s": 5.798417100000734,
+   "tool_ms": {
+    "kg_tai_chinh": 0.3473999986454146,
+    "du_lieu_thi_truong": 0.3555000002961606,
+    "truy_xuat_rag": 525.5895000009332
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Lãi suất điều hành NHNN tăng → VCB (Vietcombank): tiêu cực (−) (1 đường). Kênh chính: Lãi suất điều hành NHNN → VCB (Vietcombank). Cơ chế: lãi suất thấp, tín dụng tăng làm lợi nhuận ngân hàng tăng. [1]\n- Lãi suất điều hành NHNN tăng → VIC (Vingroup): hỗn hợp: 1 kênh (+), 1 kênh (−), ròng − (2 đường). Kênh chính: Lãi suất điều hành NHNN → VIC (Vingroup). Cơ chế: lãi suất vay mua nhà và chi phí tài chính. [2]\n- VCB đóng cửa 58.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,4%. [3]\n- VIC đóng cửa 227.900 đồng ngày 30/09/2026, thay đổi 20 phiên +3,4%. [4]\n- Lãi suất điều hành và thanh khoản hệ thống do NHNN điều tiết tác động trực tiếp đến chi phí huy động và lãi suất cho vay của Vietcombank. Khi lãi suất ổn định ở mức thấp và tín dụng tăng trưởng tốt, lợi nhuận ngân hàng tăng. Là ngân hàng mạnh về ngoại hối, Vietcombank cũng hưởng lợi từ hoạt động kinh doanh ngoại tệ khi thị trường biến động. [5]\n- Năm 2023 NHNN giảm lãi suất điều hành bốn lần để hỗ trợ tăng trưởng; lãi suất tái cấp vốn về mức 4,5% mỗi năm và lãi suất tái chiết khấu về 3,0% mỗi năm từ tháng 6 năm 2023. Mặt bằng lãi suất điều hành được giữ ổn định trong các năm sau đó. Lãi suất điều hành thấp giúp giảm chi phí vốn của ngân hàng thương mại, từ đó giảm lãi suất cho vay, hỗ trợ doanh nghiệp và thị trường bất động sản. Tuy vậy lãi suất VND thấp hơn lãi suất USD có thể gây áp lực lên tỷ giá. [6]\n- Các nhóm ngành phản ứng khác nhau trước cùng một biến số vĩ mô: tỷ giá tăng có lợi cho doanh nghiệp xuất khẩu như FPT nhưng bất lợi cho doanh nghiệp nhập khẩu nguyên liệu như HPG; lãi suất giảm có lợi cho ngân hàng và bất động sản như VCB, VIC. Vì vậy kết hợp nhiều nhóm ngành và tài sản như vàng giúp giảm rủi ro danh mục. [7]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Lãi suất điều hành của Ngân hàng Nhà nước giảm sẽ giúp các ngân hàng thương mại như VCB và VIC có lợi hơn khi cho vay khách hàng. Điều này vì lãi suất thấp hơn sẽ giúp họ thu hút vốn từ khách hàng và cạnh tranh tốt hơn trong thị trường tín dụng.",
+   "llm_only_s": 2.5341716000002634,
+   "entities": [
+    "Lai_Suat_NHNN",
+    "VCB",
+    "VIC"
+   ]
+  },
+  {
+   "id": 13,
+   "domain": "finance",
+   "q": "Nghị định 232/2025 thay đổi gì với vàng miếng SJC?",
+   "domain_pred": "finance",
+   "tools": [
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 4,
+   "n_citations": 0,
+   "total_ms": 6440.834499999255,
+   "llm_s": 5.849286599999687,
+   "tool_ms": {
+    "kg_tai_chinh": 0.1747999995131977,
+    "truy_xuat_rag": 588.3735000006709
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Nghị định 232/2025/NĐ-CP tăng → Vàng miếng SJC: tiêu cực (−) (1 đường). Kênh chính: Nghị định 232/2025/NĐ-CP → Phần bù vàng miếng SJC so với thế giới → Vàng miếng SJC. Cơ chế: bãi bỏ độc quyền, tăng cung hợp pháp; giá trong nước = quy đổi + phần bù. [1]\n- Năm 2025 Chính phủ ban hành Nghị định 232/2025/NĐ-CP sửa đổi, bổ sung Nghị định 24/2012/NĐ-CP, có hiệu lực từ tháng 10 năm 2025. Điểm thay đổi lớn là bãi bỏ cơ chế Nhà nước độc quyền sản xuất vàng miếng, cho phép doanh nghiệp và ngân hàng đủ điều kiện được cấp phép sản xuất vàng miếng và nhập khẩu vàng nguyên liệu theo hạn mức do NHNN quản lý. Kỳ vọng của chính sách là tăng nguồn cung hợp pháp, thu hẹp chênh lệch giá trong nước với thế giới và hạn chế buôn lậu. Tuy vậy NHNN vẫn quản lý chặt hạn mức nhập khẩu, nên phần bù của vàng miếng trong nước vẫn phụ thuộc vào cung cầu và kỳ vọng. [2]\n- Nghị định 24/2012/NĐ-CP ngày 3/4/2012 về quản lý hoạt động kinh doanh vàng được ban hành nhằm chống hiện tượng \"vàng hóa\" nền kinh tế và huy động vàng trong dân vào sản xuất. Nghị định quy định Nhà nước độc quyền sản xuất vàng miếng, độc quyền xuất khẩu vàng nguyên liệu và nhập khẩu vàng nguyên liệu để sản xuất vàng miếng. Thực hiện nghị định, NHNN chọn thương hiệu vàng miếng SJC của Công ty Vàng bạc Đá quý Sài Gòn làm thương hiệu vàng miếng quốc gia. Từ đó các doanh nghiệp khác không được dập vàng miếng mang thương hiệu riêng. [3]\n- Từ tháng 4 năm 2024 NHNN tổ chức đấu thầu vàng miếng SJC để tăng cung, nhưng chênh lệch giảm chậm. Từ tháng 6 năm 2024 NHNN chuyển sang bán vàng miếng SJC trực tiếp qua bốn ngân hàng thương mại nhà nước và Công ty SJC, giúp chênh lệch với giá thế giới thu hẹp đáng kể, có lúc còn khoảng 3 đến 5 triệu đồng mỗi lượng. [4]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Nghị định 232/2025 không thay đổi quy định về giá vàng miếng SJC. Nó chỉ quy định các điều kiện kinh doanh và quản lý vàng miếng SJC.",
+   "llm_only_s": 2.0489931000010984,
+   "entities": [
+    "Vang_SJC",
+    "ND_232_2025"
+   ]
+  },
+  {
+   "id": 14,
+   "domain": "finance",
+   "q": "Fed tăng lãi suất thì giá vàng thế giới và tỷ giá biến động ra sao?",
+   "domain_pred": "finance",
+   "tools": [
+    "kg_tai_chinh",
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "kg_tai_chinh",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 0.6666666666666666,
+   "tool_recall": 1.0,
+   "coverage": 0.5,
+   "hits": [
+    true,
+    false
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 5,
+   "n_citations": 0,
+   "total_ms": 3909.0415999999095,
+   "llm_s": 3.369734799998696,
+   "tool_ms": {
+    "kg_tai_chinh": 0.42500000017753337,
+    "quy_doi_vang": 0.23209999926621094,
+    "truy_xuat_rag": 535.4972000004636
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Lãi suất Fed tăng → Giá vàng thế giới (XAU/USD): tiêu cực (−) (2 đường). Kênh chính: Lãi suất Fed → Giá vàng thế giới (XAU/USD). Cơ chế: chi phí cơ hội nắm giữ vàng tăng. [1]\n- Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước. [2]\n- Giá vàng thế giới thường biến động ngược chiều với sức mạnh của đồng USD (chỉ số DXY) và lợi suất thực của trái phiếu chính phủ Mỹ. Khi Cục Dự trữ Liên bang Mỹ (Fed) cắt giảm lãi suất, chi phí cơ hội của việc nắm giữ vàng giảm nên giá vàng có xu hướng tăng. Vàng được xem là tài sản trú ẩn an toàn: bất ổn địa chính trị, chiến tranh, khủng hoảng tài chính hay lạm phát cao thường làm giá vàng tăng. Nhu cầu mua vàng của các ngân hàng trung ương, đặc biệt từ năm 2022, cũng là động lực lớn đẩy giá vàng lên các mức kỷ lục. [3]\n- Giá vàng thế giới vượt 2.000 USD mỗi ounce năm 2020 khi đại dịch bùng phát, đi ngang trong giai đoạn Fed tăng lãi suất 2022 đến 2023, sau đó tăng mạnh từ năm 2024 nhờ kỳ vọng cắt giảm lãi suất, nhu cầu của ngân hàng trung ương và căng thẳng địa chính trị, lập nhiều đỉnh mới trong các năm 2024 và 2025. [4]\n- Vàng không tạo dòng tiền như cổ tức hay lãi trái phiếu. Giá vàng có thể giảm mạnh khi USD mạnh lên hoặc lãi suất thực tăng. Với vàng miếng trong nước còn có rủi ro chênh lệch mua bán lớn và rủi ro phần bù co lại khi chính sách tăng cung. [5]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Khi Ngân hàng Dự trữ Liên bang Mỹ (Fed) tăng lãi suất, giá vàng thế giới thường giảm do lợi suất trái phiếu kho bạc tăng cao hơn. Tuy nhiên, sự biến động của giá vàng còn phụ thuộc vào nhiều yếu tố khác như tình hình kinh tế, thị trường tài chính quốc tế và nhu cầu tiêu dùng.",
+   "llm_only_s": 3.013048799999524,
+   "entities": [
+    "XAU_USD",
+    "Lai_Suat_NHNN",
+    "USD_VND",
+    "Lai_Suat_Fed"
+   ]
+  },
+  {
+   "id": 15,
+   "domain": "finance",
+   "q": "Xu hướng giá vàng phiên tới thế nào, có nên mua vàng không?",
+   "domain_pred": "finance",
+   "tools": [
+    "du_bao_bilstm",
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "expected": [
+    "du_bao_bilstm",
+    "quy_doi_vang",
+    "truy_xuat_rag"
+   ],
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 1.0,
+   "hits": [
+    true,
+    true
+   ],
+   "coverage_llm_only": 0.0,
+   "faith": 1.0,
+   "faith_llm_only": 1.0,
+   "used": "template",
+   "n_evidence": 5,
+   "n_citations": 0,
+   "total_ms": 3925.2575999998953,
+   "llm_s": 3.2976808000003075,
+   "tool_ms": {
+    "quy_doi_vang": 0.2401000001555076,
+    "du_bao_bilstm": 41.13760000109323,
+    "truy_xuat_rag": 582.9732000001968
+   },
+   "answer": "Tổng hợp từ các công cụ:\n- Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước. [1]\n- BiLSTM dự báo GOLD_VND phiên sau 2026-10-21: 128,8 triệu đồng/lượng (giá gần nhất 128,7; khoảng dự báo 90%: 125,8 - 132,0; xác suất tăng 52%). Trên tập kiểm thử 2025-2026 mô hình đoán đúng chiều 52,8% và nhỉnh hơn dự báo giữ nguyên giá (RMSE/RMSE ngây thơ = 0,999). [2]\n- Từ năm 2014 NHNN gần như không nhập khẩu vàng nguyên liệu để sản xuất thêm vàng miếng SJC. Nguồn cung vàng miếng bị giới hạn trong khi nhu cầu tích trữ của người dân tăng mạnh mỗi khi lạm phát hoặc bất ổn, nên giá vàng miếng SJC thường cao hơn giá vàng thế giới quy đổi. Mức chênh lệch giữa vàng miếng SJC và giá thế giới quy đổi thường dao động vài triệu đồng mỗi lượng, có giai đoạn đầu năm 2024 lên tới khoảng 15 đến 18 triệu đồng mỗi lượng. Chênh lệch lớn tạo động lực buôn lậu vàng và gây áp lực lên tỷ giá. [3]\n- Giá vàng thế giới thường biến động ngược chiều với sức mạnh của đồng USD (chỉ số DXY) và lợi suất thực của trái phiếu chính phủ Mỹ. Khi Cục Dự trữ Liên bang Mỹ (Fed) cắt giảm lãi suất, chi phí cơ hội của việc nắm giữ vàng giảm nên giá vàng có xu hướng tăng. Vàng được xem là tài sản trú ẩn an toàn: bất ổn địa chính trị, chiến tranh, khủng hoảng tài chính hay lạm phát cao thường làm giá vàng tăng. Nhu cầu mua vàng của các ngân hàng trung ương, đặc biệt từ năm 2022, cũng là động lực lớn đẩy giá vàng lên các mức kỷ lục. [4]\n- Từ tháng 4 năm 2024 NHNN tổ chức đấu thầu vàng miếng SJC để tăng cung, nhưng chênh lệch giảm chậm. Từ tháng 6 năm 2024 NHNN chuyển sang bán vàng miếng SJC trực tiếp qua bốn ngân hàng thương mại nhà nước và Công ty SJC, giúp chênh lệch với giá thế giới thu hẹp đáng kể, có lúc còn khoảng 3 đến 5 triệu đồng mỗi lượng. [5]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "llm_only": "Xu hướng giá vàng trong phiên tới khó dự đoán vì phụ thuộc vào nhiều yếu tố như tình hình kinh tế, chính trị và thị trường tài chính quốc tế. Tuy nhiên, nếu bạn đang cân nhắc mua vàng, tôi khuyên bạn nên xem xét các yếu tố sau:\n\n1. Giá hiện tại: Đánh giá giá vàng hiện tại để xem liệu nó có đang ở mức cao hay thấp so với thời điểm trước đó.\n\n2. Thị trường tài chính: Xem xét xu hướng của thị trường tài chính toàn cầu.\n\n3. Lạm phát: Giá vàng thường tăng khi lạm phát giảm.\n\n4. Sự kiện chính trị: Sự kiện quan trọng có thể ảnh hưởng đến giá vàng.\n\n5. Cân đối ngân sách: Nếu bạn đang cân nhắc việc tiết kiệm hoặc đầu tư, giá vàng có thể là một lựa chọn an toàn.\n\nTuy nhiên, mua vàng cũng có rủi ro, vì vậy hãy cân nhắc kỹ trước khi quyết định.",
+   "llm_only_s": 8.573939300000347,
+   "entities": [
+    "Vang_SJC"
+   ]
+  }
+ ],
+ "agg": {
+  "health": {
+   "tool_precision": 1.0,
+   "tool_recall": 1.0,
+   "coverage": 0.875,
+   "coverage_llm_only": 0.0,
+   "faith": 0.9333333333333333,
+   "faith_llm_only": 0.9583333333333333,
+   "total_ms": 6949.967199999492,
+   "llm_s": 6.2820021,
+   "llm_only_s": 4.14776734999964,
+   "domain_acc": 1.0,
+   "llm_pass": 0.25
+  },
+  "finance": {
+   "tool_precision": 0.9270833333333333,
+   "tool_recall": 1.0,
+   "coverage": 0.9375,
+   "coverage_llm_only": 0.3125,
+   "faith": 1.0,
+   "faith_llm_only": 0.8958333333333334,
+   "total_ms": 4613.977774999967,
+   "llm_s": 4.051274324999667,
+   "llm_only_s": 4.091730375000225,
+   "domain_acc": 1.0,
+   "llm_pass": 0.0
+  },
+  "all": {
+   "tool_precision": 0.9635416666666666,
+   "tool_recall": 1.0,
+   "coverage": 0.90625,
+   "coverage_llm_only": 0.15625,
+   "faith": 0.9666666666666666,
+   "faith_llm_only": 0.9270833333333334,
+   "total_ms": 5781.972487499729,
+   "llm_s": 5.166638212499834,
+   "llm_only_s": 4.119748862499932,
+   "domain_acc": 1.0,
+   "llm_pass": 0.125
+  },
+  "tool_ms": {
+   "chan_doan_nguy_co": 9.991949999857752,
+   "du_bao_bilstm": 74.96955000078742,
+   "du_lieu_thi_truong": 0.3067499992539524,
+   "kg_tai_chinh": 0.3473999986454146,
+   "kg_y_te": 0.07904999984020833,
+   "quy_doi_vang": 0.23609999971085927,
+   "truy_xuat_rag": 589.9934000008216
+  },
+  "tool_calls": {
+   "chan_doan_nguy_co": 2,
+   "du_bao_bilstm": 2,
+   "du_lieu_thi_truong": 4,
+   "kg_tai_chinh": 5,
+   "kg_y_te": 8,
+   "quy_doi_vang": 4,
+   "truy_xuat_rag": 16
+  }
+ },
+ "traces": {
+  "health": {
+   "question": "Tôi bị tiểu đường típ 2 đang uống Metformin 500mg, tối nay đi tiệc có uống bia được không?",
+   "domain": "health",
+   "entities": [
+    [
+     "DTD_Tip2",
+     "VietnamDiabetesKG"
+    ],
+    [
+     "Metformin",
+     "VietnamDiabetesKG"
+    ],
+    [
+     "Ruou_Bia",
+     "VietnamDiabetesKG"
+    ]
+   ],
+   "profile": {},
+   "trace": [
+    {
+     "type": "THOUGHT",
+     "text": "Miền health; thực thể liên kết: Đái tháo đường típ 2, Metformin, Rượu bia (ethanol). Kế hoạch: kg_y_te → truy_xuat_rag."
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Câu hỏi nhắc tới thuốc, chất hoặc món ăn; tra đồ thị tri thức để lấy ràng buộc tương tác và khuyến nghị dinh dưỡng có nguồn."
+    },
+    {
+     "type": "ACTION",
+     "tool": "kg_y_te",
+     "kind": "KG",
+     "ms": 0.176199999259552,
+     "args": [
+      "DTD_Tip2",
+      "Metformin",
+      "Ruou_Bia"
+     ]
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "kg_y_te",
+     "text": "Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu) | Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2) | Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp)"
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Truy xuất văn bản gốc trong kho tri thức để trích dẫn căn cứ."
+    },
+    {
+     "type": "ACTION",
+     "tool": "truy_xuat_rag",
+     "kind": "RAG",
+     "ms": 960.0100999996357,
+     "args": "Tôi bị tiểu đường típ 2 đang uống Metformin 500mg, tối nay đi tiệc có uống bia được không? Đái tháo đường típ 2 Metformin Rượu bia (ethanol)"
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "truy_xuat_rag",
+     "text": "Rượu bia làm tăng nguy cơ nhiễm toan lactic ở người dùng metformin. Cơ chế là cả metformin và ethanol đều cản trở gan chuyển lactate thành glucose, khiến lactate tích tụ trong máu. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài. Tờ hướng dẫn sử dụng metformin khuyến cáo người bệnh tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Người nghiện rượu hoặc có bệnh gan do rượu là đối tượng cần thận trọng đặc biệt khi dùng metformin. Khuyến cáo thực hành cho người đang dùng metformin: tốt nhất không uống rượu bia; nếu có dịp bắt buộc thì chỉ uống rất ít, không uống khi"
+    }
+   ],
+   "evidence": [
+    [
+     "KG:h03-ruou-bia",
+     "Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu)"
+    ],
+    [
+     "KG:h02-thuoc-dieu-tri",
+     "Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2)"
+    ],
+    [
+     "KG:h02-thuoc-dieu-tri",
+     "Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp)"
+    ],
+    [
+     "RAG:h03-ruou-bia",
+     "Rượu bia làm tăng nguy cơ nhiễm toan lactic ở người dùng metformin. Cơ chế là cả metformin và ethanol đều cản trở gan chuyển lactate thành glucose, khiến lactate tích tụ trong máu. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài. Tờ hướng dẫn sử dụng metformin khuyến cáo người bệnh tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Người nghiện rượu hoặc có bệnh gan do rượu là đối tượng cần thận trọng đặc biệt khi dùng metformin. Khuyến cáo thực hành cho người đang dùng metformin: tốt nhất không uống rượu bia; nếu có dịp bắt buộc thì chỉ uống rất ít, không uống khi đói, phải ăn kèm thức ăn có tinh bột, và theo dõi dấu hiệu bất thường như mệt lả, đau cơ, khó thở, đau bụng."
+    ],
+    [
+     "RAG:h03-ruou-bia",
+     "Các bữa liên hoan, đám cưới, giỗ chạp ở Việt Nam thường kèm rượu bia và món chiên, xào nhiều dầu mỡ. Người bệnh đang dùng metformin nên chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng. Về thức ăn trong bữa tiệc, nên ưu tiên món luộc, hấp, rau xanh; ăn rau trước, ăn đạm sau và ăn tinh bột cuối cùng; hạn chế món chiên rán, da gà, lòng, mỡ; và kiểm soát lượng cơm, xôi, bánh."
+    ],
+    [
+     "RAG:h03-ruou-bia",
+     "Nếu người bệnh đái tháo đường được bác sĩ cho phép uống rượu, giới hạn khuyến cáo là không quá 1 đơn vị cồn mỗi ngày với nữ và không quá 2 đơn vị cồn mỗi ngày với nam. Một đơn vị cồn chuẩn tương đương khoảng 10 g cồn nguyên chất, xấp xỉ một lon bia 330 mL nồng độ 4 đến 5% hoặc một chén rượu mạnh 30 mL. Người có biến chứng thần kinh, bệnh gan, viêm tụy, tăng triglycerid nặng hoặc tiền sử hạ glucose huyết nặng nên kiêng rượu hoàn toàn."
+    ]
+   ],
+   "answer": "Tổng hợp từ các công cụ:\n- Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu) [1]\n- Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2) [2]\n- Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp) [3]\n- Rượu bia làm tăng nguy cơ nhiễm toan lactic ở người dùng metformin. Cơ chế là cả metformin và ethanol đều cản trở gan chuyển lactate thành glucose, khiến lactate tích tụ trong máu. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài. Tờ hướng dẫn sử dụng metformin khuyến cáo người bệnh tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Người nghiện rượu hoặc có bệnh gan do rượu là đối tượng cần thận trọng đặc biệt khi dùng metformin. Khuyến cáo thực hành cho người đang dùng metformin: tốt nhất không uống rượu bia; nếu có dịp bắt buộc thì chỉ uống rất ít, không uống khi đói, phải ăn kèm thức ăn có tinh bột, và theo dõi dấu hiệu bất thường như mệt lả, đau cơ, khó thở, đau bụng. [4]\n- Các bữa liên hoan, đám cưới, giỗ chạp ở Việt Nam thường kèm rượu bia và món chiên, xào nhiều dầu mỡ. Người bệnh đang dùng metformin nên chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng. Về thức ăn trong bữa tiệc, nên ưu tiên món luộc, hấp, rau xanh; ăn rau trước, ăn đạm sau và ăn tinh bột cuối cùng; hạn chế món chiên rán, da gà, lòng, mỡ; và kiểm soát lượng cơm, xôi, bánh. [5]\n- Nếu người bệnh đái tháo đường được bác sĩ cho phép uống rượu, giới hạn khuyến cáo là không quá 1 đơn vị cồn mỗi ngày với nữ và không quá 2 đơn vị cồn mỗi ngày với nam. Một đơn vị cồn chuẩn tương đương khoảng 10 g cồn nguyên chất, xấp xỉ một lon bia 330 mL nồng độ 4 đến 5% hoặc một chén rượu mạnh 30 mL. Người có biến chứng thần kinh, bệnh gan, viêm tụy, tăng triglycerid nặng hoặc tiền sử hạ glucose huyết nặng nên kiêng rượu hoàn toàn. [6]\n\nThông tin chỉ mang tính tham khảo, không thay thế chỉ định của bác sĩ.",
+   "verification": {
+    "has_citation": false,
+    "citations_valid": true,
+    "n_citations": 0,
+    "numbers": 4,
+    "numeric_faithfulness": 1.0,
+    "unsupported_numbers": [],
+    "used": "template",
+    "llm_tokens": 230,
+    "llm_s": 9.212012999998478,
+    "llm_text": "[Từ câu hỏi và các chứng từ đã cung cấp, chúng ta có thể rút ra rằng]:\n\n1. Người bệnh đang dùng Metformin 500mg.\n2. Người bệnh cần tránh uống rượu bia vì có thể gây tăng nguy cơ nhiễm toan lactic.\n3. Cụ thể hơn, Metformin có thể tương tác với rượu bia, tăng nguy cơ nhiễm toan lactic.\n4. Theo hướng dẫn sử dụng Metformin, người bệnh nên chủ động từ chối rượu bia.\n5. Nếu cần uống rượu, giới hạn khuyến cáo là không quá 1 đơn vị cồn mỗi ngày với nữ và không quá 2 đơn vị cồn mỗi ngày với nam.\n6. Một đơn vị cồn tương đương khoảng 10g cồn nguyên chất, xấp xỉ một lon bia 330ml hoặc một chén rượu mạnh 30ml.\n\nTóm lại, theo khuyến nghị, bạn nên từ chối uống rượu bia tối nay. Nếu cần uống rượu, hãy tuân thủ giới hạn khuyến cáo.",
+    "reason": "câu trả lời LLM không qua kiểm chứng (trích dẫn hoặc con số không có trong bằng chứng)"
+   },
+   "total_ms": 10191.680599999017
+  },
+  "finance": {
+   "question": "Tỷ giá USD/VND tăng mạnh thì cổ phiếu FPT và giá vàng SJC ảnh hưởng thế nào?",
+   "domain": "finance",
+   "entities": [
+    [
+     "USD_VND",
+     "VietnamFinanceKG"
+    ],
+    [
+     "Vang_SJC",
+     "VietnamFinanceKG"
+    ],
+    [
+     "FPT",
+     "VietnamFinanceKG"
+    ]
+   ],
+   "profile": {},
+   "trace": [
+    {
+     "type": "THOUGHT",
+     "text": "Miền finance; thực thể liên kết: Tỷ giá USD/VND, Vàng miếng SJC, FPT (Tập đoàn FPT). Kế hoạch: kg_tai_chinh → du_lieu_thi_truong → quy_doi_vang → truy_xuat_rag."
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Câu hỏi về tác động của biến số vĩ mô; cần suy luận đa bước trên đồ thị nhân quả."
+    },
+    {
+     "type": "ACTION",
+     "tool": "kg_tai_chinh",
+     "kind": "KG",
+     "ms": 0.7264999985636678,
+     "args": [
+      "USD_VND",
+      "Vang_SJC",
+      "FPT"
+     ]
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "kg_tai_chinh",
+     "text": "Tỷ giá USD/VND tăng → Vàng miếng SJC: tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → Giá vàng thế giới quy đổi (VND/lượng) → Vàng miếng SJC. Cơ chế: XAU/USD × USD/VND × 1,2057; giá trong nước = quy đổi + phần bù. | Tỷ giá USD/VND tăng → FPT (Tập đoàn FPT): tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → FPT (Tập đoàn FPT). Cơ chế: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND."
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Lấy giá gần nhất của cổ phiếu được hỏi."
+    },
+    {
+     "type": "ACTION",
+     "tool": "du_lieu_thi_truong",
+     "kind": "CALC",
+     "ms": 0.466499999674852,
+     "args": [
+      "FPT"
+     ]
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "du_lieu_thi_truong",
+     "text": "FPT đóng cửa 63.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,0%."
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Câu hỏi về mức giá vàng; tính giá thế giới quy đổi từ dữ liệu mới nhất."
+    },
+    {
+     "type": "ACTION",
+     "tool": "quy_doi_vang",
+     "kind": "CALC",
+     "ms": 0.17120000120485201,
+     "args": null
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "quy_doi_vang",
+     "text": "Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước."
+    },
+    {
+     "type": "THOUGHT",
+     "text": "Truy xuất văn bản gốc trong kho tri thức để trích dẫn căn cứ."
+    },
+    {
+     "type": "ACTION",
+     "tool": "truy_xuat_rag",
+     "kind": "RAG",
+     "ms": 519.3573000015022,
+     "args": "Tỷ giá USD/VND tăng mạnh thì cổ phiếu FPT và giá vàng SJC ảnh hưởng thế nào? Tỷ giá USD/VND Vàng miếng SJC FPT (Tập đoàn FPT)"
+    },
+    {
+     "type": "OBSERVATION",
+     "tool": "truy_xuat_rag",
+     "text": "Doanh thu xuất khẩu phần mềm của FPT được thanh toán chủ yếu bằng USD, JPY và EUR, trong khi phần lớn chi phí là lương kỹ sư tại Việt Nam trả bằng đồng. Vì vậy khi USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí và biên lợi nhuận được cải thiện. FPT được xem là doanh nghiệp hưởng lợi khi tỷ giá tăng. Ngược lại, đồng yên Nhật suy yếu có thể làm giảm doanh thu quy đổi từ thị trường Nhật Bản, là thị trường xuất khẩu lớn nhất của FPT. | Khi USD/VND tăng, doanh nghiệp có doanh thu bằng ngoại tệ và chi phí bằng đồng Việt Nam được hưởng lợi, ví dụ doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt"
+    }
+   ],
+   "evidence": [
+    [
+     "KG:f02-gia-vang-the-gioi",
+     "Tỷ giá USD/VND tăng → Vàng miếng SJC: tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → Giá vàng thế giới quy đổi (VND/lượng) → Vàng miếng SJC. Cơ chế: XAU/USD × USD/VND × 1,2057; giá trong nước = quy đổi + phần bù."
+    ],
+    [
+     "KG:f05-fpt",
+     "Tỷ giá USD/VND tăng → FPT (Tập đoàn FPT): tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → FPT (Tập đoàn FPT). Cơ chế: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND."
+    ],
+    [
+     "Dữ liệu:FPT",
+     "FPT đóng cửa 63.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,0%."
+    ],
+    [
+     "Tính toán",
+     "Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước."
+    ],
+    [
+     "RAG:f05-fpt",
+     "Doanh thu xuất khẩu phần mềm của FPT được thanh toán chủ yếu bằng USD, JPY và EUR, trong khi phần lớn chi phí là lương kỹ sư tại Việt Nam trả bằng đồng. Vì vậy khi USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí và biên lợi nhuận được cải thiện. FPT được xem là doanh nghiệp hưởng lợi khi tỷ giá tăng. Ngược lại, đồng yên Nhật suy yếu có thể làm giảm doanh thu quy đổi từ thị trường Nhật Bản, là thị trường xuất khẩu lớn nhất của FPT."
+    ],
+    [
+     "RAG:f03-ty-gia",
+     "Khi USD/VND tăng, doanh nghiệp có doanh thu bằng ngoại tệ và chi phí bằng đồng Việt Nam được hưởng lợi, ví dụ doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt may. Ngược lại doanh nghiệp nhập khẩu nguyên liệu bằng USD hoặc có nợ vay ngoại tệ lớn bị bất lợi do giá vốn tăng và phát sinh lỗ chênh lệch tỷ giá. Tỷ giá tăng mạnh thường đi kèm khối ngoại bán ròng trên thị trường chứng khoán, vì lợi nhuận quy đổi ra USD của nhà đầu tư nước ngoài bị giảm."
+    ],
+    [
+     "RAG:f03-ty-gia",
+     "Tỷ giá USD/VND chịu áp lực tăng khi chỉ số DXY tăng, khi chênh lệch lãi suất giữa USD và VND mở rộng theo hướng có lợi cho USD, khi nhập khẩu tăng nhanh hơn xuất khẩu, hoặc khi dòng vốn ngoại rút ra. Ngược lại, thặng dư thương mại, kiều hối và vốn FDI giải ngân giúp ổn định tỷ giá. Việt Nam là nền kinh tế có độ mở thương mại rất cao, tổng kim ngạch xuất nhập khẩu xấp xỉ 170 đến 200% GDP, nên biến động tỷ giá ảnh hưởng mạnh tới doanh nghiệp."
+    ]
+   ],
+   "answer": "Tổng hợp từ các công cụ:\n- Tỷ giá USD/VND tăng → Vàng miếng SJC: tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → Giá vàng thế giới quy đổi (VND/lượng) → Vàng miếng SJC. Cơ chế: XAU/USD × USD/VND × 1,2057; giá trong nước = quy đổi + phần bù. [1]\n- Tỷ giá USD/VND tăng → FPT (Tập đoàn FPT): tích cực (+) (1 đường). Kênh chính: Tỷ giá USD/VND → FPT (Tập đoàn FPT). Cơ chế: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND. [2]\n- FPT đóng cửa 63.000 đồng ngày 30/09/2026, thay đổi 20 phiên −2,0%. [3]\n- Ngày 21/10/2026: XAU/USD = 4.125,4 USD/ounce, USD/VND = 25.872; giá thế giới quy đổi = 4.125,4 × 25.872 × 1,2057 ≈ 128,7 triệu đồng/lượng, chưa gồm thuế phí và phần bù vàng miếng trong nước. [4]\n- Doanh thu xuất khẩu phần mềm của FPT được thanh toán chủ yếu bằng USD, JPY và EUR, trong khi phần lớn chi phí là lương kỹ sư tại Việt Nam trả bằng đồng. Vì vậy khi USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí và biên lợi nhuận được cải thiện. FPT được xem là doanh nghiệp hưởng lợi khi tỷ giá tăng. Ngược lại, đồng yên Nhật suy yếu có thể làm giảm doanh thu quy đổi từ thị trường Nhật Bản, là thị trường xuất khẩu lớn nhất của FPT. [5]\n- Khi USD/VND tăng, doanh nghiệp có doanh thu bằng ngoại tệ và chi phí bằng đồng Việt Nam được hưởng lợi, ví dụ doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt may. Ngược lại doanh nghiệp nhập khẩu nguyên liệu bằng USD hoặc có nợ vay ngoại tệ lớn bị bất lợi do giá vốn tăng và phát sinh lỗ chênh lệch tỷ giá. Tỷ giá tăng mạnh thường đi kèm khối ngoại bán ròng trên thị trường chứng khoán, vì lợi nhuận quy đổi ra USD của nhà đầu tư nước ngoài bị giảm. [6]\n- Tỷ giá USD/VND chịu áp lực tăng khi chỉ số DXY tăng, khi chênh lệch lãi suất giữa USD và VND mở rộng theo hướng có lợi cho USD, khi nhập khẩu tăng nhanh hơn xuất khẩu, hoặc khi dòng vốn ngoại rút ra. Ngược lại, thặng dư thương mại, kiều hối và vốn FDI giải ngân giúp ổn định tỷ giá. Việt Nam là nền kinh tế có độ mở thương mại rất cao, tổng kim ngạch xuất nhập khẩu xấp xỉ 170 đến 200% GDP, nên biến động tỷ giá ảnh hưởng mạnh tới doanh nghiệp. [7]\n\nThông tin chỉ mang tính tham khảo, không phải khuyến nghị đầu tư.",
+   "verification": {
+    "has_citation": false,
+    "citations_valid": true,
+    "n_citations": 0,
+    "numbers": 0,
+    "numeric_faithfulness": 1.0,
+    "unsupported_numbers": [],
+    "used": "template",
+    "llm_tokens": 193,
+    "llm_s": 7.975115999999616,
+    "llm_text": "Khi tỷ giá USD/VND tăng mạnh:\n\nFPT: \n- Tăng tích cực (+)\n- Doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND\n- Biên lợi nhuận được cải thiện\n\nGiá vàng SJC: \n- Tăng tích cực (+)\n- Giá quy đổi tăng nhanh hơn chi phí\n- Có thể tăng giá trong nước\n\nGiải thích:\n- FPT là doanh nghiệp xuất khẩu phần mềm, do tỷ giá USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí, nên biên lợi nhuận được cải thiện.\n- Giá vàng miếng SJC cũng tăng do giá quy đổi tăng nhanh hơn chi phí.\n- Tuy nhiên, giá vàng miếng trong nước còn phụ thuộc vào các yếu tố khác như giá nguyên vật liệu, công nghệ, thị trường xuất khẩu... nên không chắc chắn tăng mạnh hoàn toàn.",
+    "reason": "câu trả lời LLM không qua kiểm chứng (trích dẫn hoặc con số không có trong bằng chứng)"
+   },
+   "total_ms": 8501.328000000285
+  }
+ }
+}

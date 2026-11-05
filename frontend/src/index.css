@@ -1783,3 +1783,4 @@ input:checked+.slider:before {
 .brand-large img { height: 88px; }
 .brand-large span { font-size: 1.6rem; }
 @media (max-width: 768px) { .brand span { font-size: 1rem; } .brand img { height: 32px; } }
+.model-card.large-scale { margin-top: 8px; border-style: dashed; }

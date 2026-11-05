@@ -1,0 +1,74 @@
+{
+ "dataset": "BRFSS 2011–2023 (CDC, 3,17 triệu người)",
+ "n_samples": 3172819,
+ "positive_rate": 0.1315,
+ "n_train": 2220973,
+ "n_test": 634564,
+ "models": {
+  "gbdt": {
+   "test": {
+    "roc_auc": 0.8332,
+    "pr_auc": 0.4224,
+    "brier": 0.0923
+   },
+   "test_partial_data": {
+    "roc_auc": 0.8131,
+    "pr_auc": 0.3883,
+    "brier": 0.0955
+   },
+   "test_subgroup": {
+    "name": "Người gốc Á",
+    "n": 14249,
+    "roc_auc": 0.849,
+    "pr_auc": 0.3838,
+    "brier": 0.0736
+   }
+  },
+  "mlp": {
+   "test": {
+    "roc_auc": 0.8328,
+    "pr_auc": 0.4215,
+    "brier": 0.0925
+   },
+   "test_partial_data": {
+    "roc_auc": 0.8126,
+    "pr_auc": 0.3876,
+    "brier": 0.0957
+   },
+   "test_subgroup": {
+    "name": "Người gốc Á",
+    "n": 14249,
+    "roc_auc": 0.8479,
+    "pr_auc": 0.3813,
+    "brier": 0.0738
+   }
+  },
+  "logistic_regression": {
+   "test": {
+    "roc_auc": 0.825,
+    "pr_auc": 0.3986,
+    "brier": 0.0946
+   },
+   "test_partial_data": {
+    "roc_auc": 0.8039,
+    "pr_auc": 0.3641,
+    "brier": 0.0977
+   },
+   "test_subgroup": {
+    "name": "Người gốc Á",
+    "n": 14249,
+    "roc_auc": 0.8433,
+    "pr_auc": 0.3621,
+    "brier": 0.0752
+   }
+  },
+  "ensemble": {
+   "test": {
+    "roc_auc": 0.8333,
+    "pr_auc": 0.4226,
+    "brier": 0.0923
+   }
+  }
+ },
+ "gbdt_mlp_agreement_rate": 0.9999
+}

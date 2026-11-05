@@ -1,0 +1,95 @@
+\chapter{Hệ đa agent}
+\label{chap:mas}
+
+\section{Agent}
+
+Theo Wooldridge \cite{wooldridge2009}, \emph{agent} (tác tử) là một hệ thống tính toán đặt trong một môi trường, có khả năng \emph{hành động tự chủ} trong môi trường đó để đạt mục tiêu được giao. Điều cốt lõi là vòng lặp \emph{quan sát → quyết định → hành động → nhận phản hồi}, chứ không chỉ là một hàm trả về kết quả. Một agent thông minh có bốn tính chất \cite{jennings1998}:
+\begin{itemize}
+  \item \textbf{Tự chủ}: tự quyết định hành động mà không cần con người can thiệp từng bước.
+  \item \textbf{Phản ứng}: nhận biết thay đổi của môi trường và phản hồi kịp thời.
+  \item \textbf{Chủ động}: hướng tới mục tiêu, tự khởi xướng hành động.
+  \item \textbf{Xã hội}: tương tác với agent khác và với con người qua một ngôn ngữ giao tiếp.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  box/.style={draw, rounded corners=3pt, align=center, minimum height=10mm, text width=3.2cm, inner sep=3pt},
+  arr/.style={-{Stealth[length=2mm]}, thick, black!60}]
+\node[box, fill=blue!6] (agent) at (0,0) {\textbf{Agent}\\ chương trình + trạng thái};
+\node[box, fill=gray!10] (env) at (7,0) {\textbf{Môi trường}\\ người dùng, hồ sơ, agent khác};
+\draw[arr] (env.north west) to[bend right=25] node[above]{quan sát (thông điệp, dữ liệu)} (agent.north east);
+\draw[arr] (agent.south east) to[bend right=25] node[below]{hành động (trả lời, chất vấn, đề xuất)} (env.south west);
+\end{tikzpicture}
+\caption{Vòng lặp quan sát – hành động của một agent}
+\label{fig:agent-loop}
+\end{figure}
+
+Russell và Norvig \cite{russell2021} phân loại agent theo độ phức tạp của chương trình bên trong. \tabref{tab:agent-types} đặt các agent của project vào cách phân loại đó: mỗi loại đều có mặt trong hệ thống.
+
+\begin{table}[H]
+\centering
+\caption{Các loại agent và hiện thực trong project}
+\label{tab:agent-types}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.6cm}L{4.4cm}Y@{}}
+\toprule
+\textbf{Loại agent} & \textbf{Cách ra quyết định} & \textbf{Trong project} \\
+\midrule
+Phản xạ theo luật & Nếu điều kiện thì hành động; không học & Safety Guardrail trong \agent{ConsensusCriticAgent}, \agent{ClarificationAgent} (luật phạm vi) \\
+Phản xạ có mô hình & Duy trì trạng thái nội tại & \agent{ConversationAgent}, \agent{DocumentAgent} cập nhật hồ sơ \texttt{PatientProfile} \\
+Dựa trên mục tiêu & Lập kế hoạch để đạt mục tiêu & \agent{Orchestrator} lập kế hoạch động cho từng lượt chat \\
+Dựa trên tri thức & Suy luận trên tri thức tường minh & \agent{KnowledgeAgent}: ngưỡng ADA, đồ thị Neo4j, RAG \\
+Agent học & Cải thiện từ dữ liệu, phần thưởng & \agent{PredictionAgent} (GBDT + MLP), \agent{TreatmentRLAgent} (Q-learning) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Hệ đa agent}
+
+Hệ đa agent (Multi-Agent System, MAS) gồm nhiều agent tương tác để giải quyết bài toán vượt quá khả năng hoặc hiểu biết của từng agent. Nếu chỉ có một agent làm tất cả, nó phải trộn dữ liệu số, văn bản y khoa, chính sách can thiệp và luật an toàn trong cùng một chỗ: khó kiểm thử, khó thay thế, và khó biết kết luận đến từ đâu. \tabref{tab:single-vs-mas} so sánh hai cách làm.
+
+\begin{table}[H]
+\centering
+\caption{Một agent làm tất cả so với hệ đa agent của project}
+\label{tab:single-vs-mas}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.4cm}YY@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Một agent} & \textbf{Hệ đa agent (project)} \\
+\midrule
+Độ phức tạp mỗi phần & Cao, trộn nhiều kỹ thuật & Thấp, mỗi agent một kỹ thuật \\
+Kiểm thử & Khó tách lỗi & Kiểm thử từng agent và cả hội đồng (43 test tự động) \\
+An toàn & Luật nằm lẫn trong mô hình & Guardrail độc lập, luôn được ưu tiên \\
+Kiểm tra chéo & Không có & Hội đồng chất vấn khi các agent mâu thuẫn \\
+Chịu lỗi & Một lỗi làm hỏng cả lượt & Lỗi của một agent thành thông điệp \texttt{FAILURE} \\
+Chi phí phối hợp & Không có & Cần điều phối và giao thức thông điệp \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Mô hình tổ chức.} Các kiểu tổ chức MAS phổ biến gồm: \emph{Supervisor} (một agent điều phối giao việc và tổng hợp kết quả); \emph{Blackboard} \cite{hayesroth1985} (các agent đọc ghi một vùng nhớ dùng chung); \emph{Contract Net} \cite{smith1980} (giao việc qua đấu thầu); và \emph{tranh biện ngang hàng}, nơi các agent trao đổi lập luận tới khi đồng thuận \cite{du2024debate}. Project kết hợp ba kiểu: \agent{Orchestrator} là supervisor; hồ sơ bệnh nhân \texttt{PatientProfile} là blackboard tích lũy qua nhiều lượt chat; và \agent{ConsensusCriticAgent} điều khiển tranh biện giữa các agent chuyên môn.
+
+\section{Giao tiếp giữa các agent}
+
+FIPA-ACL \cite{fipa2002} chuẩn hóa thông điệp giữa các agent: mỗi thông điệp có người gửi, người nhận, nội dung, và một \emph{performative} thể hiện ý định giao tiếp. Performative tách ``nói gì'' khỏi ``muốn gì'', nên agent nhận biết cần thực hiện, trả lời hay chỉ ghi nhận. Project dùng năm performative:
+
+\begin{table}[H]
+\centering
+\caption{Năm performative dùng trong hệ thống}
+\label{tab:perf}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.6cm}Y L{4.6cm}@{}}
+\toprule
+\textbf{Performative} & \textbf{Ý nghĩa} & \textbf{Ví dụ} \\
+\midrule
+\texttt{REQUEST} & Yêu cầu agent khác thực hiện một việc & Orchestrator → Prediction: \texttt{PREDICT\_RISK} \\
+\texttt{INFORM} & Trả kết quả của việc được giao & Prediction → Orchestrator: \texttt{RISK\_PREDICTION} \\
+\texttt{CHALLENGE} & Chất vấn khi phát hiện mâu thuẫn & Critic → Prediction: \texttt{CHALLENGE\_ML\_VS\_LABS} \\
+\texttt{RESPONSE} & Trả lời chất vấn: bảo vệ, nhượng bộ hoặc giải trình & Prediction → Critic: giữ quan điểm ``nguy cơ dài hạn'' \\
+\texttt{FAILURE} & Không thực hiện được (lỗi, không hiểu yêu cầu) & \texttt{NOT\_UNDERSTOOD}, \texttt{PREDICT\_RISK\_FAILED} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Từ 2023, mô hình ngôn ngữ lớn (LLM) thường được dùng làm ``bộ não'' của agent, như ReAct \cite{yao2023react}, AutoGen \cite{wu2023autogen} hay MetaGPT \cite{hong2024metagpt}. Các khảo sát \cite{wang2024agents,guo2024mas} chỉ ra ba thách thức: ảo giác lan truyền giữa các agent, chi phí của nhiều lần gọi LLM, và khó kiểm soát khi agent tự quyết định luồng. Project chọn hướng \emph{lai}: LLM chỉ hiểu và diễn đạt ngôn ngữ (trích chỉ số từ tin nhắn, đọc ảnh, viết câu trả lời), còn mọi quyết định lâm sàng do mô hình đã đánh giá và luật tường minh đảm nhận. Nhờ vậy hệ thống chạy được hoàn toàn \emph{không cần LLM}, kết quả tái lập được.

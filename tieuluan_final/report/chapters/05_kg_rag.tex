@@ -1,0 +1,428 @@
+\chapter{Đồ thị tri thức và sinh văn bản tăng cường truy xuất}
+\label{chap:kgrag}
+
+Một chatbot y tế không được phép ``bịa''. Mô hình ngôn ngữ lớn lưu tri thức trong hàng tỉ tham số. Tri thức đó không trích dẫn được, không cập nhật được khi hướng dẫn thay đổi, và có thể bị ảo giác \cite{ji2023halluc}: một câu sai về liều thuốc hay ngưỡng chẩn đoán, diễn đạt trôi chảy, nguy hiểm hơn một câu ``tôi không biết''. Chương này trình bày hai cách đưa tri thức \emph{tường minh} trở lại hệ thống. \emph{Đồ thị tri thức} (Knowledge Graph – KG) biểu diễn thực thể và quan hệ có cấu trúc. \emph{Sinh văn bản tăng cường truy xuất} (Retrieval-Augmented Generation – RAG) tìm đoạn tài liệu liên quan rồi buộc LLM trả lời dựa trên chúng. Thực nghiệm đánh giá tám chiến lược truy xuất trên hai bộ dữ liệu và ba chế độ sinh câu trả lời.
+
+\section{Đồ thị tri thức}
+
+\subsection{Định nghĩa và mô hình dữ liệu}
+
+Đồ thị tri thức là một đồ thị có hướng, có nhãn, trong đó nút là \emph{thực thể} (bệnh, thuốc, xét nghiệm, yếu tố nguy cơ) và cạnh là \emph{quan hệ} giữa chúng \cite{hogan2021}. Đơn vị cơ bản là \emph{bộ ba} (chủ thể, vị từ, đối tượng), ví dụ (\emph{Đái tháo đường típ 2}, \texttt{DIAGNOSED\_BY}, \emph{HbA1c}). Thuật ngữ được Google phổ biến năm 2012 với khẩu hiệu ``things, not strings'' \cite{singhal2012}, nhưng ý tưởng có từ mạng ngữ nghĩa thập niên 1960 và các hệ chuyên gia ở Chương 1. Có hai mô hình dữ liệu chính:
+\begin{itemize}
+  \item \textbf{RDF} (Resource Description Framework): mọi thứ là bộ ba, định danh bằng URI, truy vấn bằng SPARQL; mạnh về chuẩn hóa và liên kết dữ liệu mở (Wikidata, DBpedia, SNOMED CT, UMLS).
+  \item \textbf{Đồ thị thuộc tính} (property graph): nút và cạnh đều mang cặp khóa–giá trị, truy vấn bằng Cypher (Neo4j, Apache AGE \cite{apacheage}); trực quan và thuận tiện cho ứng dụng.
+\end{itemize}
+
+\emph{Ontology} định nghĩa lược đồ: các lớp thực thể, các loại quan hệ được phép, và ràng buộc giữa chúng. KG của hệ thống dùng một ontology nhỏ gồm 6 lớp nút (\texttt{Disease}, \texttt{RiskFactor}, \texttt{Test}, \texttt{Drug}, \texttt{Complication}, \texttt{Intervention}) và 7 loại quan hệ (\texttt{HAS\_RISK\_FACTOR}, \texttt{DIAGNOSED\_BY}, \texttt{CAUSES}, \texttt{SCREENED\_BY}, \texttt{TREATED\_BY}, \texttt{CONTRAINDICATED\_IN}, \texttt{PREVENTED\_BY}). Ví dụ một truy vấn Cypher tìm các thuốc chống chỉ định với một tình trạng của bệnh nhân:
+
+\begin{code}{Truy vấn Cypher trên Apache AGE: láng giềng hai bước từ các yếu tố nguy cơ của bệnh nhân}
+\label{lst:ch5-cypher}
+\begin{minted}{sql}
+SELECT * FROM cypher('diabetes_kg', $$
+  MATCH p = (s)-[*1..2]-(t)
+  WHERE s.name IN ['Thừa cân/béo phì', 'Tăng huyết áp', 'Suy thận nặng (eGFR < 30)']
+  UNWIND relationships(p) AS r
+  RETURN startNode(r).name, type(r), endNode(r).name, r.chunk_ids
+  LIMIT 60
+$$) AS (head agtype, relation agtype, tail agtype, chunk_ids agtype);
+\end{minted}
+\end{code}
+
+\subsection{Xây dựng đồ thị tri thức}
+
+Quy trình xây dựng KG từ văn bản gồm bốn bước:
+\begin{enumerate}
+  \item \emph{Nhận dạng thực thể} (NER): tìm các cụm từ chỉ thực thể (``metformin'', ``eGFR'').
+  \item \emph{Liên kết thực thể}: ánh xạ các cách gọi khác nhau về cùng một nút (``tiểu đường'', ``ĐTĐ típ 2'', ``đái tháo đường type 2'').
+  \item \emph{Trích xuất quan hệ}: xác định vị từ giữa hai thực thể từ ngữ cảnh câu.
+  \item \emph{Hợp nhất và kiểm định}: gộp bộ ba trùng lặp, gắn nguồn gốc và độ tin cậy.
+\end{enumerate}
+Trước đây các bước này cần mô hình chuyên biệt cho từng bước. Ngày nay LLM có thể trích bộ ba trực tiếp theo một lược đồ JSON. Hệ thống dùng cả hai nguồn. 40 bộ ba \emph{tuyển chọn thủ công} từ ADA 2024 và QĐ 5481/QĐ-BYT tạo thành lõi đáng tin cậy. Tùy chọn \texttt{--llm-triples} cho phép Gemini trích thêm bộ ba từ tài liệu mới. Mỗi cạnh lưu \texttt{chunk\_ids}, tức danh sách đoạn văn làm bằng chứng. Đây là cầu nối giữa đồ thị và kho vector, nền tảng của GraphRAG.
+
+\subsection{Suy luận và nhúng đồ thị tri thức}
+
+KG cho phép \emph{suy luận}. Suy luận tường minh dùng luật: nếu bệnh nhân có \emph{eGFR < 30} và \emph{Metformin} \texttt{CONTRAINDICATED\_IN} \emph{Suy thận nặng} thì cảnh báo. Suy luận ngầm dùng \emph{nhúng KG}, ví dụ TransE \cite{bordes2013} biểu diễn mỗi thực thể và quan hệ bằng vector sao cho $\mathbf e_h + \mathbf r \approx \mathbf e_t$, nhờ đó dự đoán được cạnh còn thiếu bằng cách tìm $t$ gần $\mathbf e_h+\mathbf r$ nhất. Mạng nơ-ron đồ thị ở Chương 6 là bước tổng quát hơn của ý tưởng này.
+
+\section{Sinh văn bản tăng cường truy xuất}
+
+\subsection{Nguyên lý}
+
+RAG \cite{lewis2020} tách hai loại tri thức: tri thức \emph{tham số} (ngôn ngữ, lập luận, nằm trong LLM) và tri thức \emph{phi tham số} (sự kiện, nằm trong kho tài liệu bên ngoài). Với câu hỏi $q$, bộ truy xuất tìm $k$ đoạn liên quan nhất $\{d_1,\ldots,d_k\}$, rồi bộ sinh tạo câu trả lời có điều kiện trên cả hai:
+\begin{equation}
+p(y \mid q) \approx p_{\text{LLM}}\big(y \mid q, d_1, \ldots, d_k\big),\qquad \{d_i\} = \operatorname{top-}k_{d\in\mathcal D}\ s(q, d).
+\label{eq:rag}
+\end{equation}
+Lợi ích gồm: cập nhật tri thức chỉ cần thêm tài liệu, không cần huấn luyện lại; trích dẫn được nguồn; giảm ảo giác khi prompt buộc mô hình chỉ dùng ngữ cảnh. So với tinh chỉnh (fine-tuning), RAG phù hợp hơn với tri thức thay đổi và cần kiểm chứng như hướng dẫn lâm sàng. Tinh chỉnh phù hợp hơn khi cần đổi văn phong hoặc kỹ năng của mô hình \cite{gao2023rag}.
+
+\subsection{Quy trình}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=4mm,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=8mm, inner sep=3pt, text width=2.1cm},
+  arr/.style={-{Stealth[length=1.6mm]}, black!60}]
+\node[box, fill=gray!10] (src) {Tài liệu\\(MD, PDF, Web)};
+\node[box, right=of src] (s3) {Lưu bản gốc\\(SeaweedFS)};
+\node[box, right=of s3] (chunk) {Chia đoạn theo mục ``\#\#''};
+\node[box, right=of chunk] (emb) {Nhúng 384 chiều\\+ tsvector};
+\node[box, fill=blue!6, right=of emb] (pg) {PostgreSQL\\pgvector · AGE};
+\node[box, fill=gray!10, below=10mm of src] (q) {Câu hỏi};
+\node[box, right=of q] (ret) {Truy xuất lai\\vector ‖ full-text};
+\node[box, right=of ret] (fuse) {RRF + GraphRAG\\(+ xếp hạng lại)};
+\node[box, right=of fuse] (prompt) {Prompt: đoạn [1..k] + câu hỏi};
+\node[box, fill=blue!6, right=of prompt] (llm) {LLM → câu trả lời có trích dẫn};
+\draw[arr] (src)--(s3); \draw[arr] (s3)--(chunk); \draw[arr] (chunk)--(emb); \draw[arr] (emb)--(pg);
+\draw[arr] (q)--(ret); \draw[arr] (ret)--(fuse); \draw[arr] (fuse)--(prompt); \draw[arr] (prompt)--(llm);
+\draw[arr, dashed] (pg.south) to[bend left=12] (ret.north east);
+\end{tikzpicture}
+\caption{Hai pha của RAG: nạp tri thức (trên) và trả lời câu hỏi (dưới)}
+\label{fig:ch5-pipeline}
+\end{figure}
+
+\textbf{Chia đoạn.} Đoạn quá dài làm loãng tín hiệu liên quan và tốn ngữ cảnh. Đoạn quá ngắn mất ngữ cảnh. Các chiến lược thường gặp: kích thước cố định có chồng lấp, theo cấu trúc tài liệu (đề mục, đoạn văn), hoặc theo ngữ nghĩa. KB tiếng Việt được chia theo mục ``\#\#'' vì mỗi mục của hướng dẫn lâm sàng là một đơn vị ý trọn vẹn. Văn bản không có cấu trúc được chia theo cửa sổ khoảng 1.200 ký tự, chồng lấp 200.
+
+\textbf{Truy xuất thưa (BM25).} BM25 \cite{robertson2009} chấm điểm theo từ khóa trùng khớp:
+\begin{equation}
+\begin{gathered}
+\mathrm{BM25}(q,d) = \sum_{t\in q}\mathrm{IDF}(t)\cdot\frac{f(t,d)\,(k_1+1)}{f(t,d)+k_1\big(1-b+b\,\frac{|d|}{\mathrm{avgdl}}\big)}, \\
+\mathrm{IDF}(t)=\ln\!\Big(1+\frac{N-n_t+0{,}5}{n_t+0{,}5}\Big),
+\end{gathered}
+\label{eq:bm25}
+\end{equation}
+với $f(t,d)$ là tần suất của từ $t$ trong đoạn $d$; $k_1=1{,}5$ điều khiển độ bão hòa tần suất; $b=0{,}75$ chuẩn hóa theo độ dài. BM25 bắt chính xác thuật ngữ hiếm (``SGLT2'', ``monofilament'', ``eGFR'') nhưng không hiểu từ đồng nghĩa (``tiểu đường'' và ``đái tháo đường'').
+
+\textbf{Truy xuất dày.} Bộ mã hóa câu (Sentence-BERT \cite{reimers2019}) ánh xạ câu hỏi và đoạn văn vào cùng không gian vector, sau đó chấm điểm bằng độ tương tự cosin $s(q,d)=\frac{\mathbf e_q^\top\mathbf e_d}{\|\mathbf e_q\|\|\mathbf e_d\|}$. Mô hình được huấn luyện tương phản: kéo cặp (câu hỏi, đoạn đúng) lại gần nhau và đẩy cặp sai ra xa \cite{karpukhin2020}. Mô hình đa ngữ (huấn luyện bằng chưng cất đa ngữ \cite{reimers2020}) đặt câu tiếng Việt và tiếng Anh cùng nghĩa ở gần nhau, cho phép truy xuất chéo ngôn ngữ. Với hàng triệu vector, tìm kiếm chính xác $O(N)$ được thay bằng chỉ mục xấp xỉ HNSW \cite{malkov2018}, một đồ thị nhiều tầng cho phép tìm láng giềng gần nhất trong khoảng $O(\log N)$. pgvector \cite{pgvector} cung cấp HNSW ngay trong PostgreSQL.
+
+\textbf{Truy xuất lai và RRF.} Hai bộ truy xuất bổ sung cho nhau, nhưng điểm của chúng không cùng thang đo. Reciprocal Rank Fusion \cite{cormack2009} chỉ dùng \emph{thứ hạng}:
+\begin{equation}
+\mathrm{RRF}(d) = \sum_{r\in\mathcal R}\frac{1}{k + \mathrm{rank}_r(d)},\qquad k = 60 .
+\label{eq:rrf}
+\end{equation}
+Hằng số $k$ làm phẳng chênh lệch giữa các hạng đầu, nên một đoạn đứng đầu ở chỉ một danh sách không áp đảo được đoạn đứng khá cao ở cả hai danh sách.
+
+\textbf{Xếp hạng lại.} Bộ mã hóa chéo (cross-encoder) \cite{nogueira2019} đưa \emph{cặp} (câu hỏi, đoạn) qua cùng một Transformer để chấm điểm liên quan. Mô hình này chính xác hơn nhiều so với so sánh hai vector độc lập, vì attention được tính chéo giữa hai văn bản, nhưng chậm hơn tương ứng. Vì vậy cross-encoder chỉ dùng để xếp lại 10–20 ứng viên đầu.
+
+\subsection{GraphRAG}
+
+RAG thuần vector coi mỗi đoạn là độc lập, nên khó trả lời câu hỏi cần \emph{nối} nhiều mẩu tri thức. Ví dụ: ``bệnh thận mạn có albumin niệu nên dùng thuốc gì?'' cần nối \emph{Bệnh thận ĐTĐ} → \texttt{TREATED\_BY} → \emph{Ức chế SGLT2}. GraphRAG \cite{edge2024graphrag} khai thác cấu trúc đồ thị để mở rộng ngữ cảnh. Phiên bản trong hệ thống gồm ba bước: (1) liên kết thực thể trong câu hỏi hoặc hồ sơ bệnh nhân với nút KG; (2) duyệt láng giềng 1–2 bước bằng Cypher; (3) lấy các đoạn văn gắn với cạnh tìm được (\texttt{chunk\_ids}), hợp nhất với kết quả truy xuất lai bằng RRF, và đưa các bộ ba vào prompt như ``sự kiện có cấu trúc''.
+
+\subsection{So sánh RAG và tinh chỉnh}
+
+\begin{table}[H]
+\centering
+\caption{So sánh RAG và tinh chỉnh (fine-tuning) trong bối cảnh chatbot y tế}
+\label{tab:rag-ft}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.2cm}YY@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{RAG} & \textbf{Tinh chỉnh} \\
+\midrule
+Cập nhật tri thức & Thêm hoặc sửa tài liệu, có hiệu lực ngay & Phải huấn luyện lại \\
+Trích dẫn nguồn & Có, đến từng đoạn & Không \\
+Kiểm soát ảo giác & Tốt khi prompt buộc chỉ dùng ngữ cảnh & Hạn chế, tri thức nằm trong tham số \\
+Chi phí ban đầu & Thấp: nhúng và chỉ mục & Cao: dữ liệu gán nhãn, GPU \\
+Chi phí mỗi truy vấn & Cao hơn: truy xuất và ngữ cảnh dài & Thấp hơn \\
+Phù hợp với & Sự kiện, ngưỡng, hướng dẫn thay đổi theo thời gian & Văn phong, định dạng, kỹ năng chuyên biệt \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Hai cách tiếp cận không loại trừ nhau. Một hệ thống có thể tinh chỉnh mô hình để quen thuật ngữ và văn phong y khoa tiếng Việt, đồng thời dùng RAG để cung cấp sự kiện có nguồn. Với hướng dẫn lâm sàng được cập nhật hằng năm như ADA Standards of Care, RAG là lựa chọn bắt buộc cho phần sự kiện.
+
+\subsection{Thách thức vận hành}
+
+Đưa RAG vào sản phẩm gặp một số thách thức ngoài độ chính xác truy xuất. \emph{Chất lượng nguồn}: RAG chỉ tốt bằng tài liệu được nạp; tài liệu lỗi thời hoặc mâu thuẫn sẽ được trích dẫn một cách tự tin. \emph{Bảo trì chỉ mục}: khi đổi mô hình nhúng phải nhúng lại toàn bộ kho; khi sửa tài liệu phải cập nhật cả đoạn văn lẫn các cạnh KG trỏ tới đoạn đó (hệ thống lưu \texttt{chunk\_ids} trên cạnh và bỏ qua tài liệu không đổi dựa trên mã băm nội dung). \emph{Độ trễ và chi phí}: mỗi bước thêm vào (xếp hạng lại, mở rộng đồ thị, ngữ cảnh dài hơn) đều tăng độ trễ. Thực nghiệm cho thấy cross-encoder chính xác nhất nhưng chậm nhất. \emph{Đánh giá liên tục}: cần một bộ câu hỏi có đáp án để chạy lại sau mỗi thay đổi, như 60 câu hỏi của chương này. \emph{An toàn}: tài liệu nạp từ web có thể chứa chỉ dẫn độc hại nhắm vào LLM (prompt injection). Vì vậy ngữ cảnh truy xuất được đặt trong vai trò ``dữ liệu'', và câu trả lời luôn được ràng buộc bởi các quy tắc an toàn của hệ thống.
+
+\subsection{Đánh giá hệ thống RAG}
+
+Đánh giá RAG gồm hai tầng. \emph{Tầng truy xuất} dùng các thước đo xếp hạng với tập đoạn đúng $G$ của mỗi câu hỏi: Hit@$k$ (có ít nhất một đoạn đúng trong top-$k$), Recall@$k=|G\cap\text{top-}k|/|G|$, MRR $=\frac1{|Q|}\sum_q 1/\mathrm{rank}_q$ (hạng của đoạn đúng đầu tiên), và nDCG@10 (phần thưởng giảm theo $1/\log_2(\text{hạng}+1)$). \emph{Tầng sinh} đánh giá câu trả lời có chứa dữ kiện đúng không, có trung thành với ngữ cảnh không (faithfulness), và có trích dẫn đúng nguồn không \cite{es2024ragas}.
+
+\section{Dữ liệu}
+
+\subsection{Knowledge Base tiếng Việt và đồ thị tri thức}
+
+KB của hệ thống gồm 10 tài liệu Markdown (khoảng 18 KB văn bản) tóm tắt từ ADA Standards of Care 2024 \cite{ada2024} và Quyết định 5481/QĐ-BYT \cite{byt5481}. Nội dung bao gồm tiêu chuẩn chẩn đoán, tiền ĐTĐ, sàng lọc người châu Á, mục tiêu điều trị, thuốc, biến chứng, CGM và hạ đường huyết, lối sống, triệu chứng cấp cứu. Script \texttt{scripts/ingest\_kb.py} lưu bản gốc lên SeaweedFS, chia đoạn theo mục ``\#\#'' thành \textbf{36 đoạn} (trung bình 279 ký tự), nhúng bằng MiniLM đa ngữ 384 chiều vào \texttt{kb\_chunks} (pgvector, chỉ mục HNSW) kèm cột \texttt{tsvector} cho full-text, và nạp \textbf{40 bộ ba} tuyển chọn vào đồ thị \texttt{diabetes\_kg} trên Apache AGE.
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ đoạn văn trong KB và bộ ba trong đồ thị tri thức}
+\label{tab:kb-sample}
+\small
+\begin{tabularx}{\linewidth}{@{}L{2.2cm}Y@{}}
+\toprule
+\textbf{Đoạn \#1} & \emph{Tiêu chuẩn chẩn đoán đái tháo đường — Bốn tiêu chí chẩn đoán}: ``Chẩn đoán đái tháo đường khi có một trong các tiêu chí sau: Glucose huyết tương lúc đói (FPG) ≥ 126 mg/dL (7,0 mmol/L)\ldots'' \\
+\textbf{Bộ ba} & (\emph{Đái tháo đường típ 2}, \texttt{HAS\_RISK\_FACTOR}, \emph{Thừa cân/béo phì}) — bằng chứng: ``BMI ≥ 23 kg/m² (người châu Á) kèm yếu tố nguy cơ cần được sàng lọc'' — nguồn: \texttt{sang-loc-nguoi-viet}, mục ``Các yếu tố nguy cơ'' \\
+\textbf{Bộ ba} & (\emph{Metformin}, \texttt{CONTRAINDICATED\_IN}, \emph{Suy thận nặng (eGFR < 30)}) — nguồn: \texttt{dieu-tri-thuoc}, mục ``Metformin'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figw{ch5_kg}{Đồ thị tri thức ĐTĐ: 33 nút thuộc 6 loại, 40 cạnh thuộc 7 loại quan hệ (kích thước nút tỉ lệ với bậc)}
+
+Đồ thị có 33 nút: 9 yếu tố nguy cơ, 8 xét nghiệm, 5 biến chứng, 5 thuốc, 3 bệnh, 3 can thiệp. Quan hệ nhiều nhất là \texttt{HAS\_RISK\_FACTOR} (11), \texttt{TREATED\_BY} (9) và \texttt{DIAGNOSED\_BY} (7). Đồ thị có dạng ``sao'': nút \emph{Đái tháo đường típ 2} có bậc 23, tiếp theo là \emph{Tiền ĐTĐ} (7) và \emph{Bệnh tim mạch xơ vữa} (5). Cấu trúc này hợp với GraphRAG vì hầu hết mọi thực thể cách nhau tối đa 2 bước.
+
+\textbf{Bộ câu hỏi đánh giá.} Do chưa có bộ hỏi–đáp tiếng Việt công khai cho các tài liệu này, tôi tự xây dựng \textbf{60 câu hỏi} (tệp \texttt{lab/kb\_eval\_vi.json}). Mỗi câu gắn với 1–2 \emph{đoạn vàng} và các \emph{dữ kiện vàng} dùng để chấm câu trả lời (ví dụ ``126'' và ``7,0''). Câu hỏi được chia bốn loại để đo khía cạnh khác nhau của truy xuất: \emph{từ khóa} (20 câu, dùng đúng thuật ngữ trong tài liệu), \emph{diễn đạt dân dã} (19 câu, ví dụ ``tụt đường huyết'', ``thuốc mỡ máu'', ``tiểu đường''), \emph{số liệu} (17 câu, hỏi ngưỡng cụ thể), và \emph{đa bước} (4 câu, cần nối hai mục, ví dụ ``eGFR 25 thì còn dùng metformin không, thay bằng thuốc gì?'').
+
+\subsection{MedQuAD — phần NIDDK}
+
+MedQuAD \cite{benabacha2019} là bộ 47.457 cặp hỏi–đáp y khoa thu thập từ 12 website của Viện Y tế Quốc gia Hoa Kỳ (NIH). Báo cáo dùng phần \textbf{NIDDK} (Viện Đái tháo đường, Tiêu hóa và Thận) vì đúng chủ đề và có đầy đủ câu trả lời. Một số phần khác của MedQuAD đã bị gỡ câu trả lời vì lý do bản quyền.
+
+\begin{itemize}
+  \item \textbf{Nguồn}: \weburl{https://github.com/abachaa/MedQuAD}, thư mục \texttt{5\_NIDDK\_QA} (157 tệp XML), giấy phép CC BY 4.0.
+  \item \textbf{Quy mô}: 1.192 cặp hỏi–đáp về 148 chủ đề; câu trả lời dài trung bình 1.638 ký tự (trung vị 1.048); 166 câu về đái tháo đường. Chia câu trả lời thành đoạn 800 ký tự (chồng lấp 15\%) được \textbf{3.381 đoạn}.
+  \item \textbf{Loại câu hỏi}: information (296), considerations (231), treatment (145), causes (134), symptoms (117), exams and tests (117)\ldots{} Câu hỏi được sinh từ mẫu, ví dụ ``What is (are) Diabetic Kidney Disease?'', ``How to prevent \ldots?''.
+\end{itemize}
+
+\figw{ch5_data}{Độ dài đoạn của KB tiếng Việt, độ dài câu trả lời và phân bố loại câu hỏi của MedQuAD-NIDDK}
+
+\textbf{Nhận xét.} (i) Hai bộ dữ liệu bổ sung cho nhau. KB tiếng Việt nhỏ (36 đoạn) nhưng chính là dữ liệu chạy trong hệ thống. MedQuAD lớn gấp gần 100 lần, đủ để các khác biệt giữa bộ truy xuất có ý nghĩa thống kê. (ii) Với MedQuAD, mỗi chủ đề có nhiều câu hỏi gần giống nhau (``What is X?'', ``What causes X?'', ``How to treat X?''), và các câu trả lời của cùng chủ đề dùng chung từ vựng. Bài toán vì thế khó ở chỗ phải chọn đúng \emph{khía cạnh} của chủ đề chứ không chỉ đúng chủ đề. (iii) Để đo truy xuất chéo ngôn ngữ, 166 câu hỏi về ĐTĐ được Gemini dịch sang tiếng Việt tự nhiên (ví dụ ``What is (are) 4 Steps to Manage Your Diabetes for Life?'' → ``4 bước để kiểm soát bệnh tiểu đường suốt đời là gì?'').
+
+\section{Thực nghiệm}
+
+\subsection{Thiết lập}
+
+\textbf{Tám bộ truy xuất} được so sánh trên cùng tập đoạn:
+\begin{enumerate}
+  \item \emph{BM25} theo \eq{eq:bm25}, tự cài đặt, tách từ sau khi chữ thường hóa và bỏ dấu tiếng Việt;
+  \item–4. \emph{Dày} với ba mô hình nhúng đa ngữ: \emph{MiniLM-L12} (384 chiều, 118 triệu tham số, mô hình đang chạy trong hệ thống), \emph{MPNet-base} (768 chiều, 278 triệu) và \emph{multilingual-E5-large} \cite{wang2024e5} (1.024 chiều, 560 triệu; câu hỏi có tiền tố \texttt{query:}, đoạn văn có tiền tố \texttt{passage:});
+  \setcounter{enumi}{4}
+  \item \emph{Lai}: RRF \eq{eq:rrf} của BM25 và MiniLM;
+  \item \emph{Lai + GraphRAG}: liên kết thực thể trong câu hỏi với nút KG (theo tên nút và bảng từ đồng nghĩa, sau khi bỏ dấu), lấy các đoạn bằng chứng của cạnh 1 bước, rồi hợp nhất với kết quả lai bằng RRF;
+  \item \emph{Lai + xếp hạng lại}: 15 ứng viên đầu của bộ lai được chấm lại bằng cross-encoder đa ngữ \texttt{bge-reranker-v2-m3} (bản lượng tử int8) \cite{chen2024bge};
+  \item \emph{Lai trên PostgreSQL}: đúng câu lệnh SQL của production (pgvector cosin ‖ \texttt{tsvector} + \texttt{ts\_rank\_cd}, gộp RRF).
+\end{enumerate}
+
+\textbf{Sinh câu trả lời.} Với 60 câu hỏi tiếng Việt, Gemini (\texttt{gemini-flash-latest}) trả lời theo ba chế độ: \emph{chỉ LLM} (không có tài liệu), \emph{RAG} (3 đoạn đầu của bộ lai) và \emph{GraphRAG} (3 đoạn đầu của bộ GraphRAG cùng tối đa 12 bộ ba liên quan). Prompt của hai chế độ RAG yêu cầu chỉ dùng tài liệu, trích dẫn dạng [1]–[3], và nói ``không đủ dữ liệu'' khi tài liệu không có thông tin. Bốn thước đo được dùng: \emph{độ phủ dữ kiện} (tỉ lệ dữ kiện vàng xuất hiện trong câu trả lời, chấp nhận các cách viết tương đương), \emph{trích dẫn đúng} (có trích ít nhất một đoạn vàng), \emph{số liệu không có căn cứ} (tỉ lệ con số trong câu trả lời không xuất hiện trong ngữ cảnh, một chỉ báo của ảo giác), và \emph{tỉ lệ từ chối trả lời}.
+
+\begin{code}{Hợp nhất thứ hạng RRF và GraphRAG (\texttt{lab/ch5\_rag.py}, rút gọn)}
+\label{lst:ch5-rrf}
+\begin{minted}{python}
+def rrf(rankings, k=60):
+    """Reciprocal Rank Fusion: score(d) = sum_r 1 / (k + rank_r(d))."""
+    s = defaultdict(float)
+    for ranking in rankings:
+        for r, d in enumerate(ranking):
+            s[d] += 1 / (k + r + 1)
+    return sorted(s, key=lambda d: -s[d])
+
+def graph_candidates(q, triples, chunk_of):
+    """Nút KG được nhắc trong câu hỏi → các cạnh 1 bước → đoạn văn làm bằng chứng cho cạnh."""
+    ents = link_entities(q, nodes)                   # khớp tên nút + từ đồng nghĩa, đã bỏ dấu
+    cands = [chunk_of[(t["source_doc"], t["section"])] for t in triples
+             if t["head"] in ents or t["tail"] in ents]
+    return ents, list(dict.fromkeys(cands))
+
+hybrid   = rrf([bm25_ranking, dense_ranking])
+graphrag = rrf([hybrid[:10], graph_candidates(q, triples, chunk_of)[1]])
+\end{minted}
+\end{code}
+
+\subsection{Kết quả truy xuất trên KB tiếng Việt}
+
+\begin{table}[H]
+\centering
+\caption{Truy xuất trên KB tiếng Việt (60 câu hỏi, 36 đoạn)}
+\label{tab:ch5-vi}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Bộ truy xuất} & \textbf{Hit@1} & \textbf{Hit@3} & \textbf{Hit@5} & \textbf{Recall@5} & \textbf{MRR@10} & \textbf{nDCG@10} \\
+\midrule
+BM25 & 0,800 & 0,933 & 0,933 & 0,917 & 0,869 & 0,878 \\
+Dày — MiniLM (hệ thống) & 0,567 & 0,750 & 0,833 & 0,783 & 0,675 & 0,698 \\
+Dày — MPNet & 0,750 & 0,950 & 0,950 & 0,917 & 0,846 & 0,859 \\
+Dày — E5-large & 0,933 & 0,983 & 0,983 & 0,967 & 0,956 & 0,952 \\
+Lai (BM25 + MiniLM) & 0,800 & 0,900 & 0,950 & 0,933 & 0,858 & 0,867 \\
+Lai + GraphRAG & 0,750 & 0,950 & \textbf{1,000} & 0,958 & 0,848 & 0,862 \\
+Lai + xếp hạng lại & \textbf{0,967} & \textbf{1,000} & \textbf{1,000} & \textbf{0,983} & \textbf{0,983} & \textbf{0,974} \\
+Lai trên PostgreSQL (production) & 0,667 & 0,850 & 0,917 & 0,883 & 0,774 & 0,802 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Hit@3 theo loại câu hỏi trên KB tiếng Việt}
+\label{tab:ch5-type}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Bộ truy xuất} & \textbf{Từ khóa (20)} & \textbf{Dân dã (19)} & \textbf{Số liệu (17)} & \textbf{Đa bước (4)} \\
+\midrule
+BM25 & \textbf{1,00} & 0,89 & 0,94 & 0,75 \\
+Dày — MiniLM & 0,65 & 0,89 & 0,71 & 0,75 \\
+Dày — E5-large & 0,95 & \textbf{1,00} & \textbf{1,00} & \textbf{1,00} \\
+Lai (BM25 + MiniLM) & 0,90 & 0,95 & 0,88 & 0,75 \\
+Lai + GraphRAG & 0,90 & \textbf{1,00} & 0,94 & \textbf{1,00} \\
+Lai + xếp hạng lại & \textbf{1,00} & \textbf{1,00} & \textbf{1,00} & \textbf{1,00} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Nhận xét.} \emph{BM25 rất mạnh trên KB tiếng Việt} (Hit@1 0,80), vượt xa MiniLM (0,57). Câu hỏi y khoa chứa nhiều thuật ngữ hiếm và con số (``HbA1c'', ``SGLT2'', ``monofilament'', ``eGFR''). BM25 khớp chính xác các từ này, còn MiniLM, một mô hình nhỏ huấn luyện cho tương đồng câu tổng quát, làm mờ chúng: MiniLM chỉ đạt Hit@3 0,65 với câu hỏi từ khóa và 0,71 với câu hỏi số liệu. Ngược lại, với câu hỏi diễn đạt dân dã, MiniLM ngang BM25 (0,89). Đây đúng là tính bổ sung mà truy xuất lai khai thác: bộ lai đạt 0,95 Hit@3 trên nhóm này.
+
+\emph{Mô hình nhúng lớn thay đổi cục diện}: E5-large đạt Hit@1 0,933 chỉ với truy xuất dày, cho thấy chất lượng mô hình nhúng là yếu tố đơn lẻ quan trọng nhất. \emph{Xếp hạng lại} bằng cross-encoder đưa bộ lai lên mức gần tuyệt đối: Hit@1 0,967, Hit@3 1,000. Đổi lại, cross-encoder 568 triệu tham số trên CPU mất 3–6 giây cho mỗi câu hỏi (15 cặp), quá chậm cho chatbot. Nó phù hợp hơn với GPU hoặc chạy theo lô.
+
+\emph{GraphRAG} không cải thiện Hit@1 (0,75 so với 0,80), nhưng là cấu hình duy nhất ngoài reranker đạt Hit@5 = 1,000, và đạt Hit@3 = 1,00 trên cả câu đa bước lẫn câu dân dã. Ví dụ, với câu ``Bệnh thận mạn có albumin niệu nên ưu tiên nhóm thuốc nào?'', bộ lai trả về [13, 15, 23] và bỏ sót đoạn 25 (``Thuốc bảo vệ tim mạch và thận''). GraphRAG nhận ra thực thể \emph{Bệnh thận ĐTĐ}, đi theo cạnh \texttt{TREATED\_BY} → \emph{Ức chế SGLT2}, lấy được đoạn bằng chứng và trả về [13, 25, 15], đủ cả hai đoạn vàng. Đồ thị giúp \emph{độ phủ} (recall) hơn là thứ hạng đầu. Ngoài ra, liên kết thực thể chỉ thành công với 67\% câu hỏi, nên 1/3 số câu không được đồ thị hỗ trợ.
+
+\emph{Bản PostgreSQL thấp hơn bản lai cài bằng Python} (Hit@1 0,667 so với 0,800) dù cùng ý tưởng. Nguyên nhân nằm ở nhánh full-text: \texttt{ts\_rank\_cd} xếp hạng theo mật độ phủ của từ, không có IDF như BM25, nên từ phổ biến (``đái tháo đường'', ``người'') có trọng số ngang thuật ngữ hiếm; cột \texttt{tsvector} cũng chỉ chứa đề mục và nội dung, không có tiêu đề tài liệu. Kết quả này chỉ ra một cải tiến rõ ràng cho production: thay \texttt{ts\_rank\_cd} bằng BM25 (ví dụ qua phần mở rộng \texttt{pg\_search}) hoặc nâng mô hình nhúng lên E5.
+
+\figw{ch5_retrieval}{So sánh các bộ truy xuất trên KB tiếng Việt (trái) và MedQuAD-NIDDK (phải)}
+
+\subsection{Kết quả truy xuất trên MedQuAD}
+
+\begin{table}[H]
+\centering
+\caption{Truy xuất câu trả lời trên MedQuAD-NIDDK (1.192 câu hỏi, 3.381 đoạn 800 ký tự)}
+\label{tab:ch5-mq}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccc|cc@{}}
+\toprule
+ & \multicolumn{5}{c|}{\textbf{Toàn bộ (1.192)}} & \multicolumn{2}{c}{\textbf{ĐTĐ (166)}} \\
+\textbf{Bộ truy xuất} & \textbf{Hit@1} & \textbf{Hit@3} & \textbf{Hit@5} & \textbf{MRR@10} & \textbf{nDCG@10} & \textbf{Hit@1} & \textbf{MRR@10} \\
+\midrule
+BM25 & 0,182 & 0,420 & 0,600 & 0,355 & 0,468 & 0,139 & 0,302 \\
+Dày — MiniLM & 0,315 & 0,613 & 0,758 & 0,499 & 0,597 & 0,259 & 0,424 \\
+Dày — MPNet & 0,333 & 0,610 & 0,747 & 0,506 & 0,602 & 0,229 & 0,398 \\
+Dày — E5-large & \textbf{0,399} & \textbf{0,709} & \textbf{0,817} & \textbf{0,580} & \textbf{0,670} & \textbf{0,271} & \textbf{0,439} \\
+Lai (BM25 + MiniLM) & 0,263 & 0,560 & 0,746 & 0,460 & 0,571 & 0,199 & 0,390 \\
+Lai (BM25 + E5) & 0,262 & 0,602 & 0,760 & 0,471 & 0,581 & 0,217 & 0,405 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Trên MedQuAD, thứ tự đảo ngược: \emph{BM25 yếu nhất} (Hit@1 0,18) và \emph{truy xuất lai kém hơn truy xuất dày đơn lẻ}. Lý do nằm ở cấu trúc dữ liệu: các câu hỏi được sinh từ mẫu và chứa nguyên tên chủ đề (``What causes Diabetic Kidney Disease?''), nên BM25 tìm đúng \emph{chủ đề} nhưng không phân biệt được \emph{khía cạnh}. Các câu trả lời ``causes'', ``treatment'', ``symptoms'' của cùng chủ đề đều chứa tên chủ đề với tần suất tương tự. Mô hình nhúng hiểu được ý định ``causes'' so với ``treatment''. Khi một thành phần của RRF yếu hơn hẳn thành phần kia, việc gộp kéo kết quả xuống. RRF không phải lúc nào cũng có lợi; nó hiệu quả khi hai bộ truy xuất có chất lượng tương đương và lỗi bổ sung cho nhau, như trên KB tiếng Việt. E5-large vẫn tốt nhất ở mọi thước đo, khẳng định kết luận ở phần trước. Nhóm câu hỏi ĐTĐ khó hơn trung bình (Hit@1 0,27 so với 0,40), vì nhiều tài liệu ĐTĐ của NIDDK có nội dung chồng lấn (bốn tài liệu ``Prevent diabetes problems: Keep your \ldots{} healthy'').
+
+\begin{table}[H]
+\centering
+\caption{Ảnh hưởng của kích thước đoạn (bộ lai BM25 + MiniLM trên MedQuAD)}
+\label{tab:ch5-chunk}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+\textbf{Kích thước đoạn} & \textbf{Số đoạn} & \textbf{Hit@1} & \textbf{Hit@5} & \textbf{MRR@10} \\
+\midrule
+400 ký tự & 6.291 & 0,241 & 0,732 & 0,446 \\
+800 ký tự & 3.381 & 0,263 & 0,746 & 0,460 \\
+1.600 ký tự & 1.991 & \textbf{0,269} & 0,742 & \textbf{0,466} \\
+Cả câu trả lời & 1.192 & 0,261 & \textbf{0,753} & 0,465 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Kích thước đoạn} ảnh hưởng ít (MRR 0,446–0,466). Đoạn 400 ký tự kém nhất: nó cắt câu trả lời thành mảnh mất ngữ cảnh, nhiều mảnh không chứa tên chủ đề. Từ 800 ký tự trở lên, kết quả gần như bão hòa. Với chatbot, đoạn ngắn có lợi thế là tốn ít ngữ cảnh LLM hơn. Chia theo mục ``\#\#'' như KB tiếng Việt (trung bình 279 ký tự, mỗi mục một ý trọn vẹn) là cách chia theo cấu trúc, tránh được nhược điểm cắt ngang ý của đoạn cố định.
+
+\begin{table}[H]
+\centering
+\caption{Truy xuất chéo ngôn ngữ: 166 câu hỏi ĐTĐ dịch sang tiếng Việt, tìm trên kho tiếng Anh}
+\label{tab:ch5-cross}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Bộ truy xuất} & \textbf{Hit@1} & \textbf{Hit@5} & \textbf{MRR@10} & \textbf{MRR tiếng Anh gốc} & \textbf{Giữ lại} \\
+\midrule
+BM25 & 0,006 & 0,018 & 0,015 & 0,302 & 5\% \\
+Dày — MiniLM & 0,145 & 0,476 & 0,275 & 0,424 & 65\% \\
+Dày — MPNet & 0,157 & 0,476 & 0,293 & 0,398 & 74\% \\
+Dày — E5-large & \textbf{0,187} & \textbf{0,572} & \textbf{0,352} & 0,439 & \textbf{80\%} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Truy xuất chéo ngôn ngữ} là kịch bản thực tế của chatbot: người dùng hỏi tiếng Việt, còn phần lớn tài liệu y khoa chất lượng cao là tiếng Anh. BM25 gần như vô dụng (MRR 0,015), vì không có từ chung giữa hai ngôn ngữ. Mô hình nhúng đa ngữ giữ được 65–80\% chất lượng so với khi hỏi bằng tiếng Anh, và E5-large giữ tốt nhất. Kết quả này ủng hộ việc mở rộng KB bằng tài liệu gốc tiếng Anh của ADA mà không cần dịch, với điều kiện dùng mô hình nhúng đa ngữ mạnh.
+
+\subsection{Kết quả sinh câu trả lời}
+
+\begin{table}[H]
+\centering
+\caption{Chất lượng câu trả lời của Gemini theo ba chế độ (60 câu hỏi tiếng Việt)}
+\label{tab:ch5-gen}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Chế độ} & \textbf{n} & \textbf{Phủ dữ kiện} & \textbf{Trích dẫn đúng} & \textbf{Số không căn cứ} & \textbf{Từ chối} & \textbf{Độ dài} \\
+\midrule
+Chỉ LLM & 52 & 0,904 & -- & -- & 0\% & 340 ký tự \\
+RAG (lai, 3 đoạn) & 51 & \textbf{0,951} & 0,902 & 0\% & 7,8\% & 182 ký tự \\
+GraphRAG (3 đoạn + bộ ba) & 55 & 0,945 & \textbf{0,945} & 0\% & 7,3\% & 181 ký tự \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Cột \emph{n} là số câu có câu trả lời. Các câu còn lại bị lỗi API của Gemini (quá tải hoặc giới hạn tần suất) sau 3 lần thử, và được loại khỏi phép tính.
+
+\textbf{Nhận xét.} (i) \emph{LLM đơn thuần đã biết nhiều}: Gemini trả lời đúng 90\% dữ kiện mà không cần tài liệu, vì các ngưỡng ADA là kiến thức phổ biến. Điều này cho thấy giá trị chính của RAG trong y tế \emph{không chỉ là độ chính xác}. (ii) RAG nâng độ phủ dữ kiện lên 0,95 và cho câu trả lời \emph{ngắn gọn bằng một nửa} (182 so với 340 ký tự). (iii) Quan trọng nhất, RAG cho câu trả lời \emph{kiểm chứng được}: 90–95\% câu trích đúng đoạn vàng, và \emph{không có con số nào} trong câu trả lời nằm ngoài ngữ cảnh được cung cấp. Câu trả lời của chế độ chỉ LLM không có nguồn, nên người dùng không có cách nào biết 10\% sai nằm ở đâu. (iv) Khoảng 7–8\% câu, mô hình chọn trả lời ``không đủ dữ liệu''. Đó là hành vi mong muốn khi ngữ cảnh truy xuất không chứa đáp án (độ phủ ngữ cảnh 92–95\%), thay vì đoán. (v) GraphRAG có tỉ lệ ngữ cảnh chứa đoạn vàng cao hơn RAG (0,945 so với 0,922), nhờ đó tỉ lệ trích dẫn đúng cao hơn 4 điểm. Điều này khớp với kết quả truy xuất: đồ thị cải thiện độ phủ.
+
+\subsection{Ví dụ: một câu hỏi đa bước qua ba chế độ}
+
+\tabref{tab:ch5-example} trình bày câu trả lời thật của Gemini cho câu hỏi đa bước ``Bệnh nhân đái tháo đường có eGFR 25 thì còn dùng metformin được không, nên thay bằng thuốc gì?''. Hai dữ kiện vàng là ngưỡng chống chỉ định ``eGFR < 30'' và một nhóm thuốc thay thế phù hợp.
+
+\begin{table}[H]
+\centering
+\caption{Câu trả lời thật của ba chế độ cho một câu hỏi đa bước}
+\label{tab:ch5-example}
+\small
+\begin{tabularx}{\linewidth}{@{}L{1.9cm}YL{1.6cm}@{}}
+\toprule
+\textbf{Chế độ} & \textbf{Câu trả lời (rút gọn)} & \textbf{Đánh giá} \\
+\midrule
+Chỉ LLM & ``\ldots eGFR 25 \textbf{chống chỉ định} với Metformin do nguy cơ nhiễm toan lactic. Nên thay bằng \ldots GLP-1 RA hoặc SGLT2i (lưu ý chỉnh liều theo eGFR). \textbf{Thuốc ức chế DPP-4 (như Linagliptin)} cũng là một lựa chọn an toàn\ldots'' & Phủ 1/2; không nguồn; có thông tin ngoài KB \\
+RAG & ``Metformin bị chống chỉ định khi eGFR < 30 mL/phút/1,73 m² [1], vì vậy bệnh nhân có eGFR 25 không được tiếp tục dùng thuốc này. \textbf{Tài liệu không đề cập cụ thể} bệnh nhân nên được thay thế bằng thuốc gì\ldots{} [3].'' & Phủ 1/2; trích đúng; trung thực \\
+GraphRAG & ``Bệnh nhân có eGFR 25 (eGFR < 30) có chống chỉ định dùng metformin [1]. Tài liệu không đề cập việc thay thế cụ thể\ldots, nhưng \textbf{việc dùng thuốc ức chế SGLT2} có chỉ định giúp làm chậm tiến triển bệnh thận đái tháo đường [3].'' & Phủ 2/2; trích đúng \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ví dụ này cho thấy rõ khác biệt về bản chất giữa ba chế độ. LLM đơn thuần trả lời trôi chảy, phần lớn đúng theo kiến thức chung, nhưng đưa ra một nhóm thuốc (DPP-4) không có trong tài liệu nguồn và không kiểm chứng được trong hệ thống. RAG trung thành với ba đoạn truy xuất được: các đoạn này không nói về thuốc thay thế, nên mô hình nói rõ ``tài liệu không đề cập'' thay vì đoán. GraphRAG đi từ thực thể \emph{Suy thận nặng} và \emph{Bệnh thận ĐTĐ} theo cạnh \texttt{TREATED\_BY} tới \emph{Ức chế SGLT2}, đưa đúng đoạn ``Thuốc bảo vệ tim mạch và thận'' vào ngữ cảnh, nhờ đó trả lời đủ cả hai ý và vẫn có trích dẫn. Đây là kiểu câu hỏi ``nối hai mẩu tri thức'' mà GraphRAG được thiết kế để giải quyết.
+
+\section{Triển khai}
+
+Dịch vụ truy xuất chạy truy xuất lai trên PostgreSQL (pgvector + full-text, gộp RRF) kết hợp GraphRAG bằng truy vấn Cypher trên Apache AGE, như đã mô tả ở trên. Ba endpoint phục vụ thử nghiệm:
+\begin{itemize}
+  \item \api{POST /api/lab/ch5/search} với \texttt{mode} $\in$ \{\texttt{vector}, \texttt{fulltext}, \texttt{hybrid}, \texttt{graphrag}\}: trả về các đoạn, điểm, độ trễ; với GraphRAG còn trả về thực thể nhận ra và các cạnh đã đi qua.
+  \item \api{POST /api/lab/ch5/ask}: hỏi đáp RAG đầy đủ (truy xuất → Gemini viết câu trả lời có trích dẫn).
+  \item \api{GET /api/lab/ch5/graph}: toàn bộ đồ thị tri thức dạng JSON (nút, cạnh, bằng chứng, nguồn).
+\end{itemize}
+
+\begin{code}{Gọi endpoint truy xuất GraphRAG của Chương 5 và kết quả (rút gọn)}
+\label{lst:ch5-api}
+\begin{minted}{bash}
+curl -s https://agent.nits.io.vn/api/lab/ch5/search -H 'Content-Type: application/json' \
+  -d '{"query":"Bệnh thận mạn có albumin niệu nên dùng thuốc gì?","mode":"graphrag","k":5}'
+# {"mode": "graphrag", "graph": {"entities": ["Bệnh thận ĐTĐ"],
+#    "edges": ["Đái tháo đường típ 2 —CAUSES→ Bệnh thận ĐTĐ",
+#              "Bệnh thận ĐTĐ —TREATED_BY→ Ức chế SGLT2",
+#              "Bệnh thận ĐTĐ —SCREENED_BY→ uACR và eGFR"]},
+#  "results": [{"chunk_id": 25, "heading": "Thuốc bảo vệ tim mạch và thận", ...}, ...]}
+\end{minted}
+\end{code}
+
+\subsection{Thực nghiệm trên Notebook và Demo Localhost}
+\label{sec:ch5-notebook-demo}
+
+Bên cạnh dịch vụ PostgreSQL + Apache AGE ở trên, tiểu luận đóng gói thêm một bộ máy KG + RAG tự chứa hoàn toàn bằng Python trong notebook \texttt{notebooks/ch5\_kg\_rag.ipynb} (các ô \texttt{RAG-00} đến \texttt{RAG-04}, kế thừa khung \texttt{tl3/ch5\_core.py} của nhóm) và phục vụ tại \texttt{http://localhost:8095}:
+\begin{itemize}
+  \item \textbf{Ô \texttt{RAG-01} (Xây dựng Đồ thị tri thức từ 96.146 hồ sơ lâm sàng)}: Ô \texttt{RAG-01} nạp \texttt{diabetes\_domain.pkl}, chuyển mỗi hồ sơ thành các bộ ba thực thể–quan hệ (\texttt{has\_gender}, \texttt{in\_age\_group}, \texttt{bmi\_class}, \texttt{hba1c\_class}, \texttt{glucose\_class}, \texttt{diabetes\_status}, \texttt{has\_condition}) cùng 42 bản tổng hợp nhóm và các quan hệ y khoa (\texttt{risk\_factor\_of}, \texttt{indicates}, \texttt{comorbid\_with}), thu được đồ thị gồm $96.175$ nút, $684.414$ cạnh và $1.357.436$ bộ ba, kèm chỉ mục ngược BM25 trên $96.188$ tài liệu.
+  \item \textbf{Ô \texttt{RAG-03} (Liên kết thực thể \texttt{Domain.link} và truy vấn tập hợp chính xác \texttt{Domain.facts} trên KG)}: Khi hỏi một câu hỏi thống kê đa điều kiện như \emph{``Tỷ lệ mắc tiểu đường ở nữ giới từ 60–79 tuổi có tăng huyết áp là bao nhiêu?''}, truy xuất văn bản thuần túy chỉ trả về vài hồ sơ lẻ tẻ. Ô \texttt{RAG-03} dùng bộ liên kết thực thể nhận diện ba nút (\texttt{Female}, \texttt{60–79}, \texttt{hypertension}), lấy giao các tập láng giềng vào trên đồ thị tri thức (\texttt{|tập hồ sơ| = 1830}) và tính chính xác tỷ lệ mắc tiểu đường $31{,}42\%$, HbA1c trung bình $5{,}85\%$ và đường huyết trung bình $152{,}1$ mg/dL, kèm vết bằng chứng đồ thị.
+\end{itemize}
+
+Trên ứng dụng web cục bộ tại \texttt{http://localhost:8095} (\figref{fig:app_ch5_diabetes}), tab \textbf{Ch.5 — KG + RAG · Tri thức Tiểu đường} cho phép nhập câu hỏi tự nhiên và đối chiếu song song ba phương thức: \emph{Chỉ LLM}, \emph{Text-RAG (BM25 + Dense)} và \emph{KG-RAG / Hybrid (kết hợp truy vấn đồ thị tri thức và văn bản)}.
+
+\figw[0.92\linewidth]{app_ch5_diabetes}{Giao diện thử nghiệm Chương 5 trên \texttt{http://localhost:8095}: đối chiếu câu trả lời và bằng chứng truy xuất của LLM thuần, Text-RAG và KG-RAG trên đồ thị tri thức đái tháo đường}
+
+\section{Tiểu kết chương 5}
+
+Chương 5 trình bày đồ thị tri thức (bộ ba, ontology, Cypher, xây dựng và suy luận) và RAG (chia đoạn, truy xuất thưa BM25, truy xuất dày, RRF, xếp hạng lại, GraphRAG). Thực nghiệm trên KB tiếng Việt và MedQuAD cho năm kết luận. (1) Chất lượng mô hình nhúng là yếu tố quan trọng nhất: E5-large vượt MiniLM trên cả hai bộ và trong truy xuất chéo ngôn ngữ. (2) BM25 rất mạnh với thuật ngữ y khoa tiếng Việt nhưng vô dụng khi khác ngôn ngữ. RRF chỉ có lợi khi hai thành phần cân sức. (3) Xếp hạng lại cho kết quả gần tuyệt đối nhưng quá chậm trên CPU. (4) GraphRAG cải thiện độ phủ và câu hỏi đa bước, giúp trích dẫn đúng hơn. (5) Với Gemini, RAG không chỉ tăng độ chính xác mà quan trọng hơn là biến câu trả lời thành thứ \emph{kiểm chứng được}: có trích dẫn, không có số liệu ngoài nguồn, biết từ chối khi thiếu thông tin. Các bước nâng cấp tiếp theo cho production đã rõ: dùng E5 thay MiniLM và BM25 thay \texttt{ts\_rank\_cd}.
+

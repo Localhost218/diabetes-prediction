@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trợ lý Tri thức</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo">◆</span> Trợ lý Tri thức KG · RAG · Agent
+    <small>Tiểu luận 02 · Nguyễn Duy Nghĩa · B23DCCN600 · Nhóm lớp CT · Nhóm 07</small></div>
+  <nav>
+    <button class="tab on" data-tab="health">Trợ lý Y tế</button>
+    <button class="tab" data-tab="finance">Trợ lý Tài chính</button>
+    <button class="tab" data-tab="kg">Khám phá KG</button>
+    <button class="tab" data-tab="rag">Tra cứu RAG</button>
+  </nav>
+</header>
+<main>
+  <!-- ======================================================= Y TẾ -->
+  <section class="pane on" id="health">
+    <div class="grid">
+      <div class="card">
+        <h3>Hồ sơ người bệnh <span class="tag">MLP PyTorch</span></h3>
+        <div class="form">
+          <label>HbA1c (%)<input id="h-hba1c" type="number" step="0.1" value="7.3"></label>
+          <label>Glucose lúc đói (mg/dL)<input id="h-glu" type="number" value="138"></label>
+          <label>BMI (kg/m²)<input id="h-bmi" type="number" step="0.1" value="26.5"></label>
+          <label>Tuổi<input id="h-age" type="number" value="52"></label>
+          <label>Giới tính<select id="h-gender"><option value="Male">Nam</option><option value="Female">Nữ</option></select></label>
+          <label>Gửi kèm chỉ số<select id="h-useprof"><option value="1">Có</option><option value="0">Không</option></select></label>
+        </div>
+        <label>Câu hỏi<textarea id="h-q" rows="3">Tôi đang uống Metformin 500mg, tối nay đi liên hoan có uống bia và ăn gà rán được không?</textarea></label>
+        <div class="chips">
+          <button class="chip" data-q="Bị tiểu đường có ăn thịt gà được không?">Thịt gà</button>
+          <button class="chip" data-q="Người tiểu đường ăn cơm trắng thế nào cho đúng?">Cơm trắng</button>
+          <button class="chip" data-q="Bệnh nhân suy thận nặng có dùng metformin được không?">Suy thận</button>
+          <button class="chip" data-q="Đang tiêm insulin mà bị hạ đường huyết thì xử trí thế nào?">Hạ đường huyết</button>
+        </div>
+        <button class="run" id="h-run">Gửi cho Agent suy luận</button>
+        <div id="h-risk" class="risk"></div>
+      </div>
+      <div class="card"><h3>Vết suy luận ReAct</h3><ol class="trace" id="h-trace"><li class="muted">Chưa có yêu cầu.</li></ol></div>
+    </div>
+    <div class="card answer"><h3>Câu trả lời của Agent <span class="tag" id="h-ver"></span></h3><div id="h-ans" class="ans"></div>
+      <h3 class="mt">Bằng chứng được trích dẫn</h3><ol id="h-ev" class="ev"></ol></div>
+  </section>
+
+  <!-- ======================================================= TÀI CHÍNH -->
+  <section class="pane" id="finance">
+    <div class="grid">
+      <div class="card">
+        <h3>Câu hỏi nhà đầu tư <span class="tag">BiLSTM · KG nhân quả</span></h3>
+        <label><textarea id="f-q" rows="3">Tỷ giá USD/VND tăng mạnh thì cổ phiếu FPT và giá vàng SJC ảnh hưởng thế nào?</textarea></label>
+        <div class="chips">
+          <button class="chip" data-q="Dự báo giá cổ phiếu FPT phiên tới?">Dự báo FPT</button>
+          <button class="chip" data-q="Giá vàng thế giới quy đổi hôm nay khoảng bao nhiêu triệu đồng một lượng?">Giá vàng quy đổi</button>
+          <button class="chip" data-q="Tỷ giá tăng thì Hòa Phát bị ảnh hưởng ra sao?">Tỷ giá → HPG</button>
+          <button class="chip" data-q="Fed tăng lãi suất thì giá vàng thế giới và tỷ giá biến động ra sao?">Fed → vàng</button>
+        </div>
+        <button class="run" id="f-run">Gửi cho Agent suy luận</button>
+        <div class="series"><select id="f-sym"><option>FPT</option><option>HPG</option><option>VCB</option><option>VIC</option><option value="GOLD_VND">Vàng quy đổi</option></select>
+          <svg id="f-chart" viewBox="0 0 520 170"></svg></div>
+      </div>
+      <div class="card"><h3>Vết suy luận ReAct</h3><ol class="trace" id="f-trace"><li class="muted">Chưa có yêu cầu.</li></ol></div>
+    </div>
+    <div class="card answer"><h3>Câu trả lời của Agent <span class="tag" id="f-ver"></span></h3><div id="f-ans" class="ans"></div>
+      <h3 class="mt">Bằng chứng được trích dẫn</h3><ol id="f-ev" class="ev"></ol></div>
+  </section>
+
+  <!-- ======================================================= KG -->
+  <section class="pane" id="kg">
+    <div class="card">
+      <h3>Đồ thị tri thức <span class="tag" id="kg-stat"></span></h3>
+      <div class="kgbar"><select id="kg-name"><option value="health">VietnamDiabetesKG (y tế)</option>
+        <option value="finance">VietnamFinanceKG (tài chính)</option></select>
+        <span class="muted">Bấm vào một thực thể để xem các bộ ba và nguồn trích dẫn.</span></div>
+      <div class="kgwrap"><svg id="kg-svg" viewBox="0 0 1000 600"></svg><div id="kg-side" class="side"></div></div>
+      <div id="kg-legend" class="legend"></div>
+    </div>
+  </section>
+
+  <!-- ======================================================= RAG -->
+  <section class="pane" id="rag">
+    <div class="card">
+      <h3>So sánh bộ truy xuất trên kho 17 tài liệu</h3>
+      <div class="kgbar"><input id="r-q" class="grow" value="Vì sao HbA1c phản ánh đường huyết trong khoảng 3 tháng?">
+        <button class="run" id="r-run">Truy xuất</button></div>
+      <div class="cols" id="r-out"></div>
+    </div>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

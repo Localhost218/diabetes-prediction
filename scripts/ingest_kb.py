@@ -1,5 +1,5 @@
 """
-Nạp tri thức vào Knowledge Base (pgvector + Apache AGE).
+Nạp tri thức vào Knowledge Base (SQLite + Qdrant + Neo4j).
 
     python scripts/ingest_kb.py                       # nạp data/kb_sources/
     python scripts/ingest_kb.py --url https://...     # nạp thêm trang web / PDF từ URL

@@ -1,0 +1,2141 @@
+{
+ "modularity": 0.6516681971227426,
+ "n_comms": 7,
+ "summary_s": 52.23001909999948,
+ "reports": [
+  {
+   "id": 0,
+   "size": 28,
+   "members": [
+    "Benh_Than_DTD",
+    "Benh_Vong_Mac",
+    "Beo_Phi",
+    "Bo_Thuoc_La",
+    "Bun_Pho",
+    "Com_Trang",
+    "DTD_Tip2",
+    "Gao_Lut",
+    "Giam_Can",
+    "Glucose_Doi_Cao",
+    "HbA1c_Cao",
+    "HbA1c_Tien",
+    "Hut_Thuoc",
+    "It_Van_Dong",
+    "Khoai_Tay",
+    "Loet_Ban_Chan",
+    "OGTT_2h_Cao",
+    "QD_5481",
+    "Rau_Xanh",
+    "Semaglutide",
+    "Sitagliptin",
+    "Tang_Huyet_Ap",
+    "Tien_DTD",
+    "Tinh_Bot",
+    "Toan_Ceton",
+    "Trai_Cay_GI_Thap",
+    "Van_Dong_150",
+    "Xoi_Nep"
+   ],
+   "title": "Đái tháo đường típ 2, Tiền đái tháo đường, HbA1c 5,7 - 6,4%",
+   "facts": [
+    "Đái tháo đường típ 2 —[theo hướng dẫn]→ Quyết định 5481/QĐ-BYT",
+    "Đái tháo đường típ 2 —[khuyến nghị ăn]→ Rau xanh (rau muống, cải, bông cải) (reason: chất xơ làm chậm hấp thu; ít nhất nửa đĩa)",
+    "Đái tháo đường típ 2 —[khuyến nghị ăn]→ Táo, cam (GI thấp) (reason: GI thấp, chia nhỏ)",
+    "Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Khoai tây luộc (reason: GI 78)",
+    "Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Xôi nếp (reason: GI rất cao)",
+    "Đái tháo đường típ 2 —[ăn có định lượng]→ Cơm trắng (reason: GI 73, GL 29; tối đa ~1 bát con/bữa, ăn rau trước)",
+    "Đái tháo đường típ 2 —[ăn có định lượng]→ Gạo lứt (reason: GI 68, giàu chất xơ; thay một phần gạo trắng)",
+    "Đái tháo đường típ 2 —[ăn có định lượng]→ Bún, phở (reason: GI 53; nước dùng trong, nhiều rau)",
+    "Đái tháo đường típ 2 —[khuyến nghị lối sống]→ Vận động ≥ 150 phút/tuần",
+    "Đái tháo đường típ 2 —[khuyến nghị lối sống]→ Giảm 5 - 7% cân nặng",
+    "Đái tháo đường típ 2 —[khuyến nghị lối sống]→ Bỏ thuốc lá",
+    "Tiền đái tháo đường —[có thể tiến triển thành]→ Đái tháo đường típ 2 (rate: 5-10%/năm)",
+    "Tiền đái tháo đường —[khuyến nghị lối sống]→ Vận động ≥ 150 phút/tuần (effect: giảm 58% nguy cơ (DPP))",
+    "Tiền đái tháo đường —[khuyến nghị lối sống]→ Giảm 5 - 7% cân nặng",
+    "HbA1c ≥ 6,5% —[là tiêu chuẩn chẩn đoán]→ Đái tháo đường típ 2",
+    "Glucose lúc đói ≥ 126 mg/dL —[là tiêu chuẩn chẩn đoán]→ Đái tháo đường típ 2",
+    "Glucose 2 giờ sau nghiệm pháp ≥ 200 mg/dL —[là tiêu chuẩn chẩn đoán]→ Đái tháo đường típ 2",
+    "HbA1c 5,7 - 6,4% —[là tiêu chuẩn chẩn đoán]→ Tiền đái tháo đường",
+    "BMI ≥ 25 (béo phì, chuẩn châu Á) —[là yếu tố nguy cơ của]→ Đái tháo đường típ 2",
+    "Ít vận động —[là yếu tố nguy cơ của]→ Đái tháo đường típ 2",
+    "Hút thuốc lá —[là yếu tố nguy cơ của]→ Đái tháo đường típ 2",
+    "Tăng huyết áp —[là yếu tố nguy cơ của]→ Đái tháo đường típ 2",
+    "Nhiễm toan ceton —[là biến chứng của]→ Đái tháo đường típ 2",
+    "Bệnh võng mạc —[là biến chứng của]→ Đái tháo đường típ 2",
+    "Bệnh thận do đái tháo đường —[là biến chứng của]→ Đái tháo đường típ 2",
+    "Loét bàn chân —[là biến chứng của]→ Đái tháo đường típ 2",
+    "Sitagliptin —[điều trị]→ Đái tháo đường típ 2",
+    "Semaglutide —[điều trị]→ Đái tháo đường típ 2",
+    "Cơm trắng —[là một dạng của]→ Thực phẩm giàu tinh bột",
+    "Gạo lứt —[là một dạng của]→ Thực phẩm giàu tinh bột",
+    "Bún, phở —[là một dạng của]→ Thực phẩm giàu tinh bột",
+    "Khoai tây luộc —[là một dạng của]→ Thực phẩm giàu tinh bột",
+    "Xôi nếp —[là một dạng của]→ Thực phẩm giàu tinh bột"
+   ],
+   "sources": [
+    "h01-chan-doan",
+    "h02-thuoc-dieu-tri",
+    "h04-dinh-duong",
+    "h05-van-dong",
+    "h06-bien-chung",
+    "h07-ha-duong-huyet",
+    "h08-tien-dai-thao-duong"
+   ],
+   "summary": "Cụm tri thức này tập trung vào việc quản lý và điều trị đái tháo đường típ 2, bao gồm các khuyến nghị về chế độ ăn, lối sống và kiểm soát bệnh. Chủ đề chung là cách để người bệnh duy trì sức khỏe và ngăn ngừa biến chứng của đái tháo đường. Các quan hệ chính bao gồm:\n\n1. **Khuyến nghị chế độ ăn**:\n   - **Rau xanh**: Chất xơ giúp làm chậm hấp thu đường, nên ăn ít nhất nửa đĩa mỗi ngày.\n   - **Táo, cam**: GI thấp, chia nhỏ bữa ăn.\n   - **Khoai tây luộc**: GI cao, nên hạn chế.\n   - **Xôi nếp**: GI rất cao, nên hạn chế.\n\n2. **Khuyến nghị lối sống**:\n   - **Vận động**: ≥ 150 phút/tuần.\n   - **Giảm cân**: 5-7% cân nặng.\n   - **B",
+   "extractive": "Cụm gồm 28 thực thể, trung tâm là Đái tháo đường típ 2, Tiền đái tháo đường, HbA1c 5,7 - 6,4%. Đái tháo đường típ 2 —[theo hướng dẫn]→ Quyết định 5481/QĐ-BYT. Đái tháo đường típ 2 —[khuyến nghị ăn]→ Rau xanh (rau muống, cải, bông cải) (reason: chất xơ làm chậm hấp thu; ít nhất nửa đĩa). Đái tháo đường típ 2 —[khuyến nghị ăn]→ Táo, cam (GI thấp) (reason: GI thấp, chia nhỏ). Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Khoai tây luộc (reason: GI 78). Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Xôi nếp (reason: GI rất cao). Đái tháo đường típ 2 —[ăn có định lượng]→ Cơm trắng (reason: GI 73, GL 29; tối đa ~1 bát con/bữa, ăn rau trước).",
+   "tokens": 220
+  },
+  {
+   "id": 1,
+   "size": 18,
+   "members": [
+    "Dau_Tu_Cong",
+    "Dong_Yen",
+    "FPT",
+    "Gia_Quang_Sat",
+    "HOSE",
+    "HPG",
+    "Khoi_Ngoai",
+    "Lai_Suat_NHNN",
+    "Nang_Hang_FTSE",
+    "Nganh_BDS",
+    "Nganh_CNTT",
+    "Nganh_Ngan_Hang",
+    "Nganh_Thep",
+    "Tin_Phieu_NHNN",
+    "USD_VND",
+    "VCB",
+    "VIC",
+    "VN30"
+   ],
+   "title": "Tỷ giá USD/VND, Lãi suất điều hành NHNN, VCB (Vietcombank)",
+   "facts": [
+    "Sức mạnh đồng yên (JPY) —[tác động cùng chiều (+)]→ FPT (Tập đoàn FPT) (mechanism: Nhật Bản là thị trường xuất khẩu lớn nhất)",
+    "Giá quặng sắt, than cốc —[tác động ngược chiều (−)]→ HPG (Hòa Phát) (mechanism: giá nguyên liệu tăng làm co biên lợi nhuận)",
+    "Tỷ giá USD/VND —[tác động ngược chiều (−)]→ Khối ngoại mua ròng (mechanism: lợi nhuận quy đổi ra USD giảm, khối ngoại bán ròng)",
+    "Tỷ giá USD/VND —[tác động cùng chiều (+)]→ FPT (Tập đoàn FPT) (mechanism: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND)",
+    "Tỷ giá USD/VND —[tác động ngược chiều (−)]→ HPG (Hòa Phát) (mechanism: nhập quặng sắt, than cốc bằng USD; lỗ tỷ giá nợ vay)",
+    "Tỷ giá USD/VND —[tác động ngược chiều (−)]→ VIC (Vingroup) (mechanism: gánh nặng nợ vay ngoại tệ tăng)",
+    "Lãi suất điều hành NHNN —[tác động ngược chiều (−)]→ Tỷ giá USD/VND (mechanism: lãi suất VND thấp hơn USD gây áp lực tỷ giá)",
+    "Lãi suất điều hành NHNN —[tác động ngược chiều (−)]→ HPG (Hòa Phát) (mechanism: lãi suất cao làm giảm nhu cầu xây dựng, bất động sản)",
+    "Lãi suất điều hành NHNN —[tác động ngược chiều (−)]→ VCB (Vietcombank) (mechanism: lãi suất thấp, tín dụng tăng làm lợi nhuận ngân hàng tăng)",
+    "Lãi suất điều hành NHNN —[tác động ngược chiều (−)]→ VIC (Vingroup) (mechanism: lãi suất vay mua nhà và chi phí tài chính)",
+    "Phát hành tín phiếu NHNN —[tác động ngược chiều (−)]→ Tỷ giá USD/VND (mechanism: hút thanh khoản VND, giảm đầu cơ USD)",
+    "Giải ngân đầu tư công —[tác động cùng chiều (+)]→ HPG (Hòa Phát) (mechanism: tăng nhu cầu thép xây dựng)",
+    "Khối ngoại mua ròng —[tác động cùng chiều (+)]→ Chỉ số VN30 (mechanism: dòng vốn vào cổ phiếu vốn hóa lớn)",
+    "FTSE nâng hạng thị trường mới nổi thứ cấp —[tác động cùng chiều (+)]→ Khối ngoại mua ròng (mechanism: thu hút vốn ngoại)",
+    "FPT (Tập đoàn FPT) —[thuộc về]→ Chỉ số VN30",
+    "FPT (Tập đoàn FPT) —[thuộc ngành]→ Công nghệ thông tin",
+    "HPG (Hòa Phát) —[thuộc về]→ Chỉ số VN30",
+    "HPG (Hòa Phát) —[thuộc ngành]→ Thép",
+    "VCB (Vietcombank) —[thuộc về]→ Chỉ số VN30",
+    "VCB (Vietcombank) —[thuộc ngành]→ Ngân hàng",
+    "VIC (Vingroup) —[thuộc về]→ Chỉ số VN30",
+    "VIC (Vingroup) —[thuộc ngành]→ Bất động sản",
+    "Chỉ số VN30 —[thuộc về]→ Sở GDCK TP.HCM (HOSE)"
+   ],
+   "sources": [
+    "f03-ty-gia",
+    "f04-chinh-sach-tien-te",
+    "f05-fpt",
+    "f06-hpg",
+    "f07-vcb",
+    "f08-vic",
+    "f09-vn30"
+   ],
+   "summary": "Cụm tri thức này tập trung vào các mối liên kết giữa tỷ giá USD/VND và các doanh nghiệp trong nền kinh tế Việt Nam, đặc biệt là FPT, Hòa Phát và Vingroup. Các mối liên kết chủ yếu bao gồm:\n\n1. Tỷ giá USD/VND tác động cùng chiều đến doanh thu xuất khẩu phần mềm của FPT và tăng lợi nhuận của Vingroup.\n\n2. Tỷ giá USD/VND tác động ngược chiều đến doanh thu xuất khẩu của Hòa Phát và lỗ lũy kế của HPG.\n\n3. Tỷ giá USD/VND tác động ngược chiều đến dòng vốn của khối ngoại và tăng doanh thu của Hòa Phát.\n\n4. Tỷ giá USD/VND tác động ngược chiều đến lãi suất điều hành của NHNN và giảm nhu cầu xây dựng của HPG.\n\n5. Tỷ giá USD/VND tác động ngược chiều đến dòng vốn của khối ngoại và tăng doanh thu của FPT.\n\n6. Tỷ giá USD/VND tác động ngược chiều đến dòng vốn của khối ngoại",
+   "extractive": "Cụm gồm 18 thực thể, trung tâm là Tỷ giá USD/VND, Lãi suất điều hành NHNN, VCB (Vietcombank). Sức mạnh đồng yên (JPY) —[tác động cùng chiều (+)]→ FPT (Tập đoàn FPT) (mechanism: Nhật Bản là thị trường xuất khẩu lớn nhất). Giá quặng sắt, than cốc —[tác động ngược chiều (−)]→ HPG (Hòa Phát) (mechanism: giá nguyên liệu tăng làm co biên lợi nhuận). Tỷ giá USD/VND —[tác động ngược chiều (−)]→ Khối ngoại mua ròng (mechanism: lợi nhuận quy đổi ra USD giảm, khối ngoại bán ròng). Tỷ giá USD/VND —[tác động cùng chiều (+)]→ FPT (Tập đoàn FPT) (mechanism: doanh thu xuất khẩu phần mềm bằng ngoại tệ, chi phí bằng VND). Tỷ giá USD/VND —[tác động ngược chiều (−)]→ HPG (Hòa Phát) (mechanism: nhập quặng sắt, than cốc bằng USD; lỗ tỷ giá nợ vay). Tỷ giá USD/VND —[tác động ngược chiều (−)]→ VIC (Vingroup) (mechanism: gánh nặng nợ vay ngoại tệ tăng).",
+   "tokens": 220
+  },
+  {
+   "id": 2,
+   "size": 11,
+   "members": [
+    "Chup_Can_Quang",
+    "DTD_Tip1",
+    "Gliclazide",
+    "Ha_Duong_Huyet",
+    "Insulin_Nen",
+    "Metformin",
+    "Nhiem_Toan_Lactic",
+    "Quy_Tac_15_15",
+    "Ruou_Bia",
+    "Suy_Than_Nang",
+    "Thieu_B12"
+   ],
+   "title": "Metformin, Insulin, Gliclazide",
+   "facts": [
+    "Đái tháo đường típ 1 —[chỉ định đầu tay]→ Insulin (note: bắt buộc suốt đời)",
+    "Hạ glucose huyết (< 70 mg/dL) —[xử trí bằng]→ Quy tắc 15-15 (15 g carbohydrate, chờ 15 phút)",
+    "Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2)",
+    "Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp)",
+    "Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu)",
+    "Metformin —[làm tăng nguy cơ]→ Nhiễm toan lactic (freq: hiếm)",
+    "Metformin —[làm tăng nguy cơ]→ Thiếu vitamin B12 (freq: dùng lâu dài)",
+    "Gliclazide —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng mạnh nguy cơ hạ glucose huyết)",
+    "Gliclazide —[làm tăng nguy cơ]→ Hạ glucose huyết (< 70 mg/dL)",
+    "Insulin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng mạnh nguy cơ hạ glucose huyết)",
+    "Insulin —[làm tăng nguy cơ]→ Hạ glucose huyết (< 70 mg/dL)",
+    "Rượu bia (ethanol) —[làm tăng nguy cơ]→ Nhiễm toan lactic",
+    "Rượu bia (ethanol) —[làm tăng nguy cơ]→ Hạ glucose huyết (< 70 mg/dL) (window: tới 24 giờ)"
+   ],
+   "sources": [
+    "h02-thuoc-dieu-tri",
+    "h03-ruou-bia",
+    "h07-ha-duong-huyet"
+   ],
+   "summary": "Đái tháo đường típ 1 là bệnh lý di truyền, cần sử dụng insulin suốt đời để điều trị. Hạ glucose huyết dưới 70 mg/dL thường được xử trí bằng quy tắc 15-15. Metformin chống chỉ định cho người có suy thận nặng hoặc đã chụp cản quang có iod. Metformin có tương tác nguy hiểm với rượu bia, tăng nguy cơ nhiễm toan lactic và thiếu vitamin B12. Gliclazide cũng có tương tác nguy hiểm với rượu bia và làm tăng nguy cơ hạ glucose huyết. Insulin cũng có tương tác nguy hiểm với rượu bia và làm tăng nguy cơ hạ glucose huyết. Rượu bia làm tăng nguy cơ nhiễm toan lactic và hạ glucose huyết.",
+   "extractive": "Cụm gồm 11 thực thể, trung tâm là Metformin, Insulin, Gliclazide. Đái tháo đường típ 1 —[chỉ định đầu tay]→ Insulin (note: bắt buộc suốt đời). Hạ glucose huyết (< 70 mg/dL) —[xử trí bằng]→ Quy tắc 15-15 (15 g carbohydrate, chờ 15 phút). Metformin —[chống chỉ định khi]→ Suy thận nặng (eGFR < 30) (rule: eGFR < 30 mL/phút/1,73 m2). Metformin —[chống chỉ định khi]→ Chụp cản quang có iod (rule: tạm ngưng trước chụp). Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu). Metformin —[làm tăng nguy cơ]→ Nhiễm toan lactic (freq: hiếm).",
+   "tokens": 172
+  },
+  {
+   "id": 3,
+   "size": 7,
+   "members": [
+    "Bat_On_Dia_Chinh_Tri",
+    "DXY",
+    "Lai_Suat_Fed",
+    "NHTW_Mua_Vang",
+    "Vang_Nhan",
+    "Vang_Quy_Doi",
+    "XAU_USD"
+   ],
+   "title": "Lãi suất Fed, Giá vàng thế giới quy đổi (VND/lượng), Chỉ số USD (DXY)",
+   "facts": [
+    "Lãi suất Fed —[tác động ngược chiều (−)]→ Giá vàng thế giới (XAU/USD) (mechanism: chi phí cơ hội nắm giữ vàng tăng)",
+    "Lãi suất Fed —[tác động cùng chiều (+)]→ Chỉ số USD (DXY) (mechanism: lãi suất USD cao làm USD mạnh lên)",
+    "Chỉ số USD (DXY) —[tác động ngược chiều (−)]→ Giá vàng thế giới (XAU/USD) (mechanism: vàng định giá bằng USD, biến động ngược chiều DXY)",
+    "Bất ổn địa chính trị —[tác động cùng chiều (+)]→ Giá vàng thế giới (XAU/USD) (mechanism: nhu cầu tài sản trú ẩn)",
+    "Ngân hàng trung ương mua vàng —[tác động cùng chiều (+)]→ Giá vàng thế giới (XAU/USD) (mechanism: cầu vàng của ngân hàng trung ương)",
+    "Giá vàng thế giới (XAU/USD) —[tác động cùng chiều (+)]→ Giá vàng thế giới quy đổi (VND/lượng) (mechanism: XAU/USD × USD/VND × 1,2057)",
+    "Giá vàng thế giới quy đổi (VND/lượng) —[tác động cùng chiều (+)]→ Vàng nhẫn 9999 (mechanism: vàng nhẫn bám sát giá quy đổi)"
+   ],
+   "sources": [
+    "f01-vang-mieng-sjc",
+    "f02-gia-vang-the-gioi"
+   ],
+   "summary": "Cụm tri thức này tập trung vào mối quan hệ giữa lãi suất Fed, chỉ số USD, và giá vàng thế giới. Các tác động chính bao gồm:\n\n1. Lãi suất Fed tác động ngược chiều đến giá vàng thế giới thông qua chi phí cơ hội nắm giữ vàng tăng.\n2. Lãi suất Fed tác động cùng chiều đến chỉ số USD, do lãi suất USD cao làm USD mạnh lên.\n3. Chỉ số USD tác động ngược chiều đến giá vàng thế giới, do vàng định giá bằng USD và biến động ngược chiều DXY.\n4. Bất ổn địa chính trị tác động cùng chiều đến giá vàng thế giới, đáp ứng nhu cầu tài sản trú ẩn.\n5. Ngân hàng trung ương mua vàng tác động cùng chiều đến giá vàng thế giới, nâng cầu vàng.\n6. Giá vàng thế giới tác động cùng chiều đến giá vàng quy đổi (VND/lượng), do XAU/USD × USD/VND × 1,2057.\n7. Giá vàng quy đổi tác động cùng chiều",
+   "extractive": "Cụm gồm 7 thực thể, trung tâm là Lãi suất Fed, Giá vàng thế giới quy đổi (VND/lượng), Chỉ số USD (DXY). Lãi suất Fed —[tác động ngược chiều (−)]→ Giá vàng thế giới (XAU/USD) (mechanism: chi phí cơ hội nắm giữ vàng tăng). Lãi suất Fed —[tác động cùng chiều (+)]→ Chỉ số USD (DXY) (mechanism: lãi suất USD cao làm USD mạnh lên). Chỉ số USD (DXY) —[tác động ngược chiều (−)]→ Giá vàng thế giới (XAU/USD) (mechanism: vàng định giá bằng USD, biến động ngược chiều DXY). Bất ổn địa chính trị —[tác động cùng chiều (+)]→ Giá vàng thế giới (XAU/USD) (mechanism: nhu cầu tài sản trú ẩn). Ngân hàng trung ương mua vàng —[tác động cùng chiều (+)]→ Giá vàng thế giới (XAU/USD) (mechanism: cầu vàng của ngân hàng trung ương). Giá vàng thế giới (XAU/USD) —[tác động cùng chiều (+)]→ Giá vàng thế giới quy đổi (VND/lượng) (mechanism: XAU/USD × USD/VND × 1,2057).",
+   "tokens": 220
+  },
+  {
+   "id": 4,
+   "size": 6,
+   "members": [
+    "Chenh_Lech_SJC",
+    "Lam_Phat",
+    "ND_232_2025",
+    "ND_24_2012",
+    "NHNN_Ban_Vang_2024",
+    "Vang_SJC"
+   ],
+   "title": "Nghị định 232/2025/NĐ-CP, Nghị định 24/2012/NĐ-CP, NHNN đấu thầu và bán vàng miếng (2024)",
+   "facts": [
+    "Lạm phát —[tác động cùng chiều (+)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: nhu cầu tích trữ tăng khi lạm phát)",
+    "Nghị định 24/2012/NĐ-CP —[tác động cùng chiều (+)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: độc quyền, không nhập vàng nguyên liệu, cung giới hạn)",
+    "Nghị định 24/2012/NĐ-CP —[quy định về]→ Vàng miếng SJC",
+    "Nghị định 232/2025/NĐ-CP —[tác động ngược chiều (−)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: bãi bỏ độc quyền, tăng cung hợp pháp)",
+    "Nghị định 232/2025/NĐ-CP —[sửa đổi, bổ sung]→ Nghị định 24/2012/NĐ-CP",
+    "NHNN đấu thầu và bán vàng miếng (2024) —[tác động ngược chiều (−)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: tăng cung, chênh lệch thu hẹp)",
+    "Phần bù vàng miếng SJC so với thế giới —[tác động cùng chiều (+)]→ Vàng miếng SJC (mechanism: giá trong nước = quy đổi + phần bù)"
+   ],
+   "sources": [
+    "f01-vang-mieng-sjc"
+   ],
+   "summary": "Cụm tri thức này tập trung vào việc quản lý và điều chỉnh giá vàng miếng SJC của Ngân hàng Nhà nước Việt Nam (NHNN). Các chính sách liên quan đến giá vàng miếng SJC được thể hiện qua các nghị định và các quyết định của NHNN, trong đó có việc điều chỉnh giá vàng miếng SJC theo các yếu tố như lạm phát, độc quyền vàng miếng SJC, và các quyết định của NHNN như đấu thầu và bán vàng miếng.",
+   "extractive": "Cụm gồm 6 thực thể, trung tâm là Nghị định 232/2025/NĐ-CP, Nghị định 24/2012/NĐ-CP, NHNN đấu thầu và bán vàng miếng (2024). Lạm phát —[tác động cùng chiều (+)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: nhu cầu tích trữ tăng khi lạm phát). Nghị định 24/2012/NĐ-CP —[tác động cùng chiều (+)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: độc quyền, không nhập vàng nguyên liệu, cung giới hạn). Nghị định 24/2012/NĐ-CP —[quy định về]→ Vàng miếng SJC. Nghị định 232/2025/NĐ-CP —[tác động ngược chiều (−)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: bãi bỏ độc quyền, tăng cung hợp pháp). Nghị định 232/2025/NĐ-CP —[sửa đổi, bổ sung]→ Nghị định 24/2012/NĐ-CP. NHNN đấu thầu và bán vàng miếng (2024) —[tác động ngược chiều (−)]→ Phần bù vàng miếng SJC so với thế giới (mechanism: tăng cung, chênh lệch thu hẹp).",
+   "tokens": 114
+  },
+  {
+   "id": 5,
+   "size": 4,
+   "members": [
+    "Benh_Tim_Mach",
+    "Ga_Ran",
+    "Thit_Ga",
+    "Uc_Ga_Bo_Da"
+   ],
+   "title": "Gà rán, gà chiên, da gà, Ức gà bỏ da luộc/hấp, Bệnh tim mạch do xơ vữa",
+   "facts": [
+    "Ức gà bỏ da luộc/hấp —[là một dạng của]→ Thịt gà",
+    "Gà rán, gà chiên, da gà —[làm tăng nguy cơ]→ Bệnh tim mạch do xơ vữa (reason: chất béo bão hòa, tăng LDL)",
+    "Gà rán, gà chiên, da gà —[là một dạng của]→ Thịt gà"
+   ],
+   "sources": [
+    "h04-dinh-duong"
+   ],
+   "summary": "Cụm tri thức này tập trung vào việc phân loại và đánh giá các phương pháp chế biến gà. Chủ đề chính là sự khác biệt giữa thịt gà nguyên thủy và các món ăn chế biến từ thịt gà như gà rán, gà chiên và da gà. Các quan hệ quan trọng nhất bao gồm:\n\n1. **Thịt gà nguyên thủy** và **thịt gà chế biến**: Đây là hai dạng khác nhau của thịt gà, với thịt gà nguyên thủy thường được coi là tốt hơn vì ít chất béo bão hòa và ít cholesterol.\n\n2. **Bệnh tim mạch do xơ vữa**: Các món ăn chế biến từ thịt gà có thể tăng nguy cơ mắc bệnh tim mạch do chứa nhiều chất béo bão hòa và tăng lượng LDL cholesterol trong máu.\n\n3. **Gà rán, gà chiên, da gà**: Đây là các món ăn chế biến từ thịt gà, thường chứa nhiều chất béo bão hòa và có thể gây hại cho sức khỏe nếu ăn quá nhiều.",
+   "extractive": "Cụm gồm 4 thực thể, trung tâm là Gà rán, gà chiên, da gà, Ức gà bỏ da luộc/hấp, Bệnh tim mạch do xơ vữa. Ức gà bỏ da luộc/hấp —[là một dạng của]→ Thịt gà. Gà rán, gà chiên, da gà —[làm tăng nguy cơ]→ Bệnh tim mạch do xơ vữa (reason: chất béo bão hòa, tăng LDL). Gà rán, gà chiên, da gà —[là một dạng của]→ Thịt gà.",
+   "tokens": 220
+  },
+  {
+   "id": 6,
+   "size": 3,
+   "members": [
+    "Benh_Than_Man",
+    "Empagliflozin",
+    "Suy_Tim"
+   ],
+   "title": "Empagliflozin, Suy tim, Bệnh thận mạn",
+   "facts": [
+    "Empagliflozin —[ưu tiên khi có]→ Suy tim",
+    "Empagliflozin —[ưu tiên khi có]→ Bệnh thận mạn"
+   ],
+   "sources": [
+    "h02-thuoc-dieu-tri"
+   ],
+   "summary": "Đoạn tóm tắt về cụm tri thức này có thể như sau:\n\nEmpagliflozin được ưu tiên sử dụng khi có các triệu chứng của bệnh tim hoặc bệnh thận mạn. Đây là một loại thuốc có tác dụng giảm huyết áp và tăng kali máu, giúp cải thiện chức năng tim và thận.",
+   "extractive": "Cụm gồm 3 thực thể, trung tâm là Empagliflozin, Suy tim, Bệnh thận mạn. Empagliflozin —[ưu tiên khi có]→ Suy tim. Empagliflozin —[ưu tiên khi có]→ Bệnh thận mạn.",
+   "tokens": 68
+  }
+ ],
+ "rows": [
+  {
+   "q": "Fed tăng lãi suất thì giá vàng SJC trong nước chịu tác động qua những kênh nào?",
+   "entities": [
+    "Lai_Suat_NHNN",
+    "Vang_SJC",
+    "Lai_Suat_Fed"
+   ],
+   "naive": {
+    "ctx_cov": 0.75,
+    "ctx_hits": [
+     true,
+     false,
+     true,
+     true
+    ],
+    "ctx_chars": 1979,
+    "ans_cov": 0.25,
+    "answer": "Fed tăng lãi suất sẽ tác động đến giá vàng SJC trong nước qua hai kênh chính:\n\n1. **Chênh lệch lãi suất**: Khi lãi suất tăng, giá vàng thường giảm vì vàng có tính thanh khoản cao hơn so với các loại tài sản khác. Tuy nhiên, trong trường hợp này, việc chênh lệch lãi suất giữa USD và VND mở rộng có thể giúp USD mạnh lên, làm giảm giá vàng SJC.\n\n2. **Thặng dư thương mại**: Khi thặng dư thương mại tăng, giá vàng thường giảm do tăng nhu cầu mua vàng từ bên ngoài. Tuy nhiên, trong trường hợp này, việc tăng cung vàng miếng SJC có thể làm giảm nhu cầu mua vàng từ bên ngoài, gây áp lực lên giá vàng SJC.\n\nTóm lại, Fed tăng lãi suất có thể làm giảm giá vàng SJC, nhưng tác động cụ thể phụ thuộc vào các yếu tố khác như chênh lệch lãi suất giữa USD và VND, thặng dư thương mại và nhu cầu mua vàng từ bên ngoài.",
+    "gen_s": 10.08194260000073,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2086,
+    "ans_cov": 0.25,
+    "answer": "Fed tăng lãi suất sẽ tác động đến giá vàng SJC trong nước qua hai kênh chính:\n\n1. **Sức mạnh của đồng USD**: Khi Fed tăng lãi suất, tỷ giá USD tăng lên, làm giảm giá trị của đồng USD so với các đồng tiền khác. Điều này làm tăng giá trị của vàng SJC so với đồng USD, vì vàng được coi là tài sản trú ẩn an toàn trong thời điểm này.\n\n2. **Lợi suất thực của trái phiếu chính phủ Mỹ**: Khi Fed tăng lãi suất, lợi suất trái phiếu chính phủ Mỹ cũng tăng lên. Điều này làm tăng giá trị của vàng SJC so với các loại tài sản khác, như trái phiếu, vì vàng được coi là một lựa chọn an toàn hơn trong thời điểm này.",
+    "gen_s": 7.187055800000053,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2228,
+    "ans_cov": 0.5,
+    "answer": "Fed tăng lãi suất sẽ tác động đến giá vàng SJC trong nước qua hai kênh chính:\n\n1. **Chỉ số USD (DXY)**: Khi lãi suất của Mỹ tăng, USD mạnh lên. Khi USD mạnh lên, giá vàng trong nước sẽ giảm do giá vàng thế giới tăng theo xu hướng tương tự.\n\n2. **Lãi suất thực của trái phiếu chính phủ Mỹ**: Khi lãi suất của Mỹ tăng, chi phí cơ hội nắm giữ vàng tăng lên, do đó giá vàng trong nước giảm.",
+    "gen_s": 5.086835899999642,
+    "n_evidence": 12
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3383,
+    "ans_cov": 1.0,
+    "answer": "Fed tăng lãi suất tác động ngược chiều đến giá vàng SJC trong nước thông qua các kênh sau:\n\n1. **Lãi suất Fed tác động ngược chiều đến giá vàng thế giới**: Khi Fed tăng lãi suất, chi phí cơ hội nắm giữ vàng tăng, do đó giá vàng thế giới tăng. Điều này tác động trực tiếp đến giá vàng SJC trong nước, vì giá vàng thế giới thường quy đổi thành VND.\n\n2. **Lãi suất Fed tác động cùng chiều đến chỉ số USD**: Khi Fed tăng lãi suất, lãi suất USD tăng, do đó chỉ số USD (DXY) tăng. Điều này tác động ngược chiều đến giá vàng thế giới, do vàng định giá bằng USD và biến động ngược chiều DXY.\n\n3. **Giá vàng thế giới tác động cùng chiều đến giá vàng quy đổi**: Giá vàng quy đổi (VND/lượng) phụ thuộc vào giá vàng thế giới và tỷ giá USD/VND. Khi giá vàng thế giới tăng, giá vàng quy đổi tăng, do đó giá vàng SJC trong nước tăng.\n\n4. **Giá vàng quy đổi tác động cùng chiều đến giá vàng SJC**: Giá vàng quy đổi tăng làm tăng giá vàng SJC, do vàng miếng SJC được quy đổi từ giá vàng thế giới.\n\n5. **Giá vàng SJC tác động cùng chiều đến giá vàng quy đổi**: Giá vàng SJC tăng làm tăng giá vàng quy đổi, do vàng miếng SJC được quy đổi từ giá vàng quy đổi.\n\n6. **Giá vàng quy đổi tác",
+    "gen_s": 14.526955299999827,
+    "n_evidence": 14
+   }
+  },
+  {
+   "q": "Tỷ giá USD/VND tăng thì FPT và HPG bị ảnh hưởng ngược nhau ra sao?",
+   "entities": [
+    "USD_VND",
+    "Ruou_Bia",
+    "FPT",
+    "HPG"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1929,
+    "ans_cov": 0.3333333333333333,
+    "answer": "Khi tỷ giá USD/VND tăng, FPT và HPG sẽ phản ứng khác nhau:\n\n- FPT: Được lợi vì tăng doanh thu quy đổi từ thị trường Nhật Bản, doanh nghiệp xuất khẩu phần mềm, thủy sản, dệt may.\n- HPG: Bị ảnh hưởng tiêu cực vì tăng chi phí nhập khẩu nguyên liệu bằng USD hoặc nợ vay ngoại tệ lớn.\n\nVì vậy, khi tỷ giá USD/VND tăng, FPT và HPG sẽ phản ứng trái chiều với nhau.",
+    "gen_s": 5.293004199999814,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2175,
+    "ans_cov": 0.3333333333333333,
+    "answer": "FPT và HPG đều bị ảnh hưởng ngược lại khi tỷ giá USD/VND tăng. \n\nFPT: \n- Doanh thu quy đổi tăng nhanh hơn chi phí.\n- Biên lợi nhuận được cải thiện.\n\nHPG: \n- Chi phí nguyên liệu tăng do nhập khẩu nguyên liệu bằng USD.\n- Phát sinh lỗ chênh lệch tỷ giá.\n- Biên lợi nhuận bị giảm.",
+    "gen_s": 4.533133799999632,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2812,
+    "ans_cov": 1.0,
+    "answer": "Khi tỷ giá USD/VND tăng, FPT và HPG bị ảnh hưởng ngược nhau:\n\nFPT:\n- Doanh thu xuất khẩu phần mềm được thanh toán bằng USD, JPY và EUR, trong khi phần lớn chi phí là lương kỹ sư trả bằng đồng VND.\n- Khi USD/VND tăng, doanh thu quy đổi tăng nhanh hơn chi phí, cải thiện biên lợi nhuận.\n\nHPG:\n- Sản xuất thép theo công nghệ lò cao, nhập khẩu phần lớn quặng sắt và than mỡ luyện cốc, thanh toán bằng USD.\n- Khi USD/VND tăng, giá vốn hàng bán tăng, phát sinh lỗ chênh lệch tỷ giá, làm giảm biên lợi nhuận.\n\nVì vậy, khi tỷ giá USD/VND tăng, FPT và HPG đều bị ảnh hưởng ngược nhau, với FPT lợi và HPG bất lợi.",
+    "gen_s": 11.491505300000426,
+    "n_evidence": 17
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 4349,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Khi tỷ giá USD/VND tăng, FPT và HPG bị ảnh hưởng ngược nhau như sau:\n\nFPT:\n- Tăng doanh thu quy đổi từ xuất khẩu phần mềm bằng USD, JPY và EUR.\n- Tăng biên lợi nhuận do chi phí bằng đồng nội tệ giảm.\n- Được hưởng lợi từ sự tăng cường sức mạnh đồng yên JPY.\n\nHPG:\n- Tăng doanh thu quy đổi từ xuất khẩu nguyên liệu bằng USD.\n- Tăng lỗ lũy kế do chi phí bằng đồng nội tệ tăng.\n- Thất bại khi tỷ giá tăng, gây lỗ chênh lệch tỷ giá và giảm nhu cầu xây dựng.",
+    "gen_s": 32.76767410000048,
+    "n_evidence": 19
+   }
+  },
+  {
+   "q": "Đồng USD mạnh lên tác động thế nào tới khối ngoại và chỉ số VN30?",
+   "entities": [
+    "DXY",
+    "VN30",
+    "Khoi_Ngoai"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1883,
+    "ans_cov": 1.0,
+    "answer": "Đồng USD mạnh lên tác động tiêu cực tới khối ngoại và chỉ số VN30. Khi USD mạnh lên, khối ngoại thường bán ròng, gây giảm sức hấp dẫn cho cổ phiếu vốn hóa lớn. Điều này có thể dẫn đến việc giảm giá của các cổ phiếu VN30. Tuy nhiên, cũng có thể có tác động phụ thuộc vào các yếu tố khác như chênh lệch lãi suất giữa USD và VND, nhập khẩu và xuất khẩu, và dòng vốn ngoại.",
+    "gen_s": 6.012909899999613,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2205,
+    "ans_cov": 1.0,
+    "answer": "Đồng USD mạnh lên tác động tiêu cực tới khối ngoại và chỉ số VN30. \n\nKhối ngoại thường bán ròng khi USD/VND tăng mạnh, vì lợi nhuận quy đổi ra USD của họ bị giảm. Điều này làm giảm nhu cầu mua cổ phiếu trên thị trường chứng khoán, dẫn đến giảm giá cổ phiếu và giảm chỉ số VN30.\n\nTrong khi đó, VN30 là chỉ số gồm các cổ phiếu lớn và có vốn hóa lớn trên HOSE, do đó phản ứng nhanh với biến động tỷ giá. Khi USD mạnh lên, các cổ phiếu thuộc các ngành xuất khẩu như FPT và các ngân hàng như VCB sẽ tăng giá, trong khi các cổ phiếu thuộc các ngành nhập khẩu như HPG sẽ giảm giá. Điều này làm giảm tổng giá trị của VN30 và giảm chỉ số này.",
+    "gen_s": 9.599751100000503,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2310,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Đồng USD mạnh lên tác động như sau:\n\n1. Khối ngoại: \n   - Khối ngoại mua ròng (tác động cùng chiều +).\n   - Khối ngoại mua ròng tăng khi USD mạnh lên, do lợi nhuận quy đổi ra USD giảm.\n   - Khối ngoại mua ròng tăng khi lãi suất USD cao, làm USD mạnh lên.\n\n2. Chỉ số VN30: \n   - Chỉ số VN30 tăng (tác động cùng chiều +).\n   - Chỉ số VN30 tăng khi khối ngoại mua ròng, do dòng vốn vào cổ phiếu vốn hóa lớn tăng.\n   - Chỉ số VN30 tăng khi FPT, HPG, VCB, VIC thuộc về VN30, do khối ngoại mua ròng vào các cổ phiếu này.",
+    "gen_s": 9.74639759999991,
+    "n_evidence": 14
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3847,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Đồng USD mạnh lên tác động cùng chiều đến khối ngoại và chỉ số VN30. \n\nTrong trường hợp này, tác động cùng chiều được biểu diễn bởi số 1 trong bảng chứng minh. \n\nSố 1 (KG:f02-gia-vang-the-gioi) cho thấy rằng khi lãi suất USD cao, USD mạnh lên, làm USD mạnh lên toàn cầu. Điều này gây áp lực tỷ giá, khiến khối ngoại bán ròng trên thị trường chứng khoán. \n\nNgoài ra, số 4 (KG:f09-vn30) cho thấy rằng khi USD mạnh lên, dòng vốn ngoại thường bán ròng. Điều này cũng tác động đến chỉ số VN30, khiến chỉ số giảm.",
+    "gen_s": 12.240258699999686,
+    "n_evidence": 16
+   }
+  },
+  {
+   "q": "Nghị định 232/2025 ảnh hưởng thế nào tới chênh lệch giá vàng SJC?",
+   "entities": [
+    "Chenh_Lech_SJC",
+    "ND_232_2025",
+    "Vang_SJC"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 0.75,
+    "answer": "Nghị định 232/2025 ảnh hưởng lớn tới chênh lệch giá vàng SJC. Điều này được thể hiện bởi việc bãi bỏ cơ chế Nhà nước độc quyền sản xuất vàng miếng, cho phép doanh nghiệp và ngân hàng đủ điều kiện được cấp phép sản xuất vàng miếng và nhập khẩu vàng nguyên liệu theo hạn mức. Điều này mở ra cơ hội cho thị trường cạnh tranh, giảm bớt sự độc quyền của NHNN và tạo điều kiện cho việc sản xuất và nhập khẩu vàng miếng. Tuy nhiên, cũng có tác động tiêu cực như việc tạo động lực buôn lậu vàng và gây áp lực lên tỷ giá.",
+    "gen_s": 11.873712100000375,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2112,
+    "ans_cov": 0.25,
+    "answer": "Nghị định 232/2025 ảnh hưởng đến chênh lệch giá vàng SJC bằng cách cho phép doanh nghiệp và ngân hàng đủ điều kiện sản xuất và nhập khẩu vàng miếng theo hạn mức quản lý của NHNN. Điều này có thể làm giảm chênh lệch so với giá vàng thế giới quy đổi, nhưng NHNN vẫn quản lý chặt chẽ hạn mức nhập khẩu, nên phần bù của vàng miếng trong nước vẫn phụ thuộc vào cung cầu và kỳ vọng.",
+    "gen_s": 14.191049099999873,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2499,
+    "ans_cov": 1.0,
+    "answer": "Nghị định 232/2025/NĐ-CP ảnh hưởng lớn tới chênh lệch giá vàng SJC so với giá thế giới quy đổi. \n\n- Nó bãi bỏ cơ chế Nhà nước độc quyền sản xuất vàng miếng, cho phép doanh nghiệp và ngân hàng đủ điều kiện được cấp phép sản xuất vàng miếng và nhập khẩu vàng nguyên liệu theo hạn mức do NHNN quản lý.\n- Điều này tăng nguồn cung hợp pháp, thu hẹp chênh lệch giá trong nước với thế giới và hạn chế buôn lậu.\n- Tuy nhiên, NHNN vẫn quản lý chặt hạn mức nhập khẩu, nên phần bù của vàng miếng trong nước vẫn phụ thuộc vào cung cầu và kỳ vọng.\n\nTrong năm 2024, NHNN đã tổ chức đấu thầu vàng miếng SJC để tăng cung, nhưng chênh lệch giảm chậm. Sau đó, NHNN chuyển sang bán vàng miếng SJC trực tiếp qua bốn ngân hàng thương mại nhà nước và Công ty SJC, giúp chênh lệch với giá thế giới thu hẹp đáng kể, có lúc còn khoảng 3 đến 5 triệu đồng mỗi lượng.",
+    "gen_s": 20.413284499999463,
+    "n_evidence": 11
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3654,
+    "ans_cov": 1.0,
+    "answer": "Nghị định 232/2025/NĐ-CP ảnh hưởng đến chênh lệch giá vàng SJC thông qua việc bãi bỏ cơ chế Nhà nước độc quyền sản xuất vàng miếng, cho phép doanh nghiệp và ngân hàng đủ điều kiện được cấp phép sản xuất vàng miếng và nhập khẩu vàng nguyên liệu theo hạn mức do NHNN quản lý. Điều này dự kiến sẽ tăng nguồn cung hợp pháp, thu hẹp chênh lệch giá trong nước với thế giới và hạn chế buôn lậu. Tuy nhiên, NHNN vẫn quản lý chặt hạn mức nhập khẩu, nên phần bù của vàng miếng trong nước vẫn phụ thuộc vào cung cầu và kỳ vọng.",
+    "gen_s": 11.836505399999623,
+    "n_evidence": 13
+   }
+  },
+  {
+   "q": "NHNN hạ lãi suất có lợi cho những cổ phiếu nào trong VN30?",
+   "entities": [
+    "Lai_Suat_NHNN",
+    "VN30"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 0.0,
+    "answer": "NHNN hạ lãi suất có lợi cho cổ phiếu vốn hóa lớn trong VN30, đặc biệt là các cổ phiếu có vốn hóa lớn như VNM, MSN, MWG. Điều này giúp giảm chi phí vay và tăng sức mua của cổ phiếu, tạo cơ hội cho các nhà đầu tư tìm kiếm lợi nhuận từ thị trường chứng khoán.",
+    "gen_s": 5.28929750000043,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1864,
+    "ans_cov": 1.0,
+    "answer": "NHNN hạ lãi suất có lợi cho các cổ phiếu trong VN30 như VCB, VIC, VHM, FPT, HPG, và MSN. [1] [2]",
+    "gen_s": 2.806987900000422,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1975,
+    "ans_cov": 0.6666666666666666,
+    "answer": "NHNN hạ lãi suất có lợi cho các cổ phiếu thuộc nhóm ngân hàng, bất động sản và chứng khoán trong VN30. Các cổ phiếu này thường nhạy cảm với lãi suất và có thể hưởng lợi từ việc giảm chi phí lãi vay và tăng lãi suất cho vay. Tuy nhiên, cần lưu ý rằng kết quả cụ thể có thể thay đổi tùy thuộc vào tình hình kinh tế và thị trường.",
+    "gen_s": 6.204155600000377,
+    "n_evidence": 13
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3131,
+    "ans_cov": 0.6666666666666666,
+    "answer": "NHNN hạ lãi suất có lợi cho các cổ phiếu thuộc nhóm ngân hàng, bất động sản và chứng khoán trong VN30. Theo thông tin được cung cấp, lãi suất giảm thường hỗ trợ thị trường chứng khoán vì chi phí cơ hội của gửi tiết kiệm giảm, dòng tiền dịch chuyển sang cổ phiếu, và chi phí lãi vay của doanh nghiệp giảm. Nhóm ngân hàng, bất động sản và chứng khoán thường nhạy cảm nhất với lãi suất.",
+    "gen_s": 7.851465000000644,
+    "n_evidence": 15
+   }
+  },
+  {
+   "q": "Tôi đang dùng metformin và hay đi nhậu, có nguy cơ biến chứng gì?",
+   "entities": [
+    "Metformin",
+    "Ruou_Bia"
+   ],
+   "naive": {
+    "ctx_cov": 0.5,
+    "ctx_hits": [
+     true,
+     false
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 0.5,
+    "answer": "Dùng metformin và đi nhậu có nguy cơ nhiễm toan lactic. Theo tờ hướng dẫn sử dụng, người dùng metformin nên tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài.",
+    "gen_s": 6.923819100000401,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true
+    ],
+    "ctx_chars": 2919,
+    "ans_cov": 0.5,
+    "answer": "Dựa trên thông tin trong các chứng minh, bạn đang dùng metformin và thường đi nhậu. Có nguy cơ nhiễm toan lactic do rượu bia làm tăng nguy cơ nhiễm toan lactic ở người dùng metformin. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài. Vì vậy, bạn nên chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng.",
+    "gen_s": 27.751521300000604,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true
+    ],
+    "ctx_chars": 2797,
+    "ans_cov": 1.0,
+    "answer": "Dùng metformin và rượu bia có thể gây ra các biến chứng nguy hiểm, bao gồm nhiễm toan lactic và hạ glucose huyết. Theo tờ hướng dẫn sử dụng, người dùng metformin cần tránh uống rượu quá mức và tránh say rượu trong thời gian điều trị. Nguy cơ cao nhất khi uống nhiều, uống say hoặc uống kéo dài.",
+    "gen_s": 5.063892799999849,
+    "n_evidence": 13
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true
+    ],
+    "ctx_chars": 4007,
+    "ans_cov": 0.5,
+    "answer": "Có nguy cơ biến chứng như nhiễm toan lactic và thiếu vitamin B12. Cần chủ động từ chối rượu bia, thay bằng nước lọc, trà không đường hoặc nước khoáng.",
+    "gen_s": 3.132214500000373,
+    "n_evidence": 15
+   }
+  },
+  {
+   "q": "Người tiểu đường ăn thịt gà và cơm thế nào cho đúng?",
+   "entities": [
+    "DTD_Tip2",
+    "Thit_Ga",
+    "Com_Trang"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 1.0,
+    "answer": "Người tiểu đường có thể ăn thịt gà và cơm theo các hướng dẫn sau:\n\n1. **Thịt gà**: \n   - Chọn ức gà luộc, hấp hoặc nướng không da.\n   - Hạn chế gà rán, gà chiên hoặc da gà.\n\n2. **Cơm trắng**:\n   - Có thể ăn, nhưng cần định lượng: khoảng một bát con mỗi bữa, tùy cân nặng và vận động.\n   - Nên ăn rau trước, cơm sau để giảm hấp thu carbohydrate và hạ đỉnh glucose sau ăn.\n\n3. **Cách chế biến**: \n   - Ức gà bỏ da chứa ít carbohydrate và chất béo, nên không làm tăng glucose huyết.\n   - Ăn nhiều chất béo bão hòa làm tăng LDL cholesterol, tăng nguy cơ xơ vữa động mạch và làm nặng thêm đề kháng insulin.\n\n4. **Giàu đạm và chất xơ**: \n   - Rau xanh như rau muống, cải xanh, bông cải xanh, mồng tơi có GI rất thấp, giàu chất xơ hòa tan.\n   - Chất xơ làm chậm hấp thu carbohydrate và hạ đỉnh glucose sau ăn.\n\n5. **Giàu đạm và chất xơ**: \n   - Cá, đậu phụ, trứng, các loại đậu cũng là nguồn đạm phù hợp.\n   - Chất xơ hòa tan giúp giảm hấp thu carbohydrate và hạ đỉnh glucose sau ăn.\n\n6. **Giàu đạm và",
+    "gen_s": 19.377667400000064,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2715,
+    "ans_cov": 0.5,
+    "answer": "[Từ chứng 1] Người tiểu đường nên ăn ức gà luộc, hấp, nướng không da. Khuyến khích chọn gà bỏ da để giảm lượng đạm và chất béo. Khuyến cáo hạn chế gà rán, gà chiên, da gà. [Trích từ chứng 1]",
+    "gen_s": 3.8604019000003973,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2839,
+    "ans_cov": 1.0,
+    "answer": "Người tiểu đường có thể ăn thịt gà và cơm theo các nguyên tắc sau:\n\n1. Chọn thịt gà: Ăn ức gà bỏ da luộc hoặc hấp, không ăn da gà, gà rán hoặc gà chiên.\n\n2. Cơm: Ăn cơm gạo trắng, không quá nhiều (1-2 bát con mỗi bữa).\n\n3. Định lượng: Cơm chiếm khoảng 1/3 đĩa ăn, rau chiếm 1/2 đĩa, thịt gà chiếm 1/4 đĩa.\n\n4. Thời gian ăn: Ăn rau trước, cơm sau.\n\n5. Hạn chế muối: Hạn chế muối dưới 5g mỗi ngày.\n\n6. Chú ý: Không nên ăn quá nhiều thịt gà và cơm, mà nên ăn đủ các loại thực phẩm khác nhau để đảm bảo dinh dưỡng đầy đủ.\n\nGiải thích từ trích dẫn:\n- Thịt gà là nguồn đạm tốt cho người tiểu đường nếu chọn đúng cách chế biến.\n- Cơm là nguồn năng lượng chính của bữa ăn Việt, nên ăn đúng lượng.\n- Chú trọng ăn rau xanh và các loại thực phẩm khác để đảm bảo dinh dưỡng đầy đủ.",
+    "gen_s": 16.356807500000286,
+    "n_evidence": 17
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 4227,
+    "ans_cov": 0.75,
+    "answer": "Người tiểu đường nên ăn thịt gà và cơm theo các nguyên tắc sau:\n\n1. **Thịt gà**: \n   - Chọn ức gà luộc, hấp hoặc nướng không da.\n   - Hạn chế gà rán, gà chiên và da gà.\n\n2. **Cơm trắng**:\n   - Chọn cơm gạo trắng, không quá nhiều (1-2 bát con/bữa).\n   - Chia cơm thành ba bữa chính và thêm một bữa phụ nhỏ nếu cần insulin hoặc sulfonylurea.\n\n3. **Định lượng**:\n   - Một nửa đĩa là rau không chứa tinh bột.\n   - Một phần tư là đạm nạc (cá, gà bỏ da, đậu phụ).\n   - Một phần tư là tinh bột (cơm, gạo lứt, khoai).\n\n4. **Hạn chế**:\n   - Ăn ít nhất nửa đĩa rau xanh mỗi ngày.\n   - Hạn chế gà rán, gà chiên, da gà.\n   - Hạn chế táo, cam (GI thấp) và xôi nếp (GI rất cao).\n\n5. **Định lượng cơm**:\n   - Một bát cơm khoảng 150g chứa khoảng 40g carbohydrate, tải đường huyết khoảng 29, thuộc nhóm cao.\n\n6. **Lối sống**:\n   - Vận động ≥ 150 phút/tuần.\n   - Gi",
+    "gen_s": 30.925109499999962,
+    "n_evidence": 19
+   }
+  },
+  {
+   "q": "Bệnh nhân tiểu đường bị suy tim và suy thận nên dùng thuốc nào, tránh thuốc nào?",
+   "entities": [
+    "DTD_Tip2",
+    "Suy_Than_Nang",
+    "Suy_Tim"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1727,
+    "ans_cov": 0.3333333333333333,
+    "answer": "Bệnh nhân tiểu đường bị suy tim và suy thận nên dùng thuốc insulin và đồng vận thụ thể GLP-1 (như liraglutide, dulaglutide, semaglutide). Cần tránh sử dụng sulfonylurea và metformin vì chúng có thể làm tăng huyết áp và giảm tiết insulin, gây nguy cơ tăng huyết áp và giảm chức năng thận.",
+    "gen_s": 5.40370350000012,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2369,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Bệnh nhân tiểu đường bị suy tim và suy thận nên dùng thuốc:\n\n- Empagliflozin hoặc Dapagliflozin (Ức chế SGLT2) - Cả hai thuốc này đều giúp giảm glucose huyết, giảm cân, giảm huyết áp và bảo vệ tim mạch, làm chậm tiến triển bệnh thận mạn. Tuy nhiên, cần cân nhắc thận trọng đối với bệnh nhân có suy tim hoặc bệnh thận mạn.\n\nBệnh nhân nên tránh sử dụng:\n\n- Metformin - Do có thể gây nhiễm toan lactic, nguy cơ cao ở bệnh nhân suy tim hoặc suy gan, thiếu oxy mô, nhiễm trùng nặng và người nghiện rượu.\n- Insulin - Do có thể gây hạ glucose huyết và tăng cân, đặc biệt là ở bệnh nhân suy gan, suy thận nặng.",
+    "gen_s": 13.30431580000004,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2634,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Bệnh nhân tiểu đường bị suy tim và suy thận nên dùng thuốc:\n\n- Empagliflozin hoặc dapagliflozin (ức chế SGLT2) vì chúng có lợi ích đối với bệnh nhân này, giảm nguy cơ suy tim và bảo vệ thận.\n\n- Không nên dùng metformin vì nó có thể gây nhiễm toan lactic, nguy cơ cao hơn ở bệnh nhân suy tim và suy thận.\n\nBệnh nhân nên tuân thủ theo dõi và điều chỉnh liều lượng theo hướng dẫn y tế, đặc biệt là việc ăn uống và vận động đều đặn.",
+    "gen_s": 24.811485100000027,
+    "n_evidence": 17
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3459,
+    "ans_cov": 0.6666666666666666,
+    "answer": "Bệnh nhân tiểu đường bị suy tim và suy thận nên dùng thuốc Empagliflozin, tránh thuốc Metformin.",
+    "gen_s": 14.538344499999766,
+    "n_evidence": 19
+   }
+  },
+  {
+   "q": "Dùng gliclazide mà uống rượu thì nguy hiểm thế nào và xử trí ra sao?",
+   "entities": [
+    "Gliclazide",
+    "Ruou_Bia"
+   ],
+   "naive": {
+    "ctx_cov": 0.3333333333333333,
+    "ctx_hits": [
+     true,
+     false,
+     false
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 0.3333333333333333,
+    "answer": "Dùng gliclazide cùng với rượu có thể gây nguy hiểm vì nó làm tăng nguy cơ hạ glucose huyết và tăng triglycerid máu. Người dùng cần tuân thủ giới hạn uống rượu và kiểm tra glucose huyết trước khi ngủ nếu đã dùng.",
+    "gen_s": 24.22797190000074,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2554,
+    "ans_cov": 1.0,
+    "answer": "Dùng gliclazide (thuốc nhóm sulfonylurea) và uống rượu có thể gây nguy hiểm như sau:\n\n1. **Hạ Glucose Huyết**: Rượu bia làm tăng nguy cơ hạ glucose huyết, gây vã mồ hôi, run, lú lẫn dễ bị nhầm với say rượu, khiến người xung quanh chậm cấp cứu.\n\n2. **Triệu Chứng Hạ Glucose Huyết**: Người dùng sulfonylurea hoặc insulin có thể gặp triệu chứng hạ glucose huyết như vã mồ hôi, run, lú lẫn.\n\n3. **Nguy Cơ Nhảy Glucose Huyết**: Người dùng sulfonylurea hoặc insulin có nguy cơ cao hơn khi uống rượu bia.\n\n**Xử Trị**:\n\n1. **Quy tắc 15-15**: Khi glucose huyết thấp, người bệnh nên uống hoặc ăn 15 g carbohydrate hấp thu nhanh (ví dụ: 3-4 viên đường, nửa ly nước cam hoặc một thìa canh mật ong). Sau 15 phút, đo lại glucose huyết. Nếu vẫn thấp, lặp lại quy tắc.\n\n2. **Tiêm Glucagon**: Nếu glucose huyết vẫn thấp sau 15-15 phút, người bệnh cần tiêm glucagon.\n\n3. **Gọi Cấp Cứu**: Nếu glucose huyết vẫn thấp sau tiêm glucagon, người bệnh cần gọi cấp cứu ngay.\n\n4. **Thường Tr",
+    "gen_s": 20.968796600000132,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 0.3333333333333333,
+    "ctx_hits": [
+     true,
+     false,
+     false
+    ],
+    "ctx_chars": 2227,
+    "ans_cov": 0.3333333333333333,
+    "answer": "Dùng gliclazide và uống rượu có thể gây nguy hiểm như sau:\n\n1. **Hạ glucose huyết**: Gliclazide có thể làm giảm glucose huyết, nhưng khi kết hợp với rượu, nguy cơ hạ glucose huyết tăng lên đáng kể. Điều này có thể dẫn đến các triệu chứng như vã mồ hôi, run, lú lẫn, và thậm chí là ngộ độc glucose.\n\n2. **Tăng nguy cơ nhiễm toan lactic**: Rượu bia có thể làm tăng nguy cơ nhiễm toan lactic, một tình trạng nghiêm trọng do gan không thể chuyển lactate thành glucose. Điều này có thể gây ra các triệu chứng như đau cơ, khó thở, và mệt mỏi.\n\nĐể xử trí, cần:\n\n- Kiểm tra glucose huyết thường xuyên.\n- Giữ khoảng cách an toàn khi uống rượu.\n- Khi thấy triệu chứng bất thường, cần cấp cứu ngay lập tức.\n- Tham khảo ý kiến bác sĩ về việc giảm lượng rượu hoặc dừng sử dụng rượu hoàn toàn nếu cần thiết.\n\nNên tránh uống rượu khi đang dùng gliclazide hoặc bất kỳ loại thuốc khác có thể làm giảm glucose huyết.",
+    "gen_s": 12.356890600000042,
+    "n_evidence": 10
+   },
+   "graph_local_global": {
+    "ctx_cov": 0.6666666666666666,
+    "ctx_hits": [
+     true,
+     true,
+     false
+    ],
+    "ctx_chars": 3437,
+    "ans_cov": 0.3333333333333333,
+    "answer": "Dùng gliclazide và uống rượu có thể gây nguy hiểm như sau:\n\n1. **Hạ glucose huyết**: Gliclazide có thể làm giảm glucose huyết xuống dưới 70 mg/dL, gây nguy cơ hạ glucose huyết.\n\n2. **Tăng nguy cơ nhiễm toan lactic**: Rượu bia làm tăng nguy cơ nhiễm toan lactic, gây hại cho gan.\n\n3. **Tăng nguy cơ hạ glucose huyết**: Rượu bia làm tăng nguy cơ hạ glucose huyết, có thể gây vã mồ hôi, run, lú lẫn.\n\nĐể xử trí:\n\n1. **Kiểm tra glucose huyết**: Kiểm tra glucose huyết trước khi uống rượu để biết mức độ hạ glucose huyết.\n\n2. **Hạn chế lượng rượu**: Hạn chế uống rượu khi đói, không uống trước khi ngủ, và cần kiểm tra glucose huyết trước khi ngủ nếu đã uống.\n\n3. **Kiểm tra sức khỏe gan**: Nếu có triệu chứng bất thường, cần kiểm tra sức khỏe gan.\n\n4. **Thay đổi chế độ ăn**: Ăn nhiều rau xanh, táo, cam, khoai tây luộc, xôi nếp để giảm nguy cơ hạ glucose huyết.\n\n5. **Hạn chế rượu bia**: Hạn chế uống rượu bia để giảm nguy cơ nhiễm toan lactic và hạ glucose huyết.\n\n6. **Kiểm tra vitamin B12**: Kiểm tra vitamin B12 để đảm bảo",
+    "gen_s": 28.900104700000156,
+    "n_evidence": 12
+   }
+  },
+  {
+   "q": "Tiền đái tháo đường phòng ngừa bằng những biện pháp nào và hiệu quả bao nhiêu?",
+   "entities": [
+    "Tien_DTD"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2004,
+    "ans_cov": 1.0,
+    "answer": "Tiền đái tháo đường phòng ngừa bằng các biện pháp như giảm cân và tăng cường vận động. Các nghiên cứu cho thấy can thiệp lối sống tích cực (giảm 7% cân nặng và vận động 150 phút mỗi tuần) có thể giảm 58% nguy cơ tiến triển thành đái tháo đường.",
+    "gen_s": 5.953847199999473,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2064,
+    "ans_cov": 1.0,
+    "answer": "Phòng ngừa tiền đái tháo đường chủ yếu dựa trên các biện pháp lối sống:\n\n1. Giảm cân: Giảm 7% cân nặng.\n2. Vận động: 150 phút mỗi tuần.\n3. Chế độ ăn uống lành mạnh: Duy trì cân nặng ổn định, hạn chế chất béo và đường.\n\nHiệu quả của các biện pháp này là:\n- Giảm 58% nguy cơ tiến triển thành đái tháo đường típ 2 sau 3 năm.\n- Metformin có thể được cân nhắc cho người tiền đái tháo đường có BMI từ 35 kg/m2, dưới 60 tuổi, hoặc phụ nữ có tiền sử đái tháo đường thai kỳ.\n\nTuy nhiên, cần lưu ý rằng không có phương pháp hoàn hảo để phòng ngừa đái tháo đường, và việc can thiệp sớm là rất quan trọng.",
+    "gen_s": 21.048678199999813,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1455,
+    "ans_cov": 1.0,
+    "answer": "Phòng ngừa tiền đái tháo đường bằng các biện pháp sau:\n\n1. Lối sống lành mạnh:\n   - Giảm cân (7% hoặc hơn)\n   - Vận động đều đặn (150 phút mỗi tuần)\n\n2. Sử dụng thuốc Metformin:\n   - Có thể cân nhắc cho người tiền đái tháo đường có BMI từ 35 kg/m2, dưới 60 tuổi, hoặc phụ nữ có tiền sử đái tháo đường thai kỳ.\n\n3. Kiểm soát glucose huyết:\n   - HbA1c ở mức 5,7 - 6,4%\n\nHiệu quả:\n- Giảm 58% nguy cơ tiến triển thành đái tháo đường típ 2 sau khoảng 3 năm.\n- Hiệu quả hơn so với dùng metformin (giảm 31%).",
+    "gen_s": 16.875169699999788,
+    "n_evidence": 7
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2665,
+    "ans_cov": 1.0,
+    "answer": "Phòng ngừa tiền đái tháo đường chủ yếu dựa trên các biện pháp lối sống tích cực, bao gồm:\n\n1. **Khuyến nghị chế độ ăn**:\n   - **Rau xanh**: Chất xơ giúp làm chậm hấp thu đường, nên ăn ít nhất nửa đĩa mỗi ngày.\n   - **Táo, cam**: GI thấp, chia nhỏ bữa ăn.\n   - **Khoai tây luộc**: GI cao, nên hạn chế.\n   - **Xôi nếp**: GI rất cao, nên hạn chế.\n\n2. **Khuyến nghị lối sống**:\n   - **Vận động**: ≥ 150 phút/tuần.\n   - **Giảm cân**: 5-7% cân nặng.\n   - **Bổ sung vitamin B12**: Có thể cần bổ sung nếu có thiếu hụt.\n\nNhững biện pháp này có thể giảm 58% nguy cơ tiến triển thành đái tháo đường típ 2 sau khoảng 3 năm, theo nghiên cứu Chương trình Phòng ngừa Đái tháo đường tại Hoa Kỳ. Tuy nhiên, cần lưu ý rằng không có biện pháp hoàn toàn phòng ngừa đái tháo đường, và việc duy trì sức khỏe và kiểm soát bệnh vẫn cần sự chăm sóc chuyên nghiệp.",
+    "gen_s": 28.612887799999953,
+    "n_evidence": 9
+   }
+  },
+  {
+   "q": "Giá quặng sắt và đầu tư công tác động thế nào tới Hòa Phát?",
+   "entities": [
+    "Dau_Tu_Cong",
+    "Gia_Quang_Sat",
+    "HPG"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1733,
+    "ans_cov": 1.0,
+    "answer": "Giá quặng sắt tăng làm biên lợi nhuận của Hòa Phát giảm. Điều này do giá quặng sắt tăng cao hơn giá thép, làm giảm lợi nhuận từ việc sản xuất thép. Ngoài ra, đầu tư công vào hạ tầng như đường cao tốc cũng tăng nhu cầu thép, giúp Hòa Phát tăng lợi nhuận. Tuy nhiên, khi tỷ giá USD/VND tăng, giá vốn hàng bán tăng và phát sinh lỗ chênh lệch tỷ giá, làm giảm biên lợi nhuận.",
+    "gen_s": 6.971182100000078,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1493,
+    "ans_cov": 1.0,
+    "answer": "Giá quặng sắt tăng làm giảm biên lợi nhuận của Hòa Phát, vì nó tăng chi phí nguyên liệu. Đầu tư công cũng tăng nhu cầu thép, giúp tăng doanh thu và lợi nhuận. Tuy nhiên, tỷ giá USD/VND tăng làm tăng chi phí vốn và phát sinh lỗ chênh lệch tỷ giá, ảnh hưởng tiêu cực đến lợi nhuận.",
+    "gen_s": 4.776627399999597,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1509,
+    "ans_cov": 1.0,
+    "answer": "Giá quặng sắt tăng làm biên lợi nhuận của Hòa Phát giảm, do tăng giá nguyên liệu làm co biên lợi nhuận. Đầu tư công tác động ngược chiều, giảm nhu cầu thép xây dựng và bất động sản, từ đó giảm nhu cầu của Hòa Phát.",
+    "gen_s": 3.6531832000000577,
+    "n_evidence": 9
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3046,
+    "ans_cov": 1.0,
+    "answer": "Giá quặng sắt và đầu tư công đều tác động ngược chiều đến Hòa Phát. \n\nGiá quặng sắt tăng làm biên lợi nhuận của Hòa Phát giảm, vì giá nguyên liệu tăng làm co biên lợi nhuận. \n\nĐầu tư công, đặc biệt là giải ngân đầu tư công vào hạ tầng như đường cao tốc, cũng làm giảm nhu cầu xây dựng và bất động sản, từ đó giảm nhu cầu thép của Hòa Phát.",
+    "gen_s": 6.083104299999832,
+    "n_evidence": 11
+   }
+  },
+  {
+   "q": "Biến chứng của tiểu đường gồm những gì và cần theo dõi định kỳ ra sao?",
+   "entities": [
+    "DTD_Tip2"
+   ],
+   "naive": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1908,
+    "ans_cov": 1.0,
+    "answer": "Biến chứng của tiểu đường gồm:\n\n1. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n2. Bệnh thận mạn: Nguyên nhân tử vong hàng đầu ở người đái tháo đường típ 2.\n3. Chi: Có thể nhiễm trùng, loét và dẫn tới cắt cụt chi.\n\nNên theo dõi định kỳ:\n\n- Glucose huyết: Tự theo dõi tại nhà theo hướng dẫn, nhiều hơn nếu dùng insulin.\n- HbA1c: Mỗi 3 tháng khi chưa đạt mục tiêu hoặc mới đổi thuốc; mỗi 6 tháng khi đã ổn định.\n- Huyết áp và cân nặng: Mỗi lần khám.\n- Mỡ máu, chức năng thận, albumin niệu: Nhỏ nhất mỗi năm.\n- Khám mắt và khám bàn chân: Nhỏ nhất mỗi năm.",
+    "gen_s": 12.374631699999554,
+    "n_evidence": 5
+   },
+   "advanced": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 1715,
+    "ans_cov": 1.0,
+    "answer": "Biến chứng của tiểu đường gồm:\n\n1. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n2. Bệnh võng mạc: Nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n3. Bệnh thận do tiểu đường: Albumin niệu tăng và giảm mức lọc cầu thận.\n4. Bệnh thận do tiểu đường: Cần xét nghiệm tỷ lệ albumin/creatinin niệu và eGFR ít nhất mỗi năm một lần.\n\nNgoài ra, cần theo dõi định kỳ như sau:\n\n- Glucose huyết: Tự theo dõi tại nhà theo hướng dẫn, nhiều hơn nếu dùng insulin.\n- HbA1c: Mỗi 3 tháng khi chưa đạt mục tiêu hoặc mới đổi thuốc; mỗi 6 tháng khi đã ổn định.\n- Huyết áp và cân nặng: Mỗi lần khám.\n- Mỡ máu, chức năng thận, albumin niệu: Nhỏ nhất mỗi năm.\n- Khám mắt và khám bàn chân: Nhỏ nhất mỗi năm.",
+    "gen_s": 16.14789049999945,
+    "n_evidence": 5
+   },
+   "graph_local": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 2341,
+    "ans_cov": 1.0,
+    "answer": "Biến chứng của tiểu đường gồm:\n\n- Bệnh tim mạch: tăng nguy cơ xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n- Bệnh võng mạc: nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n- Mất thị lực: do tổn thương võng mạc.\n\nĐịnh kỳ theo dõi:\n\n- Glucose huyết: tự theo dõi tại nhà theo hướng dẫn, nhiều hơn nếu dùng insulin.\n- HbA1c: mỗi 3 tháng khi chưa đạt mục tiêu hoặc mới đổi thuốc; mỗi 6 tháng khi đã ổn định.\n- Huyết áp và cân nặng: mỗi lần khám.\n- Mỡ máu, chức năng thận, albumin niệu: ít nhất mỗi năm.\n- Khám mắt và khám bàn chân: ít nhất mỗi năm.",
+    "gen_s": 20.84493129999919,
+    "n_evidence": 17
+   },
+   "graph_local_global": {
+    "ctx_cov": 1.0,
+    "ctx_hits": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "ctx_chars": 3551,
+    "ans_cov": 0.5,
+    "answer": "Biến chứng của tiểu đường gồm:\n\n1. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n2. Bệnh động mạch ngoại biên: Nguyên nhân tử vong hàng đầu ở người đái tháo đường típ 2.\n3. Bệnh võng mạc: Nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n4. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n5. Bệnh động mạch ngoại biên: Nguyên nhân tử vong hàng đầu ở người đái tháo đường típ 2.\n6. Bệnh võng mạc: Nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n7. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n8. Bệnh động mạch ngoại biên: Nguyên nhân tử vong hàng đầu ở người đái tháo đường típ 2.\n9. Bệnh võng mạc: Nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n10. Bệnh tim mạch: Xơ vữa mạch vành, đột quỵ và bệnh động mạch ngoại biên.\n11. Bệnh động mạch ngoại biên: Nguyên nhân tử vong hàng đầu ở người đái tháo đường típ 2.\n12. Bệnh võng mạc: Nguyên nhân hàng đầu gây mù ở người tuổi lao động.\n13. Bệnh tim mạch: Xơ vữa mạch vành, đột",
+    "gen_s": 26.037558099999842,
+    "n_evidence": 19
+   }
+  }
+ ],
+ "agg": {
+  "naive": {
+   "ctx_cov": 0.8819444444444443,
+   "ans_cov": 0.6249999999999999,
+   "ctx_chars": 1931.9166666666667,
+   "gen_s": 9.981974100000116
+  },
+  "advanced": {
+   "ctx_cov": 1.0,
+   "ans_cov": 0.7083333333333334,
+   "ctx_chars": 2189.25,
+   "gen_s": 12.181350783333377
+  },
+  "graph_local": {
+   "ctx_cov": 0.9444444444444445,
+   "ans_cov": 0.8194444444444443,
+   "ctx_chars": 2302.1666666666665,
+   "gen_s": 12.742044924999922
+  },
+  "graph_local_global": {
+   "ctx_cov": 0.9722222222222222,
+   "ans_cov": 0.7291666666666666,
+   "ctx_chars": 3563.0,
+   "gen_s": 18.121015158333346
+  }
+ },
+ "layout": {
+  "nodes": [
+   {
+    "id": "DTD_Tip2",
+    "label": "Đái tháo đường típ 2",
+    "x": 0.5616658814614056,
+    "y": 0.1677155635666508,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 33
+   },
+   {
+    "id": "DTD_Tip1",
+    "label": "Đái tháo đường típ 1",
+    "x": 0.46293632674684354,
+    "y": 0.4100928513514549,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Tien_DTD",
+    "label": "Tiền đái tháo đường",
+    "x": 0.6053356870773882,
+    "y": 0.29481878498465985,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 4
+   },
+   {
+    "id": "QD_5481",
+    "label": "Quyết định 5481/QĐ-BYT",
+    "x": 0.4965869277197943,
+    "y": 0.10871197243744916,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "HbA1c_Cao",
+    "label": "HbA1c ≥ 6,5%",
+    "x": 0.48978142486468657,
+    "y": 0.20530355595659136,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Glucose_Doi_Cao",
+    "label": "Glucose lúc đói ≥ 126 mg/dL",
+    "x": 0.6725542923367467,
+    "y": 0.2260617192845338,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "OGTT_2h_Cao",
+    "label": "Glucose 2 giờ sau nghiệm pháp ≥ 200 mg/dL",
+    "x": 0.4569987499971689,
+    "y": 0.1037835476591894,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "HbA1c_Tien",
+    "label": "HbA1c 5,7 - 6,4%",
+    "x": 0.5751357911463428,
+    "y": 0.39510448247912017,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Beo_Phi",
+    "label": "BMI ≥ 25 (béo phì, chuẩn châu Á)",
+    "x": 0.44134087039206676,
+    "y": 0.1410193816644381,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "It_Van_Dong",
+    "label": "Ít vận động",
+    "x": 0.6789809119668757,
+    "y": 0.12419329855080112,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Hut_Thuoc",
+    "label": "Hút thuốc lá",
+    "x": 0.6270350812185566,
+    "y": 0.18043873406613117,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Tang_Huyet_Ap",
+    "label": "Tăng huyết áp",
+    "x": 0.44144078175612045,
+    "y": 0.1940228206462246,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Suy_Than_Nang",
+    "label": "Suy thận nặng (eGFR < 30)",
+    "x": 0.3457175512214729,
+    "y": 0.3956515266748975,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Suy_Tim",
+    "label": "Suy tim",
+    "x": 0.6152714970871493,
+    "y": -0.14002791349337576,
+    "comm": 6,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Benh_Than_Man",
+    "label": "Bệnh thận mạn",
+    "x": 0.6788668007858977,
+    "y": -0.1182497930959424,
+    "comm": 6,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Chup_Can_Quang",
+    "label": "Chụp cản quang có iod",
+    "x": 0.342555557191702,
+    "y": 0.42928995052570196,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Nhiem_Toan_Lactic",
+    "label": "Nhiễm toan lactic",
+    "x": 0.44894428147888304,
+    "y": 0.4433119006401974,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Ha_Duong_Huyet",
+    "label": "Hạ glucose huyết (< 70 mg/dL)",
+    "x": 0.5640798279495897,
+    "y": 0.32779946537363247,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 5
+   },
+   {
+    "id": "Toan_Ceton",
+    "label": "Nhiễm toan ceton",
+    "x": 0.6993185717716484,
+    "y": 0.15514791955519971,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Benh_Tim_Mach",
+    "label": "Bệnh tim mạch do xơ vữa",
+    "x": 0.656025662886187,
+    "y": 0.08967506182688222,
+    "comm": 5,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Benh_Vong_Mac",
+    "label": "Bệnh võng mạc",
+    "x": 0.4963738114568514,
+    "y": 0.14427560724709312,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Benh_Than_DTD",
+    "label": "Bệnh thận do đái tháo đường",
+    "x": 0.5988763504263545,
+    "y": 0.1134484390352743,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Loet_Ban_Chan",
+    "label": "Loét bàn chân",
+    "x": 0.5491615666601877,
+    "y": 0.2124229626325955,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Thieu_B12",
+    "label": "Thiếu vitamin B12",
+    "x": 0.3903173836911785,
+    "y": 0.4586628530420862,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Metformin",
+    "label": "Metformin",
+    "x": 0.4339407795767744,
+    "y": 0.3522839732943167,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 6
+   },
+   {
+    "id": "Gliclazide",
+    "label": "Gliclazide",
+    "x": 0.5359606907345417,
+    "y": 0.2936809603900219,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 3
+   },
+   {
+    "id": "Sitagliptin",
+    "label": "Sitagliptin",
+    "x": 0.6683000843648502,
+    "y": 0.16951237964427232,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Empagliflozin",
+    "label": "Empagliflozin",
+    "x": 0.617148472130466,
+    "y": -0.022986060559819305,
+    "comm": 6,
+    "kg": "VietnamDiabetesKG",
+    "deg": 3
+   },
+   {
+    "id": "Semaglutide",
+    "label": "Semaglutide",
+    "x": 0.4666919109116644,
+    "y": 0.23223160066857826,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Insulin_Nen",
+    "label": "Insulin",
+    "x": 0.5072709670533643,
+    "y": 0.3149955884728137,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 4
+   },
+   {
+    "id": "Ruou_Bia",
+    "label": "Rượu bia (ethanol)",
+    "x": 0.49536456332600265,
+    "y": 0.3742475131037164,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 5
+   },
+   {
+    "id": "Thit_Ga",
+    "label": "Thịt gà",
+    "x": 0.5966246348454329,
+    "y": -0.052270079464912356,
+    "comm": 5,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Uc_Ga_Bo_Da",
+    "label": "Ức gà bỏ da luộc/hấp",
+    "x": 0.5638110652662688,
+    "y": 0.020854822291864278,
+    "comm": 5,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Ga_Ran",
+    "label": "Gà rán, gà chiên, da gà",
+    "x": 0.6307828659332911,
+    "y": 0.04359964563350686,
+    "comm": 5,
+    "kg": "VietnamDiabetesKG",
+    "deg": 3
+   },
+   {
+    "id": "Tinh_Bot",
+    "label": "Thực phẩm giàu tinh bột",
+    "x": 0.5279029826544843,
+    "y": 0.010073983209425019,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 5
+   },
+   {
+    "id": "Com_Trang",
+    "label": "Cơm trắng",
+    "x": 0.5897588205735507,
+    "y": 0.056597746890863304,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Gao_Lut",
+    "label": "Gạo lứt",
+    "x": 0.5350839512072171,
+    "y": 0.05290429262367479,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Bun_Pho",
+    "label": "Bún, phở",
+    "x": 0.5653650257433253,
+    "y": 0.0727654041831174,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Khoai_Tay",
+    "label": "Khoai tây luộc",
+    "x": 0.4920914999644546,
+    "y": 0.055016688239228714,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Xoi_Nep",
+    "label": "Xôi nếp",
+    "x": 0.5166102060570301,
+    "y": 0.07218541747458432,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Rau_Xanh",
+    "label": "Rau xanh (rau muống, cải, bông cải)",
+    "x": 0.46712694427809154,
+    "y": 0.16970643336605984,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Trai_Cay_GI_Thap",
+    "label": "Táo, cam (GI thấp)",
+    "x": 0.5333851619554814,
+    "y": 0.244643324811498,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Van_Dong_150",
+    "label": "Vận động ≥ 150 phút/tuần",
+    "x": 0.6456407238009944,
+    "y": 0.2605834240634209,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Giam_Can",
+    "label": "Giảm 5 - 7% cân nặng",
+    "x": 0.6163777094591738,
+    "y": 0.24922598990716852,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 2
+   },
+   {
+    "id": "Bo_Thuoc_La",
+    "label": "Bỏ thuốc lá",
+    "x": 0.6938315519715175,
+    "y": 0.19921678044655977,
+    "comm": 0,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Quy_Tac_15_15",
+    "label": "Quy tắc 15-15 (15 g carbohydrate, chờ 15 phút)",
+    "x": 0.6270297311463845,
+    "y": 0.43084923426819705,
+    "comm": 2,
+    "kg": "VietnamDiabetesKG",
+    "deg": 1
+   },
+   {
+    "id": "Lai_Suat_Fed",
+    "label": "Lãi suất Fed",
+    "x": -0.9143644200535874,
+    "y": -0.18758048848019,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 2
+   },
+   {
+    "id": "DXY",
+    "label": "Chỉ số USD (DXY)",
+    "x": -0.8613081835718212,
+    "y": -0.24032474640616827,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 3
+   },
+   {
+    "id": "Bat_On_Dia_Chinh_Tri",
+    "label": "Bất ổn địa chính trị",
+    "x": -0.8106435236418416,
+    "y": -0.076681936572269,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "NHTW_Mua_Vang",
+    "label": "Ngân hàng trung ương mua vàng",
+    "x": -0.94850974266703,
+    "y": -0.10571084325025923,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Dong_Yen",
+    "label": "Sức mạnh đồng yên (JPY)",
+    "x": -0.9843565032240316,
+    "y": -0.5394435431890703,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Gia_Quang_Sat",
+    "label": "Giá quặng sắt, than cốc",
+    "x": -0.6162120425345968,
+    "y": -0.49166126277844535,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "USD_VND",
+    "label": "Tỷ giá USD/VND",
+    "x": -0.8107804235287692,
+    "y": -0.354587234694262,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 8
+   },
+   {
+    "id": "Lam_Phat",
+    "label": "Lạm phát",
+    "x": -0.6903553406327723,
+    "y": 0.23637874275674908,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Lai_Suat_NHNN",
+    "label": "Lãi suất điều hành NHNN",
+    "x": -0.7941534847052175,
+    "y": -0.42194622870812765,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 4
+   },
+   {
+    "id": "Tin_Phieu_NHNN",
+    "label": "Phát hành tín phiếu NHNN",
+    "x": -0.8873013757992787,
+    "y": -0.33456454137558667,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Dau_Tu_Cong",
+    "label": "Giải ngân đầu tư công",
+    "x": -0.6468256903657257,
+    "y": -0.473398903620866,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Khoi_Ngoai",
+    "label": "Khối ngoại mua ròng",
+    "x": -0.8345700000058024,
+    "y": -0.4667923316075662,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 3
+   },
+   {
+    "id": "Nang_Hang_FTSE",
+    "label": "FTSE nâng hạng thị trường mới nổi thứ cấp",
+    "x": -0.8879430653871578,
+    "y": -0.5538854981781846,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "ND_24_2012",
+    "label": "Nghị định 24/2012/NĐ-CP",
+    "x": -0.8042804204843185,
+    "y": 0.11329180733143424,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 3
+   },
+   {
+    "id": "ND_232_2025",
+    "label": "Nghị định 232/2025/NĐ-CP",
+    "x": -0.8174463093020531,
+    "y": 0.17897639961195805,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 2
+   },
+   {
+    "id": "NHNN_Ban_Vang_2024",
+    "label": "NHNN đấu thầu và bán vàng miếng (2024)",
+    "x": -0.8092909888284439,
+    "y": 0.23726896659095967,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "XAU_USD",
+    "label": "Giá vàng thế giới (XAU/USD)",
+    "x": -0.866467984546466,
+    "y": -0.14513550277914808,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 5
+   },
+   {
+    "id": "Vang_Quy_Doi",
+    "label": "Giá vàng thế giới quy đổi (VND/lượng)",
+    "x": -0.778058301791828,
+    "y": -0.15694888291430317,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 4
+   },
+   {
+    "id": "Chenh_Lech_SJC",
+    "label": "Phần bù vàng miếng SJC so với thế giới",
+    "x": -0.7688813967594462,
+    "y": 0.15741895489050214,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 5
+   },
+   {
+    "id": "Vang_SJC",
+    "label": "Vàng miếng SJC",
+    "x": -0.7803183549829958,
+    "y": 0.020271840050960166,
+    "comm": 4,
+    "kg": "VietnamFinanceKG",
+    "deg": 3
+   },
+   {
+    "id": "Vang_Nhan",
+    "label": "Vàng nhẫn 9999",
+    "x": -0.6723515248767703,
+    "y": -0.11320858739126555,
+    "comm": 3,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "FPT",
+    "label": "FPT (Tập đoàn FPT)",
+    "x": -0.9075535555371068,
+    "y": -0.46930633844649383,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 4
+   },
+   {
+    "id": "HPG",
+    "label": "HPG (Hòa Phát)",
+    "x": -0.723372443042895,
+    "y": -0.4626738686001273,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 6
+   },
+   {
+    "id": "VCB",
+    "label": "VCB (Vietcombank)",
+    "x": -0.8657732048124329,
+    "y": -0.45373303551754934,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 3
+   },
+   {
+    "id": "VIC",
+    "label": "VIC (Vingroup)",
+    "x": -0.7729088736666057,
+    "y": -0.45247570493406203,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 4
+   },
+   {
+    "id": "VN30",
+    "label": "Chỉ số VN30",
+    "x": -0.8161842374222863,
+    "y": -0.5060061267367811,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 6
+   },
+   {
+    "id": "HOSE",
+    "label": "Sở GDCK TP.HCM (HOSE)",
+    "x": -0.8067670055719683,
+    "y": -0.6020345780237617,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Nganh_CNTT",
+    "label": "Công nghệ thông tin",
+    "x": -1.0,
+    "y": -0.4938370864507924,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Nganh_Thep",
+    "label": "Thép",
+    "x": -0.6890098386272002,
+    "y": -0.5551412070784248,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Nganh_Ngan_Hang",
+    "label": "Ngân hàng",
+    "x": -0.9353040977208309,
+    "y": -0.4298065030863405,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   },
+   {
+    "id": "Nganh_BDS",
+    "label": "Bất động sản",
+    "x": -0.7201095981541932,
+    "y": -0.5193154859821633,
+    "comm": 1,
+    "kg": "VietnamFinanceKG",
+    "deg": 1
+   }
+  ],
+  "edges": [
+   [
+    "DTD_Tip2",
+    "QD_5481"
+   ],
+   [
+    "DTD_Tip2",
+    "Metformin"
+   ],
+   [
+    "DTD_Tip2",
+    "Uc_Ga_Bo_Da"
+   ],
+   [
+    "DTD_Tip2",
+    "Rau_Xanh"
+   ],
+   [
+    "DTD_Tip2",
+    "Trai_Cay_GI_Thap"
+   ],
+   [
+    "DTD_Tip2",
+    "Ga_Ran"
+   ],
+   [
+    "DTD_Tip2",
+    "Khoai_Tay"
+   ],
+   [
+    "DTD_Tip2",
+    "Xoi_Nep"
+   ],
+   [
+    "DTD_Tip2",
+    "Com_Trang"
+   ],
+   [
+    "DTD_Tip2",
+    "Gao_Lut"
+   ],
+   [
+    "DTD_Tip2",
+    "Bun_Pho"
+   ],
+   [
+    "DTD_Tip2",
+    "Van_Dong_150"
+   ],
+   [
+    "DTD_Tip2",
+    "Giam_Can"
+   ],
+   [
+    "DTD_Tip2",
+    "Bo_Thuoc_La"
+   ],
+   [
+    "DTD_Tip2",
+    "Tien_DTD"
+   ],
+   [
+    "DTD_Tip2",
+    "HbA1c_Cao"
+   ],
+   [
+    "DTD_Tip2",
+    "Glucose_Doi_Cao"
+   ],
+   [
+    "DTD_Tip2",
+    "OGTT_2h_Cao"
+   ],
+   [
+    "DTD_Tip2",
+    "Beo_Phi"
+   ],
+   [
+    "DTD_Tip2",
+    "It_Van_Dong"
+   ],
+   [
+    "DTD_Tip2",
+    "Hut_Thuoc"
+   ],
+   [
+    "DTD_Tip2",
+    "Tang_Huyet_Ap"
+   ],
+   [
+    "DTD_Tip2",
+    "Ha_Duong_Huyet"
+   ],
+   [
+    "DTD_Tip2",
+    "Toan_Ceton"
+   ],
+   [
+    "DTD_Tip2",
+    "Benh_Tim_Mach"
+   ],
+   [
+    "DTD_Tip2",
+    "Benh_Vong_Mac"
+   ],
+   [
+    "DTD_Tip2",
+    "Benh_Than_DTD"
+   ],
+   [
+    "DTD_Tip2",
+    "Loet_Ban_Chan"
+   ],
+   [
+    "DTD_Tip2",
+    "Gliclazide"
+   ],
+   [
+    "DTD_Tip2",
+    "Sitagliptin"
+   ],
+   [
+    "DTD_Tip2",
+    "Empagliflozin"
+   ],
+   [
+    "DTD_Tip2",
+    "Semaglutide"
+   ],
+   [
+    "DTD_Tip2",
+    "Insulin_Nen"
+   ],
+   [
+    "DTD_Tip1",
+    "Insulin_Nen"
+   ],
+   [
+    "Tien_DTD",
+    "Van_Dong_150"
+   ],
+   [
+    "Tien_DTD",
+    "Giam_Can"
+   ],
+   [
+    "Tien_DTD",
+    "HbA1c_Tien"
+   ],
+   [
+    "Suy_Than_Nang",
+    "Metformin"
+   ],
+   [
+    "Suy_Tim",
+    "Empagliflozin"
+   ],
+   [
+    "Benh_Than_Man",
+    "Empagliflozin"
+   ],
+   [
+    "Chup_Can_Quang",
+    "Metformin"
+   ],
+   [
+    "Nhiem_Toan_Lactic",
+    "Metformin"
+   ],
+   [
+    "Nhiem_Toan_Lactic",
+    "Ruou_Bia"
+   ],
+   [
+    "Ha_Duong_Huyet",
+    "Quy_Tac_15_15"
+   ],
+   [
+    "Ha_Duong_Huyet",
+    "Gliclazide"
+   ],
+   [
+    "Ha_Duong_Huyet",
+    "Insulin_Nen"
+   ],
+   [
+    "Ha_Duong_Huyet",
+    "Ruou_Bia"
+   ],
+   [
+    "Benh_Tim_Mach",
+    "Ga_Ran"
+   ],
+   [
+    "Thieu_B12",
+    "Metformin"
+   ],
+   [
+    "Metformin",
+    "Ruou_Bia"
+   ],
+   [
+    "Gliclazide",
+    "Ruou_Bia"
+   ],
+   [
+    "Insulin_Nen",
+    "Ruou_Bia"
+   ],
+   [
+    "Thit_Ga",
+    "Uc_Ga_Bo_Da"
+   ],
+   [
+    "Thit_Ga",
+    "Ga_Ran"
+   ],
+   [
+    "Tinh_Bot",
+    "Com_Trang"
+   ],
+   [
+    "Tinh_Bot",
+    "Gao_Lut"
+   ],
+   [
+    "Tinh_Bot",
+    "Bun_Pho"
+   ],
+   [
+    "Tinh_Bot",
+    "Khoai_Tay"
+   ],
+   [
+    "Tinh_Bot",
+    "Xoi_Nep"
+   ],
+   [
+    "Lai_Suat_Fed",
+    "XAU_USD"
+   ],
+   [
+    "Lai_Suat_Fed",
+    "DXY"
+   ],
+   [
+    "DXY",
+    "XAU_USD"
+   ],
+   [
+    "DXY",
+    "USD_VND"
+   ],
+   [
+    "Bat_On_Dia_Chinh_Tri",
+    "XAU_USD"
+   ],
+   [
+    "NHTW_Mua_Vang",
+    "XAU_USD"
+   ],
+   [
+    "Dong_Yen",
+    "FPT"
+   ],
+   [
+    "Gia_Quang_Sat",
+    "HPG"
+   ],
+   [
+    "USD_VND",
+    "Vang_Quy_Doi"
+   ],
+   [
+    "USD_VND",
+    "Khoi_Ngoai"
+   ],
+   [
+    "USD_VND",
+    "FPT"
+   ],
+   [
+    "USD_VND",
+    "HPG"
+   ],
+   [
+    "USD_VND",
+    "VIC"
+   ],
+   [
+    "USD_VND",
+    "Lai_Suat_NHNN"
+   ],
+   [
+    "USD_VND",
+    "Tin_Phieu_NHNN"
+   ],
+   [
+    "Lam_Phat",
+    "Chenh_Lech_SJC"
+   ],
+   [
+    "Lai_Suat_NHNN",
+    "HPG"
+   ],
+   [
+    "Lai_Suat_NHNN",
+    "VCB"
+   ],
+   [
+    "Lai_Suat_NHNN",
+    "VIC"
+   ],
+   [
+    "Dau_Tu_Cong",
+    "HPG"
+   ],
+   [
+    "Khoi_Ngoai",
+    "VN30"
+   ],
+   [
+    "Khoi_Ngoai",
+    "Nang_Hang_FTSE"
+   ],
+   [
+    "ND_24_2012",
+    "Chenh_Lech_SJC"
+   ],
+   [
+    "ND_24_2012",
+    "Vang_SJC"
+   ],
+   [
+    "ND_24_2012",
+    "ND_232_2025"
+   ],
+   [
+    "ND_232_2025",
+    "Chenh_Lech_SJC"
+   ],
+   [
+    "NHNN_Ban_Vang_2024",
+    "Chenh_Lech_SJC"
+   ],
+   [
+    "XAU_USD",
+    "Vang_Quy_Doi"
+   ],
+   [
+    "Vang_Quy_Doi",
+    "Vang_SJC"
+   ],
+   [
+    "Vang_Quy_Doi",
+    "Vang_Nhan"
+   ],
+   [
+    "Chenh_Lech_SJC",
+    "Vang_SJC"
+   ],
+   [
+    "FPT",
+    "VN30"
+   ],
+   [
+    "FPT",
+    "Nganh_CNTT"
+   ],
+   [
+    "HPG",
+    "VN30"
+   ],
+   [
+    "HPG",
+    "Nganh_Thep"
+   ],
+   [
+    "VCB",
+    "VN30"
+   ],
+   [
+    "VCB",
+    "Nganh_Ngan_Hang"
+   ],
+   [
+    "VIC",
+    "VN30"
+   ],
+   [
+    "VIC",
+    "Nganh_BDS"
+   ],
+   [
+    "VN30",
+    "HOSE"
+   ]
+  ]
+ }
+}

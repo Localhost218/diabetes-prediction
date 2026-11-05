@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Mic, Send, Paperclip, Settings, ThumbsUp, ThumbsDown, Copy, Circle, Hourglass, Lightbulb, Camera, Menu, FileText, X, RotateCcw, Cpu } from 'lucide-react'
+import { Plus, Mic, Send, Paperclip, Settings, ThumbsUp, ThumbsDown, Copy, Circle, Hourglass, Lightbulb, Camera, Menu, FileText, X, RotateCcw, Cpu, Workflow } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { transcribeAudio } from '../services/llmService'
 import CameraModal from './CameraModal'
 import ConsultationDetails from './ConsultationDetails'
+import ThinkingPanel from './ThinkingPanel'
 
 const MAX_FILES = 5
 const ACCEPT = '.pdf,.docx,.csv,.txt,image/jpeg,image/png,image/webp'
@@ -28,7 +29,7 @@ function Attachment({ a }) {
   )
 }
 
-function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile, onToggleSidebar, systemInfo }) {
+function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile, onToggleSidebar, systemInfo, roomOpen, onToggleRoom, onShowInRoom }) {
   const [showPlusMenu, setShowPlusMenu] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const [inputValue, setInputValue] = useState('')
@@ -213,6 +214,9 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
               <Cpu size={14} /> {llmLabel}
             </span>
           )}
+          <button className={`icon-btn room-toggle${roomOpen ? ' is-on' : ''}`} onClick={onToggleRoom} title="Phòng hội chẩn đa tác tử">
+            <Workflow size={18} />
+          </button>
           <button className="icon-btn" onClick={onResetProfile} title="Xóa dữ liệu sức khỏe đã ghi nhận trong cuộc trò chuyện">
             <RotateCcw size={18} />
           </button>
@@ -257,7 +261,14 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                     <img src="/logo.png" alt="Diabetes Prediction" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
                   </div>
                 )}
-                <div>
+                <div className={msg.sender === 'bot' ? 'bot-content' : undefined}>
+                  {msg.sender === 'bot' && msg._loading && (
+                    <ThinkingPanel live steps={msg._steps} graph={msg._graph} />
+                  )}
+                  {msg.sender === 'bot' && !msg._loading && msg.data?.transcript && (
+                    <ThinkingPanel steps={msg.data.transcript} graph={msg.data.graph} seconds={msg._thinkSeconds} />
+                  )}
+                  {!(msg.sender === 'bot' && msg._loading) && (
                   <div className="message-bubble" style={{ color: msg.is_error ? 'red' : 'inherit' }}>
                     {msg.attachments?.length > 0 && (
                       <div className="attachments">
@@ -275,7 +286,13 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                       </div>
                     ) : msg.text}
                   </div>
+                  )}
                   {msg.sender === 'bot' && !msg._loading && <ConsultationDetails data={msg.data} />}
+                  {msg.sender === 'bot' && !msg._loading && msg.data?.transcript && (
+                    <button className="replay-link" onClick={() => onShowInRoom(msg)}>
+                      <Workflow size={13} /> Xem các tác tử phối hợp ({msg.data.transcript.length} thông điệp)
+                    </button>
+                  )}
                   {msg.sender === 'bot' && !msg._loading && msg.id && (
                     <div className="message-actions">
                       {(() => {

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="exp-head" style="--c: {{ meta.color }}">
+  <a class="back" href="/#{{ meta.id }}">← Chương {{ meta.no }}: {{ meta.title }}</a>
+  <h1><span class="card-icon">{{ meta.icon }}</span>Đang cập nhật</h1>
+  <p class="lead">Thực nghiệm <code>{{ exp_id }}</code> chưa sẵn sàng: mô hình của chương này đang được huấn luyện hoặc chưa xuất bản.</p>
+  {% if error %}<pre class="err">{{ error }}</pre>{% endif %}
+</div>
+{% endblock %}

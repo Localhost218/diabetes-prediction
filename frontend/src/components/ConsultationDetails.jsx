@@ -97,6 +97,18 @@ function ConsultationDetails({ data }) {
                   })}
                 </div>
               )}
+              {data.ml.large_scale && (
+                <div className="model-card large-scale">
+                  <div className="model-kind">Ý kiến thứ hai · quy mô lớn</div>
+                  <div className="model-name">{data.ml.large_scale.dataset}</div>
+                  <div className="model-prob">{(data.ml.large_scale.risk_probability * 100).toFixed(1)}%</div>
+                  <div className="kv muted">
+                    gấp {data.ml.large_scale.relative_risk} lần trung bình (tỷ lệ nền {(data.ml.large_scale.population_base_rate * 100).toFixed(1)}%)
+                    · ML {(data.ml.large_scale.models.ml * 100).toFixed(0)}% · DL {(data.ml.large_scale.models.dl * 100).toFixed(0)}%
+                    {data.ml.large_scale.roc_auc?.dl && ` · AUC ${data.ml.large_scale.roc_auc.dl}`}
+                  </div>
+                </div>
+              )}
               <div className="kv muted">
                 Dữ liệu huấn luyện: {data.ml.dataset} · {data.ml.model_metrics.ml?.n_train?.toLocaleString()} mẫu
                 {data.ml.disagreement != null && ` · độ lệch ML–DL ${(data.ml.disagreement * 100).toFixed(1)} điểm %`}

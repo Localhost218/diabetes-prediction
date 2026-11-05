@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block crumb %}Chương {{ meta.no }} · {{ meta.title }}{% endblock %}
+{% block content %}
+<section class="pane pending" style="--c: {{ meta.color }}">
+  <h1>Thực nghiệm đang cập nhật</h1>
+  <p>Mô hình của <code class="mono">{{ exp_id }}</code> chưa sẵn sàng trên máy này.</p>
+  {% if error %}<pre class="err">{{ error }}</pre>{% endif %}
+  <a class="btn ghost small" href="/">Về tổng quan</a>
+</section>
+{% endblock %}

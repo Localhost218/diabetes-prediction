@@ -1,6 +1,6 @@
 """
-Kiểm thử tích hợp toàn bộ hội đồng đa tác tử (cần PostgreSQL + KB đã nạp, chạy không LLM).
-    docker compose up -d postgres seaweedfs && python scripts/ingest_kb.py && python scripts/train_model.py
+Kiểm thử tích hợp toàn bộ hội đồng đa tác tử (cần DB + Qdrant + Neo4j và KB đã nạp, chạy không LLM).
+    docker compose up -d neo4j qdrant && python scripts/ingest_kb.py && python scripts/train_model.py
 """
 
 import asyncio
@@ -20,7 +20,7 @@ def _db_ready() -> bool:
         return False
 
 
-pytestmark = pytest.mark.skipif(not _db_ready(), reason="Cần PostgreSQL và Knowledge Base đã nạp")
+pytestmark = pytest.mark.skipif(not _db_ready(), reason="Cần DB và Knowledge Base đã nạp")
 
 
 @pytest.fixture(scope="module")

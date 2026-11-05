@@ -1,0 +1,441 @@
+\chapter{Hệ đa tác tử}
+\label{chap:mas}
+
+Sáu chương trước xây dựng sáu ``chuyên gia'' riêng lẻ: luật lâm sàng, mô hình học máy trên bảng, CNN cho ảnh, RNN cho chuỗi, RAG cùng đồ thị tri thức cho văn bản, GNN cho y văn. Chương này trả lời câu hỏi còn lại: làm sao để các chuyên gia đó \emph{cùng làm việc} trong một cuộc hội thoại với người dùng, biết hỏi lại khi thiếu dữ liệu, phát hiện khi chúng mâu thuẫn, và đưa ra một kết luận an toàn có trích dẫn. Câu trả lời là một \emph{hệ đa tác tử} (Multi-Agent System – MAS). Chương trình bày cơ sở lý thuyết về tác tử và MAS, kiến trúc của hệ thống trong báo cáo, giao thức giao tiếp và tranh biện, rồi đánh giá đầu–cuối trên 400 ca của tập kiểm tra NHANES.
+
+\section{Tác tử và hệ đa tác tử}
+
+\subsection{Khái niệm tác tử}
+
+Theo Wooldridge \cite{wooldridge2009}, \emph{tác tử} là một hệ thống tính toán đặt trong một môi trường, có khả năng \emph{hành động tự chủ} trong môi trường đó để đạt mục tiêu được giao. Một tác tử thông minh có bốn tính chất \cite{jennings1998}:
+\begin{itemize}
+  \item \textbf{Tự chủ}: tự quyết định hành động mà không cần con người can thiệp từng bước.
+  \item \textbf{Phản ứng}: nhận biết thay đổi của môi trường và phản hồi kịp thời.
+  \item \textbf{Chủ động}: hướng tới mục tiêu, tự khởi xướng hành động.
+  \item \textbf{Xã hội}: tương tác với tác tử khác (và con người) qua một ngôn ngữ giao tiếp.
+\end{itemize}
+Russell và Norvig \cite{russell2021} phân loại tác tử theo độ phức tạp của chương trình bên trong: phản xạ đơn giản (luật điều kiện–hành động), phản xạ có mô hình (duy trì trạng thái nội tại), dựa trên mục tiêu (lập kế hoạch), dựa trên lợi ích (tối đa hóa kỳ vọng), và tác tử học. Mỗi loại đều có mặt trong hệ thống: Safety Guardrail là tác tử phản xạ đơn giản; Orchestrator là tác tử dựa trên mục tiêu; TreatmentRLAgent là tác tử học và dựa trên lợi ích.
+
+\subsection{Hệ đa tác tử}
+
+MAS gồm nhiều tác tử tương tác để giải quyết bài toán vượt quá khả năng hoặc hiểu biết của từng tác tử. So với một hệ thống nguyên khối, MAS có các lợi thế sau: \emph{module hóa} (mỗi tác tử phát triển, kiểm thử, thay thế độc lập), \emph{song song} (các nhánh độc lập chạy cùng lúc), \emph{chịu lỗi} (một tác tử lỗi không làm sập cả hệ), và \emph{đa góc nhìn} (các tác tử với dữ liệu và phương pháp khác nhau có thể kiểm tra chéo lẫn nhau). Cái giá phải trả là chi phí giao tiếp, độ phức tạp điều phối, và nguy cơ ``hội chứng tập thể'' khi các tác tử củng cố sai lầm của nhau.
+
+\textbf{Mô hình tổ chức.} Các kiểu tổ chức phổ biến gồm:
+\begin{itemize}
+  \item \emph{Phân cấp / Supervisor}: một tác tử điều phối giao việc và tổng hợp kết quả.
+  \item \emph{Blackboard} \cite{hayesroth1985}: các tác tử đọc và ghi vào một vùng nhớ dùng chung. Mỗi tác tử đóng góp khi trạng thái chung khớp với chuyên môn của nó.
+  \item \emph{Contract Net} \cite{smith1980}: tác tử quản lý gửi lời mời thầu, các tác tử khác đặt giá, và nhiệm vụ được giao cho bên tốt nhất.
+  \item \emph{Ngang hàng / tranh biện}: các tác tử bình đẳng, trao đổi lập luận tới khi đồng thuận.
+\end{itemize}
+Hệ thống của báo cáo kết hợp ba kiểu: \emph{Supervisor} (Orchestrator lập kế hoạch), \emph{Blackboard} (hồ sơ bệnh nhân \texttt{PatientProfile} dùng chung, tích lũy qua nhiều lượt chat) và \emph{tranh biện} (ConsensusCriticAgent chất vấn các tác tử chuyên môn).
+
+\textbf{Ngôn ngữ giao tiếp.} FIPA-ACL \cite{fipa2002} chuẩn hóa thông điệp giữa các tác tử: mỗi thông điệp có người gửi, người nhận, nội dung, và một \emph{performative} thể hiện ý định giao tiếp (theo lý thuyết hành động ngôn từ): \texttt{request}, \texttt{inform}, \texttt{agree}, \texttt{refuse}, \texttt{failure}, \texttt{propose}\ldots{} Performative tách ``nói gì'' khỏi ``muốn gì''. Nhờ đó tác tử nhận biết cần trả lời, thực hiện hay chỉ ghi nhận.
+
+\subsection{Tác tử dựa trên mô hình ngôn ngữ lớn}
+
+Từ 2023, LLM trở thành ``bộ não'' phổ biến của tác tử. ReAct \cite{yao2023react} xen kẽ suy luận và hành động (gọi công cụ). Toolformer \cite{schick2023} cho thấy LLM tự học cách dùng API. Các khung đa tác tử như AutoGen \cite{wu2023autogen} và MetaGPT \cite{hong2024metagpt} để nhiều LLM với vai trò khác nhau hội thoại với nhau. Du và cộng sự \cite{du2024debate} cho thấy \emph{tranh biện đa tác tử} (nhiều LLM đưa câu trả lời, phê bình lẫn nhau qua nhiều vòng) cải thiện tính đúng sự thật và khả năng suy luận. Các khảo sát \cite{wang2024agents,guo2024mas} chỉ ra ba thách thức chính: ảo giác lan truyền giữa các tác tử, chi phí và độ trễ của nhiều lần gọi LLM, và khó kiểm soát hành vi khi tác tử tự quyết định luồng.
+
+Hệ thống của báo cáo chọn hướng \emph{lai}. LLM chỉ làm những việc nó giỏi và ít rủi ro: hiểu ngôn ngữ tự nhiên (trích chỉ số từ tin nhắn, phân loại ý định), đọc ảnh và PDF scan, viết câu trả lời từ dữ liệu có sẵn. Mọi \emph{quyết định lâm sàng} (phân tầng nguy cơ, kích hoạt guardrail, chọn chất vấn) đều do các mô hình đã đánh giá ở các chương trước cùng luật tường minh đảm nhận. Nhờ vậy hệ thống chạy được hoàn toàn \emph{không cần LLM} (dùng regex và mẫu câu thay thế), kết quả tái lập được, và ảo giác bị chặn ở tầng diễn đạt.
+
+\section{Kiến trúc hệ thống}
+
+\subsection{Tám tác tử}
+
+\begin{table}[H]
+\centering
+\caption{Các tác tử, thông điệp chúng xử lý và kỹ thuật bên trong}
+\label{tab:agents}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.1cm}L{4.3cm}Y@{}}
+\toprule
+\textbf{Tác tử} & \textbf{Nhận (\texttt{msg\_type})} & \textbf{Vai trò và kỹ thuật} \\
+\midrule
+Orchestrator & -- (khởi tạo mỗi lượt) & Phân loại ý định (LLM, dự phòng luật), lập kế hoạch động, điều phối song song bằng \texttt{asyncio} \\
+ConversationAgent & \texttt{EXTRACT\_FROM\_TEXT} & Bóc tách chỉ số và yếu tố nguy cơ từ tin nhắn tiếng Việt (LLM structured output; dự phòng regex) \\
+DocumentAgent & \texttt{PARSE\_DOCUMENT} & Đọc PDF, ảnh, DOCX, CSV; quy đổi đơn vị; trích chuỗi glucose cho RNN \\
+PredictionAgent & \texttt{PREDICT\_RISK}, 3 loại \texttt{CHALLENGE\_*} & GBDT + MLP (Ch.~2), RNN (Ch.~4), CNN (Ch.~3); bảo vệ hoặc nhượng bộ khi bị chất vấn \\
+KnowledgeAgent & \texttt{RETRIEVE\_EVIDENCE}, \texttt{ANSWER\_QUESTION}, 2 loại \texttt{CHALLENGE\_*} & Đối chiếu ngưỡng ADA (Ch.~1), RAG lai + GraphRAG (Ch.~5) \\
+ConsensusCriticAgent & \texttt{DELIBERATE} & Phát hiện mâu thuẫn, tranh biện nhiều vòng, liệt kê (+)/(−), phân tầng, Safety Guardrail \\
+TreatmentRLAgent & \texttt{RECOMMEND\_TREATMENT} & Q-learning trên MDP 24 trạng thái × 4 hành động, bị ràng buộc bởi hội đồng và chống chỉ định trong KG \\
+ResponseAgent & \texttt{COMPOSE\_*} & Viết câu trả lời chỉ từ dữ liệu của các tác tử, có trích dẫn (LLM; dự phòng mẫu câu) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Giao tiếp qua MessageBus}
+
+Các tác tử \emph{không gọi hàm của nhau}. Mọi tác tử kế thừa \texttt{BaseAgent}, tự đăng ký vào \texttt{MessageBus} với tập \texttt{handles} (các loại thông điệp nó hiểu), và chỉ nhận việc qua \texttt{handle(AgentMessage)}. Thông điệp theo tinh thần FIPA-ACL với năm performative: \texttt{REQUEST}, \texttt{INFORM}, \texttt{CHALLENGE}, \texttt{RESPONSE}, \texttt{FAILURE} (\coderef{lst:ch7-bus}). Bus làm ba việc: định tuyến theo \texttt{receiver}; ghi toàn bộ hội thoại (audit trail) kèm thời gian xử lý vào bảng \texttt{agent\_messages}; và \emph{cô lập lỗi}, tức là ngoại lệ trong một tác tử được chuyển thành thông điệp \texttt{FAILURE} thay vì làm sập cả lượt.
+
+\begin{code}{Thông điệp và MessageBus (\texttt{src/communication/message\_bus.py}, rút gọn)}
+\label{lst:ch7-bus}
+\begin{minted}{python}
+@dataclass
+class AgentMessage:
+    sender: str
+    receiver: str
+    performative: str            # REQUEST | INFORM | CHALLENGE | RESPONSE | FAILURE
+    msg_type: str                # PREDICT_RISK, CHALLENGE_ML_VS_LABS, ...
+    payload: Dict[str, Any]
+    conversation_id: str = ""
+    in_reply_to: Optional[str] = None
+    elapsed_ms: Optional[int] = None
+
+class MessageBus:
+    async def send(self, msg: AgentMessage) -> AgentMessage:
+        self._record(msg)                                  # audit trail
+        agent = self.agents.get(msg.receiver)
+        if agent is None or msg.msg_type not in agent.handles:
+            reply = failure(msg, "NOT_UNDERSTOOD")
+        else:
+            try:
+                reply = await agent.handle(msg)
+            except Exception as exc:                       # lỗi một tác tử không làm sập hội đồng
+                reply = agent.reply(msg, f"{msg.msg_type}_FAILED", {"error": str(exc)},
+                                    performative="FAILURE")
+        reply.elapsed_ms = ...                             # thời gian xử lý
+        self._record(reply)
+        return reply
+\end{minted}
+\end{code}
+
+\subsection{Luồng xử lý một lượt chat}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm, text width=2.5cm, inner sep=2pt},
+  dec/.style={draw, diamond, aspect=2, align=center, inner sep=1pt, text width=1.3cm},
+  arr/.style={-{Stealth[length=1.6mm]}, black!60}]
+\node[box, fill=gray!10] (in) at (0,0) {Tin nhắn + tệp};
+\node[box, fill=blue!6] (intake) at (0,-1.5) {Song song: ý định ‖ trích văn bản ‖ đọc tệp};
+\node[box, fill=blue!6] (merge) at (0,-3.0) {Gộp vào PatientProfile, phát hiện mâu thuẫn};
+\node[dec] (int) at (4.0,-3.0) {Ý định?};
+\node[box] (kq) at (8.6,-1.2) {Kiến thức: RAG → trả lời có trích dẫn};
+\node[box] (fu) at (8.6,-2.3) {Tiếp nối: trả lời từ bộ nhớ};
+\node[dec] (ready) at (4.0,-5.2) {Đủ dữ liệu?};
+\node[box] (ask) at (8.6,-5.2) {Hỏi lại phần còn thiếu};
+\node[box, fill=blue!6] (par) at (0,-7.0) {Song song: Prediction ‖ Knowledge};
+\node[box, fill=red!6] (deb) at (4.0,-7.0) {Hội đồng tranh biện (≤ 2 vòng)};
+\node[box, fill=blue!6] (rl) at (8.6,-7.0) {TreatmentRL (bị ràng buộc)};
+\node[box, fill=gray!10] (resp) at (8.6,-8.5) {ResponseAgent → người dùng};
+\draw[arr] (in) -- (intake); \draw[arr] (intake) -- (merge); \draw[arr] (merge) -- (int);
+\draw[arr] (int.north) |- (kq.west);
+\draw[arr] (int.north east) to[out=30,in=180] (fu.west);
+\draw[arr] (int) -- node[right] {đánh giá} (ready);
+\draw[arr] (ready) -- node[above] {thiếu} (ask);
+\draw[arr] (ready.south) -- ++(0,-0.4) -| node[pos=0.25, above] {đủ} (par.north);
+\draw[arr] (par) -- (deb); \draw[arr] (deb) -- (rl); \draw[arr] (rl) -- (resp);
+\end{tikzpicture}
+\caption{Luồng xử lý một lượt chat: Orchestrator rẽ nhánh theo ý định và mức đủ dữ liệu}
+\label{fig:ch7-flow}
+\end{figure}
+
+Orchestrator lập \emph{kế hoạch động} cho mỗi lượt (\figref{fig:ch7-flow}). (1) \emph{Tiếp nhận song song}: phân loại ý định, trích xuất từ văn bản và đọc từng tệp chạy đồng thời. (2) \emph{Gộp hồ sơ}: dữ liệu từ tệp được gộp trước, lời người dùng gộp sau, nên lời đính chính trực tiếp được ưu tiên. Mỗi trường lưu nguồn, độ tin cậy, đoạn trích làm bằng chứng và cờ cảnh báo (\texttt{unit\_inferred}, \texttt{fasting\_unclear}). Hai nguồn khác nhau thì ghi thành mâu thuẫn. Hệ thống \emph{không bao giờ tự điền giá trị mặc định} cho chỉ số lâm sàng. (3) \emph{Rẽ nhánh}: câu hỏi kiến thức chỉ đi nhánh RAG; câu hỏi tiếp nối (``tại sao nguy cơ cao?'') được trả lời từ bộ nhớ hai tầng (hồ sơ có cấu trúc và 10 tin nhắn gần nhất) mà không chạy lại hội đồng; thiếu tuổi, BMI hoặc xét nghiệm đường huyết thì hỏi lại. (4) Khi đủ dữ liệu, hai nhánh \emph{Prediction} (DB → ML/DL) và \emph{Knowledge} (KB → RAG) chạy song song, rồi đến hội đồng tranh biện, gợi ý can thiệp và viết câu trả lời.
+
+\subsection{Giao thức tranh biện}
+
+ConsensusCriticAgent không chỉ tổng hợp. Khi phát hiện vấn đề, nó gửi \texttt{CHALLENGE} tới tác tử liên quan, nhận \texttt{RESPONSE} và cập nhật trạng thái. Phản hồi ở vòng trước có thể mở ra câu hỏi ở vòng sau, tối đa \texttt{MAX\_DEBATE\_ROUNDS = 2} vòng (\tabref{tab:debate}).
+
+\begin{table}[H]
+\centering
+\caption{Giao thức tranh biện của hội đồng}
+\label{tab:debate}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.6cm}L{3.9cm}Y@{}}
+\toprule
+\textbf{Vấn đề phát hiện} & \textbf{Chất vấn} & \textbf{Phản hồi và ảnh hưởng} \\
+\midrule
+Dữ liệu thật < 35\% số đặc trưng của mô hình & Prediction · \texttt{CHALLENGE\_DATA\_QUALITY} & Hạ độ tin cậy, liệt kê đặc trưng còn thiếu → (−) \\
+GBDT và MLP lệch ≥ 15 điểm \% & Prediction · \texttt{CHALLENGE\_MODEL\_DISAGREEMENT} & Chỉ ra đặc trưng hai mô hình đánh giá khác nhau nhất; dùng trung bình → (−) \\
+ML ≥ 30\% nhưng xét nghiệm bình thường & Prediction · \texttt{CHALLENGE\_ML\_VS\_LABS} & Giữ quan điểm ``nguy cơ dài hạn'' → (−) và \textbf{mở vòng 2} \\
+(vòng 2) ML giữ quan điểm & Knowledge · \texttt{CHALLENGE\_SCREENING\_PLAN} & Lịch tầm soát ADA có trích dẫn → (+) \\
+ML < 15\% nhưng xét nghiệm ở ngưỡng ĐTĐ & Prediction · \texttt{CHALLENGE\_ML\_VS\_LABS} & Nhượng bộ cho xét nghiệm → (−) \\
+Xét nghiệm ở ngưỡng ĐTĐ & Knowledge · \texttt{CHALLENGE\_VERIFY\_CRITERIA} & Kiểm tra quy tắc ``2 kết quả bất thường'' của ADA → ``đủ tiêu chí'' hoặc ``cần xét nghiệm lại'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Phân tầng cuối cùng} lấy \emph{xét nghiệm làm căn cứ chính}, với ML bổ sung nguy cơ dài hạn: \emph{Rất cao} (xét nghiệm ở ngưỡng ĐTĐ), \emph{Cao} (tiền ĐTĐ hoặc ML ≥ 30\%), \emph{Trung bình} (ML 15–30\%), \emph{Thấp}. \textbf{Safety Guardrail} luôn được ưu tiên bất kể mô hình nói gì: glucose ≥ 600 mg/dL (cấp cứu), glucose ≥ 300 hoặc HbA1c ≥ 10\% (khám sớm), glucose < 54 (hạ đường huyết mức 2), nhóm nguy cơ ``đỏ'' (BMI ≥ 25, tăng huyết áp, và tiền sử gia đình hoặc tim mạch).
+
+\subsection{Tác tử gợi ý can thiệp bằng Q-learning}
+
+TreatmentRLAgent mô hình hóa việc chọn bước can thiệp như một quá trình quyết định Markov. Trạng thái là tổ hợp 4 mức glucose × 3 mức BMI × 2 mức bệnh đồng mắc, tức 24 trạng thái. Hành động gồm 4 lựa chọn: thay đổi lối sống, metformin, phối hợp thuốc có lợi ích tim–thận, và khám chuyên khoa/insulin. Q-learning \cite{watkins1992,sutton2018} cập nhật giá trị hành động theo sai số thời gian:
+\begin{equation}
+Q(s,a) \leftarrow Q(s,a) + \alpha\big[r + \gamma\max_{a'}Q(s',a') - Q(s,a)\big],\qquad \alpha=0{,}1,\ \gamma=0{,}9,
+\label{eq:qlearn}
+\end{equation}
+với chính sách khám phá $\epsilon$-tham lam ($\epsilon=0{,}15$). Hàm thưởng mô phỏng mức cải thiện đường huyết trừ đi chi phí và độ xâm lấn. Điểm quan trọng về an toàn là chính sách học được \emph{không được hành động một mình}. Nếu hội đồng chưa xác định ĐTĐ, hành động bị giới hạn ở thay đổi lối sống. Nếu guardrail khẩn được kích hoạt, hệ chuyển sang khám chuyên khoa. Nếu chẩn đoán chưa được xác nhận, metformin bị hoãn. Chống chỉ định trong đồ thị tri thức (metformin khi eGFR < 30) luôn được nêu ra. Đây là ví dụ cụ thể của nguyên tắc ``tác tử học được đặt dưới sự giám sát của tri thức tường minh''.
+
+\subsection{Bộ nhớ, nguồn gốc dữ liệu và chịu lỗi}
+
+\textbf{Blackboard có nguồn gốc.} \texttt{PatientProfile} là vùng nhớ dùng chung của mọi tác tử. Mỗi trường không chỉ lưu giá trị mà lưu một bản ghi \texttt{FieldValue} gồm giá trị, nguồn (\texttt{text}, \texttt{file:<tên>}, \texttt{derived}, \texttt{form}), độ tin cậy, đoạn trích làm bằng chứng và các cờ cảnh báo. Ví dụ, ``đường máu 6,4'' không ghi đơn vị được hiểu là 6,4 mmol/L = 115 mg/dL, kèm cờ \texttt{unit\_inferred}. ConsensusCritic chuyển cờ này thành một điểm (−) yêu cầu người dùng xác nhận. Mỗi trường có miền giá trị sinh lý (tuổi 1–120, BMI 10–70, glucose 30–700 mg/dL\ldots). Giá trị ngoài miền bị từ chối và hệ thống hỏi lại thay vì dự đoán trên dữ liệu sai. Khi hai nguồn mâu thuẫn (phiếu xét nghiệm ghi 47 tuổi, người dùng nói 49), hệ thống giữ giá trị mới nhất do người dùng nói trực tiếp và ghi nhận mâu thuẫn để hội đồng báo (−).
+
+\textbf{Bộ nhớ hai tầng.} Mỗi lượt, Orchestrator nạp từ PostgreSQL (i) bộ nhớ có cấu trúc: hồ sơ tích lũy qua cả phiên, và (ii) bộ nhớ hội thoại: 10 tin nhắn gần nhất và kết quả hội chẩn gần nhất. Nhờ vậy hệ thống hiểu câu trả lời cụt (``62'' sau khi bot hỏi tuổi) và câu hỏi tiếp nối (``tại sao nguy cơ của tôi cao?''). Với các câu này, hệ thống trả lời từ bộ nhớ mà không chạy lại hội đồng.
+
+\textbf{Chịu lỗi nhiều tầng.} Lỗi trong một tác tử được MessageBus chuyển thành \texttt{FAILURE} và không làm sập lượt chat. LLM có chuỗi dự phòng: model chính → model dự phòng khi gặp lỗi 429/503 hoặc quá thời gian → nhánh luật và regex. Hệ thống vì thế vẫn trả lời được khi mất kết nối Internet. Các tác tử chuyên môn (Prediction, Knowledge) không phụ thuộc LLM, nên kết luận lâm sàng không thay đổi theo tình trạng của nhà cung cấp LLM.
+
+\subsection{So sánh với các framework đa tác tử}
+
+\begin{table}[H]
+\centering
+\caption{So sánh cách tiếp cận của hệ thống với các framework đa tác tử dựa trên LLM}
+\label{tab:mas-compare}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.1cm}YY@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Framework LLM (AutoGen, MetaGPT\ldots)} & \textbf{Hệ thống của báo cáo} \\
+\midrule
+Điều phối & LLM quyết định tác tử nào nói tiếp, luồng hội thoại tự do & Kế hoạch động do Orchestrator lập theo ý định và mức đủ dữ liệu; luồng xác định \\
+Giao tiếp & Tin nhắn ngôn ngữ tự nhiên & Thông điệp có cấu trúc (performative, \texttt{msg\_type}, payload JSON) \\
+Ra quyết định & LLM suy luận & Mô hình đã đánh giá (Ch.~2–6) + luật ADA; LLM chỉ hiểu và diễn đạt ngôn ngữ \\
+Tranh biện & Các LLM phê bình lẫn nhau & Critic phát hiện mâu thuẫn theo quy tắc, chất vấn tác tử chuyên môn \\
+Tái lập / kiểm thử & Khó (đầu ra ngẫu nhiên) & Chạy tất định khi tắt LLM; 21 test tự động \\
+Chi phí, độ trễ & Nhiều lần gọi LLM mỗi lượt & 28 ms không LLM; 2–5 s với 2–3 lần gọi LLM \\
+Kiểm toán & Tùy cài đặt & Mọi thông điệp lưu vào \texttt{agent\_messages} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Lựa chọn tự xây dựng \texttt{BaseAgent} và \texttt{MessageBus} thay vì dùng framework có hai lý do. Thứ nhất, nó thể hiện rõ cơ chế giao tiếp và tranh biện, đúng mục tiêu của môn học. Thứ hai, trong y tế, \emph{tính kiểm soát được} quan trọng hơn tính linh hoạt: mọi quyết định lâm sàng phải truy vết được tới một mô hình đã được đánh giá hoặc một quy tắc có trích dẫn. Cái giá là hệ thống kém linh hoạt hơn trước những yêu cầu ngoài kịch bản đã thiết kế.
+
+\section{Đánh giá hệ đa tác tử}
+
+\subsection{Dữ liệu và kịch bản}
+
+Một hệ đa tác tử cần được đánh giá \emph{đầu–cuối}: đưa vào một hồ sơ hoặc một tin nhắn, kiểm tra kết luận cuối cùng. Ca kiểm thử được lấy từ \textbf{tập kiểm tra của NHANES}, cùng phép chia 70/10/20 (\texttt{random\_state=42}) với Chương 2, nên PredictionAgent chưa từng thấy các ca này. Chỉ giữ người có cả glucose lúc đói và HbA1c, rồi lấy ngẫu nhiên \textbf{400 người}: 23,0\% mắc ĐTĐ (69 người đã được chẩn đoán, 23 người chưa được chẩn đoán nhưng có xét nghiệm vượt ngưỡng), 173 người tiền ĐTĐ. Hệ thống chạy \emph{không LLM} (dùng regex và mẫu câu) để kết quả tất định và tái lập được, trừ phần so sánh trích xuất bằng Gemini. Ba kịch bản được thiết kế:
+
+\begin{itemize}
+  \item \textbf{K1 — đủ xét nghiệm}: hồ sơ gồm 13 yếu tố nguy cơ, FPG và HbA1c, nhập dạng form. Câu hỏi: hội đồng có phân loại đường huyết đúng ngưỡng ADA và áp đúng quy tắc ``2 xét nghiệm bất thường'' không? Đồng thời đo các chỉ số vận hành.
+  \item \textbf{K2 — chỉ có FPG} (giấu HbA1c), đây là tình huống phổ biến khi người dùng mới thử đường huyết. So sánh với nhãn ĐTĐ thật của NHANES ba cách ra quyết định: \emph{tác tử Tri thức đơn lẻ} (ngưỡng FPG ≥ 126 hoặc ≥ 100), \emph{tác tử Dự đoán đơn lẻ} (xác suất ML ≥ 30\%), và \emph{cả hội đồng} (mức Cao hoặc Rất cao). Nhãn NHANES gồm cả người đã chẩn đoán đang điều trị và người chỉ có HbA1c vượt ngưỡng, nên một mình FPG không thể phát hiện hết.
+  \item \textbf{K3 — tin nhắn tiếng Việt tự do}: từ mỗi hồ sơ, sinh một tin nhắn theo nhiều cách viết (BMI hoặc chiều cao–cân nặng ``nặng 80 ký cao 1m66'', mmol/L với dấu phẩy thập phân hoặc mg/dL, câu phủ định ``không hút thuốc'', ngẫu nhiên lược bớt trường). Chạy toàn bộ pipeline từ văn bản; đo độ chính xác trích xuất và mức nguy cơ so với khi nhập form.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ tin nhắn sinh cho kịch bản K3 và giá trị đúng tương ứng}
+\label{tab:k3-examples}
+\small
+\begin{tabularx}{\linewidth}{@{}Y@{}}
+\toprule
+``Em là nữ, năm nay 21 tuổi, nặng 80 ký cao 1m66, vòng eo 85 cm, huyết áp đo được 103/64, gia đình không ai bị tiểu đường, glucose đói 91 mg/dL.'' \\
+``Tôi 58 tuổi, nữ, chỉ số BMI là 40,5, vòng eo 115 cm, huyết áp đo được 110/79, có bị tăng huyết áp, không hút thuốc, sáng nay thử đường máu lúc chưa ăn được 7,7 mmol/l.'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{code}{Đánh giá đầu–cuối một ca qua Orchestrator (\texttt{lab/ch7\_agents.py}, rút gọn)}
+\label{lst:ch7-eval}
+\begin{minted}{python}
+orc = OrchestratorAgent()                        # đăng ký 7 tác tử vào MessageBus
+for row in cases.itertuples():
+    out = await orc.run_turn(profile_from(row, with_a1c=True), "đánh giá nguy cơ giúp tôi", [])
+    c = out["data"]["consensus"]
+    k1.append({"truth": ada_status(row.fasting_glucose, row.hba1c), "pred": c["glycemic_status"],
+               "confirmation": c["confirmation_required"], "rounds": c["debate_rounds"],
+               "issues": [d["issue"] for d in c["debate"]]})
+    out = await orc.run_turn(profile_from(row, with_a1c=False), "đánh giá nguy cơ giúp tôi", [])
+    k2.append({"label": row.diabetes, "tier": out["data"]["consensus"]["risk_level"], ...})
+\end{minted}
+\end{code}
+
+\subsection{K1 — tính đúng đắn và vận hành}
+
+Trong 400 ca, 1 ca có BMI 74,8 kg/m², vượt miền sinh lý hợp lệ (10–70) của hồ sơ. Hệ thống loại giá trị này và \emph{hỏi lại} BMI thay vì chạy mô hình trên dữ liệu nghi sai. Đây là hành vi đúng theo thiết kế. 399 ca còn lại đi qua hội đồng.
+
+\begin{table}[H]
+\centering
+\caption{K1: tính đúng đắn và các chỉ số vận hành của hội đồng (399 ca)}
+\label{tab:k1}
+\small
+\begin{tabularx}{\linewidth}{@{}L{6.2cm}Y@{}}
+\toprule
+\textbf{Chỉ số} & \textbf{Kết quả} \\
+\midrule
+Phân loại đường huyết đúng ngưỡng ADA & \textbf{399/399 (100\%)} — 137 bình thường, 191 tiền ĐTĐ, 71 ngưỡng ĐTĐ \\
+Áp đúng quy tắc ``2 xét nghiệm bất thường'' & \textbf{71/71 (100\%)} \\
+Số vòng tranh biện & 0 vòng: 297 ca · 1 vòng: 91 · 2 vòng: 11 \\
+Chất vấn được mở & xác minh tiêu chí ADA 71 · GBDT và MLP bất đồng 30 · ML thấp nhưng xét nghiệm ĐTĐ 13 · ML cao nhưng xét nghiệm bình thường 11 → lịch tầm soát (vòng 2) 11 \\
+Safety Guardrail & ưu tiên (nhóm nguy cơ đỏ) 77 ca · khám sớm (glucose ≥ 300 hoặc HbA1c ≥ 10\%) 11 ca \\
+Bằng chứng mỗi ca & trung bình 3,7 điểm (+), 0,21 điểm (−) \\
+Gợi ý can thiệp (RL sau ràng buộc) & lối sống 358 · metformin 5 · phối hợp tim–thận 25 · chuyên khoa 11 \\
+Thông điệp mỗi lượt & 12–18 (trung bình 12,7): 2.394 REQUEST/INFORM, 136 CHALLENGE/RESPONSE \\
+Độ trễ một lượt (không LLM) & trung vị 28 ms, p95 42 ms; PredictionAgent 25 ms, KnowledgeAgent 24 ms (chạy song song) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figw{ch7_ops}{Thời gian xử lý của từng tác tử và tần suất các loại chất vấn trong K1}
+
+\textbf{Nhận xét.} (i) Lớp luật tường minh (ngưỡng ADA, quy tắc xác nhận) đúng tuyệt đối. Đây là phần ``hệ chuyên gia'' của Chương 1 và là nền móng an toàn của hệ thống. (ii) Tranh biện chỉ xảy ra khi có lý do: 74\% ca không cần chất vấn, 3\% ca cần đủ hai vòng. Chất vấn thường gặp nhất là xác minh tiêu chí chẩn đoán (71 ca có xét nghiệm ở ngưỡng ĐTĐ), tiếp theo là bất đồng giữa hai mô hình ML (30 ca, 7,5\%). Tỉ lệ bất đồng này khớp với 8\% đo được ở Chương 2. (iii) Ràng buộc an toàn hoạt động đúng thiết kế: chính sách Q-learning chỉ được phép đề xuất thuốc khi hội đồng xác định ĐTĐ, nên 90\% ca dừng ở can thiệp lối sống, và mọi ca kích hoạt guardrail khẩn đều được chuyển chuyên khoa. (iv) Không có LLM, một lượt đầy đủ (12–18 thông điệp, 7 tác tử) chỉ mất 28 ms. Thời gian dồn vào hai nhánh song song Prediction và Knowledge (embedding và truy vấn PostgreSQL), các tác tử luật mất dưới 1 ms.
+
+\subsection{K2 — giá trị của việc phối hợp nhiều tác tử}
+
+\begin{table}[H]
+\centering
+\caption{K2 (chỉ có FPG): phát hiện ĐTĐ so với nhãn NHANES (399 ca, 91 người ĐTĐ)}
+\label{tab:k2}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lccccr@{}}
+\toprule
+\textbf{Cách ra quyết định} & \textbf{Độ nhạy} & \textbf{Đặc hiệu} & \textbf{PPV} & \textbf{F1} & \textbf{Số ca dương} \\
+\midrule
+Tri thức đơn lẻ: FPG ≥ 126 & 0,582 & \textbf{1,000} & \textbf{1,000} & \textbf{0,736} & 53 \\
+Tri thức đơn lẻ: FPG ≥ 100 & 0,879 & 0,520 & 0,351 & 0,502 & 228 \\
+Dự đoán đơn lẻ: ML ≥ 30\% & 0,659 & 0,841 & 0,551 & 0,600 & 109 \\
+\textbf{Hội đồng: mức Cao hoặc Rất cao} & \textbf{0,945} & 0,458 & 0,340 & 0,500 & 253 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\figw{ch7_k2}{K2: độ nhạy, độ đặc hiệu, F1 của các cách ra quyết định, và tỉ lệ ĐTĐ thật theo mức nguy cơ của hội đồng}
+
+\textbf{Nhận xét.} Hai tác tử đơn lẻ bỏ sót những nhóm khác nhau. Ngưỡng FPG ≥ 126 chính xác tuyệt đối (PPV 1,00) nhưng chỉ bắt được 58\% người ĐTĐ. \textbf{38 người ĐTĐ có FPG dưới 126}: đó là người đang điều trị tốt hoặc người chỉ có HbA1c vượt ngưỡng. ML dựa trên yếu tố nguy cơ bắt được một phần nhóm này nhưng bỏ sót người khác. Hội đồng kết hợp cả hai (xét nghiệm là căn cứ chính, ML bổ sung nguy cơ dài hạn) đạt \textbf{độ nhạy 0,945}, phát hiện thêm \textbf{33 trong 38} ca mà FPG bỏ sót. Điểm nguy cơ tổng hợp của hội đồng có AUC 0,876, cao hơn FPG đơn lẻ (0,862) và ML đơn lẻ (0,855).
+
+Cái giá phải trả là độ đặc hiệu 0,46: 253 người được xếp mức Cao trở lên. Đây là đánh đổi \emph{có chủ đích} của một công cụ \emph{sàng lọc}. Mức Cao không có nghĩa là ``bị bệnh'' mà là ``nên làm thêm HbA1c hoặc OGTT'', một xét nghiệm rẻ. Bỏ sót một người ĐTĐ thì đắt hơn nhiều. Phân tầng có ý nghĩa rõ ràng (\figref{fig:ch7_k2}, phải): mức \emph{Rất cao} có 100\% là ĐTĐ thật (53/53); mức \emph{Thấp} chỉ 1,6\% (2/128); mức Cao và Trung bình khoảng 17\%, gấp 10 lần nhóm Thấp, và đúng là nhóm cần xét nghiệm thêm. Theo F1, ngưỡng FPG ≥ 126 tốt nhất, nhưng F1 coi FN và FP nặng như nhau, điều không đúng trong sàng lọc.
+
+\subsection{K3 — từ tin nhắn tự do}
+
+\begin{table}[H]
+\centering
+\caption{K3: trích xuất từ tin nhắn tiếng Việt tự do}
+\label{tab:k3}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Bộ trích xuất} & \textbf{Số tin nhắn} & \textbf{Đúng mọi trường} & \textbf{Cùng mức nguy cơ với form} & \textbf{Độ trễ trung vị} \\
+\midrule
+Regex tiếng Việt (không LLM) & 399 & 100\% & 92,2\% & 0,03 s \\
+Regex tiếng Việt (40 tin đầu) & 40 & 100\% & 100\% & 0,02 s \\
+Gemini structured output (40 tin đầu) & 40 & 100\% & 100\% & 2,12 s \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Cả hai bộ trích xuất đều lấy đúng 100\% các trường: tuổi, giới, BMI (kể cả khi phải tính từ ``nặng 80 ký cao 1m66''), vòng eo, huyết áp, glucose (kể cả quy đổi ``7,7 mmol/l'' → 138,6 mg/dL), và các câu phủ định. Cần đọc kết quả này một cách thận trọng. Các tin nhắn được sinh từ mẫu câu \emph{nằm trong phạm vi} mà regex được viết để hiểu, nên 100\% là cận trên lạc quan. Với cách diễn đạt tự do thật của người dùng, LLM linh hoạt hơn nhiều, và đó là lý do hệ thống ưu tiên Gemini, chỉ dùng regex làm dự phòng. Đổi lại, LLM chậm hơn khoảng 70 lần (2,1 s so với 0,03 s mỗi lượt, gồm cả phân loại ý định và viết câu trả lời).
+
+7,8\% tin nhắn cho mức nguy cơ khác với khi nhập form, dù mọi trường được trích đúng. Nguyên nhân nằm ở \emph{thông tin đầu vào khác nhau} chứ không phải lỗi trích xuất. Tin nhắn ngẫu nhiên lược bớt vòng eo, huyết áp hoặc tiền sử gia đình (như người dùng thật thường làm), và việc làm tròn khi đổi sang mmol/L hay chiều cao–cân nặng làm thay đổi giá trị chút ít. Khi đó xác suất ML thay đổi và ca nằm gần ranh giới 15\% hoặc 30\% đổi mức. Trường hợp này cho thấy hai cơ chế của hệ thống có ích: ConsensusCritic báo (−) ``dữ liệu thiếu'' khi độ đầy đủ thấp, và ResponseAgent gợi ý người dùng bổ sung các trường còn thiếu.
+
+\subsection{Ví dụ một lượt hội chẩn có tranh biện hai vòng}
+
+Một lượt chat thật trên hệ thống đã triển khai (có Gemini) với tin nhắn: ``Tôi 58 tuổi nữ, BMI 29, vòng eo 95 cm, bị tăng huyết áp, mỡ máu cao, mẹ bị tiểu đường, ít vận động, đường huyết lúc đói 92 mg/dL.'' Đây là ca điển hình gây mâu thuẫn: xét nghiệm \emph{bình thường} nhưng yếu tố nguy cơ \emph{dày đặc}. \tabref{tab:transcript} là toàn bộ luồng thông điệp mà MessageBus ghi lại.
+
+\begin{table}[H]
+\centering
+\caption{Luồng 16 thông điệp của một lượt hội chẩn thật (thời gian xử lý ghi ở thông điệp trả lời)}
+\label{tab:transcript}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}rllllr@{}}
+\toprule
+\textbf{\#} & \textbf{Gửi} & \textbf{Nhận} & \textbf{Performative} & \textbf{Loại thông điệp} & \textbf{ms} \\
+\midrule
+1 & Orchestrator & ConversationAgent & REQUEST & EXTRACT\_FROM\_TEXT & \\
+2 & ConversationAgent & Orchestrator & INFORM & PATIENT\_DATA\_EXTRACTED & 1.931 \\
+3 & Orchestrator & PredictionAgent & REQUEST & PREDICT\_RISK & \\
+4 & Orchestrator & KnowledgeAgent & REQUEST & RETRIEVE\_EVIDENCE & \\
+5 & PredictionAgent & Orchestrator & INFORM & RISK\_PREDICTION & 130 \\
+6 & KnowledgeAgent & Orchestrator & INFORM & CLINICAL\_EVIDENCE & 303 \\
+7 & Orchestrator & ConsensusCritic & REQUEST & DELIBERATE & \\
+8 & ConsensusCritic & PredictionAgent & \textbf{CHALLENGE} & CHALLENGE\_ML\_VS\_LABS & \\
+9 & PredictionAgent & ConsensusCritic & RESPONSE & CHALLENGE\_RESPONSE & 0 \\
+10 & ConsensusCritic & KnowledgeAgent & \textbf{CHALLENGE} & CHALLENGE\_SCREENING\_PLAN & \\
+11 & KnowledgeAgent & ConsensusCritic & RESPONSE & CHALLENGE\_RESPONSE & 15 \\
+12 & ConsensusCritic & Orchestrator & INFORM & CONSENSUS\_RESULT & 15 \\
+13 & Orchestrator & TreatmentRLAgent & REQUEST & RECOMMEND\_TREATMENT & \\
+14 & TreatmentRLAgent & Orchestrator & INFORM & TREATMENT\_SUGGESTION & 0 \\
+15 & Orchestrator & ResponseAgent & REQUEST & COMPOSE\_ASSESSMENT & \\
+16 & ResponseAgent & Orchestrator & INFORM & RESPONSE\_TEXT & 2.345 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Diễn biến như sau. Gemini phân loại ý định là \texttt{RISK\_ASSESSMENT} và ConversationAgent trích xuất đủ các trường (thông điệp 1–2). Hai nhánh chạy song song (3–6). PredictionAgent cho xác suất 40\% (GBDT 34\%, MLP 45\%), gấp 2,02 lần trung bình quần thể. KnowledgeAgent đối chiếu FPG 92 mg/dL là \emph{bình thường} và khớp 7 nút yếu tố nguy cơ trong KG. Critic phát hiện mâu thuẫn ``ML cao nhưng xét nghiệm bình thường'' và mở \textbf{vòng 1} (8–9): PredictionAgent bảo vệ quan điểm. Mô hình không dùng glucose nên phản ánh \emph{nguy cơ tiến triển}, đồng ý xét nghiệm là căn cứ chẩn đoán, và đề nghị giữ khuyến cáo tầm soát. Phản hồi này mở \textbf{vòng 2} (10–11): KnowledgeAgent đưa ra lịch tầm soát theo ADA, có trích dẫn. Kết luận của hội đồng:
+
+\begin{itemize}
+  \item[\textbf{(+)}] Thống nhất kế hoạch theo dõi: sàng lọc lại ít nhất mỗi 3 năm, sớm hơn (mỗi năm) khi có nhiều yếu tố nguy cơ; giảm cân, vận động 150 phút/tuần.
+  \item[\textbf{(+)}] Yếu tố làm tăng nguy cơ nhiều nhất theo mô hình: tiền sử gia đình, tăng huyết áp, rối loạn mỡ máu.
+  \item[\textbf{(+)}] Đồ thị tri thức khớp 7 yếu tố nguy cơ theo ADA.
+  \item[\textbf{(−)}] ML cảnh báo nguy cơ cao nhưng xét nghiệm hiện bình thường (kèm phản biện của PredictionAgent).
+\end{itemize}
+
+Phân tầng cuối cùng là \emph{Cao — nhiều yếu tố nguy cơ} (điểm 0,40). TreatmentRLAgent bị ràng buộc ở can thiệp lối sống vì xét nghiệm chưa ở ngưỡng ĐTĐ. ResponseAgent viết câu trả lời có các mục bằng chứng (+), lưu ý (−), khuyến cáo kèm nguồn (``Sàng lọc đái tháo đường típ 2 ở người trưởng thành châu Á và Việt Nam — Các yếu tố nguy cơ''), và lời nhắc không thay thế bác sĩ. Tổng thời gian khoảng 4,7 giây, trong đó hai lần gọi Gemini (trích xuất 1,9 s và viết câu trả lời 2,3 s) chiếm khoảng 90\%. Toàn bộ phần ``suy nghĩ'' của hội đồng (thông điệp 3–14) chỉ mất khoảng 0,45 giây.
+
+Ví dụ này minh họa giá trị của tranh biện: một hệ thống chỉ dùng ngưỡng sẽ trả lời ``đường huyết bình thường''. Một hệ thống chỉ dùng ML sẽ trả lời ``nguy cơ 40\%'' mà không giải thích vì sao xét nghiệm lại bình thường. Hội đồng đưa cả hai góc nhìn ra, hòa giải chúng thành một kế hoạch hành động cụ thể, và cho người dùng thấy cả điểm đồng thuận lẫn điểm còn mâu thuẫn.
+
+\section{Triển khai}
+
+Toàn bộ hệ thống được đóng gói bằng \textbf{Docker Compose} với bốn dịch vụ (\figref{fig:deploy}). \texttt{postgres} là PostgreSQL 17 với pgvector và Apache AGE (dữ liệu NHANES, KB, đồ thị, phiên chat, audit trail). \texttt{seaweedfs} là kho đối tượng tương thích S3, lưu bệnh án tải lên. \texttt{backend} là FastAPI chạy Uvicorn; image này chứa mã nguồn, mọi mô hình của 7 chương (\texttt{data/models}, 71 MB) và mô hình nhúng tải sẵn; nó phục vụ chatbot (\api{/}), trang thử nghiệm (\api{/lab}), API (\api{/api/...}) và Swagger (\api{/docs}), với healthcheck tại \api{/health}. \texttt{cloudflared} tạo \textbf{Cloudflare Tunnel}: tiến trình mở kết nối QUIC \emph{đi ra} tới mạng biên của Cloudflare, nhận request cho tên miền \texttt{\deploydomain} và chuyển về \texttt{http://localhost:8000}. Máy chủ không cần IP công khai và không mở cổng nào trên tường lửa; TLS do Cloudflare đảm nhiệm \cite{cloudflaretunnel}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=10mm, text width=2.2cm, inner sep=3pt},
+  arr/.style={-{Stealth[length=1.6mm]}, black!60}]
+\node[box, fill=gray!10] (user) at (0,0) {Trình duyệt\\(Internet)};
+\node[box, fill=orange!12] (cf) at (3.6,0) {Cloudflare Edge\\TLS · DNS};
+\node[box, fill=orange!12] (cfd) at (7.4,0) {cloudflared\\(kết nối đi ra)};
+\node[box, fill=blue!6] (be) at (11.2,0) {backend FastAPI\\:8000};
+\node[box] (pg) at (9.3,-2.2) {PostgreSQL 17\\pgvector · AGE};
+\node[box] (s3) at (13.1,-2.2) {SeaweedFS (S3)};
+\node[box] (llm) at (11.2,2.2) {Gemini API\\(tùy chọn)};
+\draw[arr] (user) -- node[above=1mm]{HTTPS} (cf);
+\draw[arr, dashed] (cfd) -- node[above=1mm]{QUIC} (cf);
+\draw[arr] (cfd) -- node[above=1mm]{HTTP} (be);
+\draw[arr] (be) -- (pg); \draw[arr] (be) -- (s3); \draw[arr] (be) -- (llm);
+\begin{scope}[on background layer]
+\node[draw, dashed, rounded corners, fit=(cfd)(be)(pg)(s3), inner sep=3mm, label={[font=\scriptsize]below:Máy chủ — Docker Compose, không mở cổng}] {};
+\end{scope}
+\end{tikzpicture}
+\caption{Kiến trúc triển khai qua Cloudflare Tunnel}
+\label{fig:deploy}
+\end{figure}
+
+\begin{code}{Dịch vụ cloudflared trong \texttt{docker-compose.yml} và lệnh triển khai}
+\label{lst:ch7-compose}
+\begin{minted}{yaml}
+  cloudflared:
+    profiles: ["app"]
+    image: cloudflare/cloudflared:2026.10.7
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}   # đọc từ .env, không commit
+    network_mode: host                         # để "localhost:8000" trỏ tới backend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+# Triển khai:  docker compose --profile app up -d --build
+\end{minted}
+\end{code}
+
+\begin{table}[H]
+\centering
+\caption{Các điểm truy cập của hệ thống đã triển khai}
+\label{tab:endpoints}
+\small
+\begin{tabularx}{\linewidth}{@{}L{5.4cm}Y@{}}
+\toprule
+\textbf{Đường dẫn} & \textbf{Chức năng} \\
+\midrule
+\api{/} & Chatbot đa tác tử (React), tải bệnh án, xem chi tiết hội chẩn \\
+\api{/lab} & Trang thử nghiệm 7 chương \\
+\api{POST /api/chat}, \api{/api/chat/upload} & Một lượt hội chẩn (văn bản / tệp), trả về câu trả lời và luồng thông điệp \\
+\api{POST /api/consultation} & Đánh giá trực tiếp từ form JSON \\
+\api{/api/lab/ch1/pima} … \api{/api/lab/ch6/paper} & Mô hình của từng chương (Chương 1–6) \\
+\api{GET /api/lab/summary} & Số liệu đánh giá chính của mọi chương \\
+\api{/docs}, \api{/health} & Tài liệu OpenAPI, kiểm tra sức khỏe \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Thẻ ``Chương 7'' trên trang \api{/lab} gửi một tin nhắn tới \api{/api/chat} và hiển thị toàn bộ luồng thông điệp giữa các tác tử: người gửi, người nhận, performative, loại thông điệp, thời gian xử lý. Các thông điệp \texttt{CHALLENGE} được tô màu riêng, nên người xem thấy trực tiếp hội đồng tranh biện. Khi có Gemini, một lượt chat đầu–cuối mất khoảng 2–5 giây; khi Gemini quá tải, hệ thống tự chuyển sang model dự phòng rồi tới nhánh luật, nên không bao giờ dừng hẳn.
+
+\section{Tiểu kết chương 7}
+
+Chương 7 trình bày cơ sở lý thuyết về tác tử và hệ đa tác tử (tính chất của tác tử, mô hình tổ chức Supervisor, Blackboard, Contract Net, tranh biện; ngôn ngữ FIPA-ACL; tác tử dựa trên LLM), rồi mô tả hệ thống tám tác tử giao tiếp qua MessageBus, với giao thức tranh biện nhiều vòng và tác tử Q-learning bị ràng buộc an toàn. Đánh giá đầu–cuối trên 400 ca NHANES chưa từng thấy cho thấy: (1) lớp luật lâm sàng đúng tuyệt đối, và hệ thống từ chối dữ liệu ngoài miền sinh lý thay vì dự đoán bừa; (2) phối hợp tác tử Tri thức với tác tử Dự đoán nâng độ nhạy phát hiện ĐTĐ từ 0,58 lên 0,95, bắt thêm 33/38 ca mà xét nghiệm đường huyết lúc đói bỏ sót, với phân tầng có ý nghĩa (mức Rất cao 100\% là ĐTĐ, mức Thấp 1,6\%); (3) tranh biện chỉ kích hoạt khi cần (26\% ca), một lượt đầy đủ mất 28 ms khi không có LLM; (4) hệ thống chạy công khai qua Cloudflare Tunnel mà không cần mở cổng. Hệ đa tác tử là nơi kết quả của sáu chương trước kết hợp lại: mỗi kỹ thuật làm phần việc nó giỏi nhất, và chúng kiểm tra chéo lẫn nhau.
+

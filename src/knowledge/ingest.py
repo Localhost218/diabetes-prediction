@@ -4,8 +4,9 @@ Pipeline nạp tri thức (khối PDF/Web → KB trên sơ đồ):
   file .md/.txt/.pdf/.html hoặc URL
     → lưu bản gốc lên SeaweedFS (bucket KB)
     → trích văn bản → chia đoạn theo mục
-    → embedding → pgvector (kb_chunks)
-    → bộ ba tri thức (tuyển chọn thủ công + trích bằng LLM nếu bật) → Apache AGE
+    → nội dung đoạn vào DB quan hệ (kb_chunks, có chỉ mục full-text)
+    → embedding → Qdrant (hoặc pgvector)
+    → bộ ba tri thức (tuyển chọn thủ công + trích bằng LLM nếu bật) → Neo4j (hoặc Apache AGE)
 
 Chạy lại an toàn: tài liệu không đổi (cùng sha256 và cùng mô hình embedding) sẽ được bỏ qua.
 """
@@ -28,6 +29,7 @@ from src.storage.db import session_scope
 from src.storage.graph_store import get_graph_store
 from src.storage.models import KbChunk, KbDocument
 from src.storage.object_storage import get_storage
+from src.storage.vector_store import get_vector_store
 
 log = logging.getLogger(__name__)
 
@@ -164,10 +166,11 @@ def ingest_documents(docs: List[SourceDoc], force: bool = False) -> Dict[str, in
     stats = {"documents": 0, "skipped": 0, "chunks": 0}
     for doc in docs:
         with session_scope() as s:
+            vstore = get_vector_store(s)
             existing = s.get(KbDocument, doc.id)
             same_model = existing is not None and s.scalar(
                 select(KbChunk.embedding_model).where(KbChunk.document_id == doc.id).limit(1)) == embedder.name
-            if existing and existing.sha256 == doc.sha256 and same_model and not force:
+            if existing and existing.sha256 == doc.sha256 and same_model and vstore.has_document(doc.id) and not force:
                 stats["skipped"] += 1
                 continue
 
@@ -180,6 +183,7 @@ def ingest_documents(docs: List[SourceDoc], force: bool = False) -> Dict[str, in
 
             if existing:
                 s.execute(delete(KbChunk).where(KbChunk.document_id == doc.id))
+                vstore.delete_document(doc.id)
                 existing.title, existing.source, existing.url, existing.sha256 = doc.title, doc.source, doc.url, doc.sha256
                 existing.bucket, existing.object_key = settings.s3_bucket_kb, key
             else:
@@ -188,9 +192,12 @@ def ingest_documents(docs: List[SourceDoc], force: bool = False) -> Dict[str, in
             s.flush()
 
             vectors = embedder.embed([f"{doc.title}. {h}. {c}" for h, c in doc.sections])
-            for i, ((heading, content), vec) in enumerate(zip(doc.sections, vectors)):
-                s.add(KbChunk(document_id=doc.id, chunk_index=i, heading=heading, content=content,
-                              embedding=vec, embedding_model=embedder.name))
+            chunks = [KbChunk(document_id=doc.id, chunk_index=i, heading=heading, content=content,
+                              embedding_model=embedder.name)
+                      for i, (heading, content) in enumerate(doc.sections)]
+            s.add_all(chunks)
+            s.flush()  # cần id của chunk làm point id trong Qdrant
+            vstore.index_chunks(chunks, vectors)
             stats["documents"] += 1
             stats["chunks"] += len(doc.sections)
     return stats

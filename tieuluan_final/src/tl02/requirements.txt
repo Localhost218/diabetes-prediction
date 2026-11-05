@@ -1,0 +1,16 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+torch                 # bản CUDA: pip install torch --index-url https://download.pytorch.org/whl/cu126
+transformers
+accelerate
+safetensors
+sentence-transformers
+huggingface-hub
+rank-bm25
+networkx
+rdflib
+flask
+yfinance              # chỉ cho scripts/download_data.py
+playwright            # chỉ để chụp ảnh giao diện: playwright install chromium

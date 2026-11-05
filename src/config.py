@@ -47,10 +47,28 @@ def _llm_enabled() -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    # PostgreSQL (pgvector + Apache AGE)
-    database_url: str = _env("DATABASE_URL", "postgresql+psycopg://multiagent:multiagent@localhost:5432/multiagent")
-    kg_backend: str = _env("KG_BACKEND", "age")  # age | sql
+    # Bộ lưu trữ mặc định: SQLite (DB quan hệ + full-text FTS5) · Qdrant (vector) · Neo4j (Knowledge Graph).
+    # Bộ cũ vẫn dùng được: DATABASE_URL=postgresql+psycopg://... VECTOR_BACKEND=pgvector KG_BACKEND=age|sql
+    database_url: str = _env("DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'multiagent.db'}")
+    vector_backend: str = _env("VECTOR_BACKEND", "qdrant")  # qdrant | pgvector
+    kg_backend: str = _env("KG_BACKEND", "neo4j")  # neo4j | age | sql
     kg_graph_name: str = _env("KG_GRAPH_NAME", "diabetes_kg")
+
+    # Qdrant: QDRANT_URL rỗng → chế độ nhúng (lưu trên đĩa tại QDRANT_PATH, không cần server)
+    qdrant_url: str = _env("QDRANT_URL", "")
+    qdrant_api_key: str = _env("QDRANT_API_KEY", "")
+    qdrant_path: Path = Path(_env("QDRANT_PATH", str(BASE_DIR / "data" / "qdrant")))
+    qdrant_collection: str = _env("QDRANT_COLLECTION", "kb_chunks")
+
+    # Neo4j
+    neo4j_uri: str = _env("NEO4J_URI", "bolt://localhost:7687")
+    neo4j_user: str = _env("NEO4J_USER", "neo4j")
+    neo4j_password: str = _env("NEO4J_PASSWORD", "multiagent-neo4j")
+    neo4j_database: str = _env("NEO4J_DATABASE", "neo4j")
+
+    @property
+    def is_postgres(self) -> bool:
+        return self.database_url.startswith("postgresql")
 
     # Lưu trữ file (SeaweedFS qua S3 API)
     storage_backend: str = _env("STORAGE_BACKEND", "s3")  # s3 | local

@@ -1,15 +1,17 @@
 """
 Knowledge Graph store.
 
-- AgeGraphStore: Apache AGE (openCypher chạy trong PostgreSQL) — mặc định.
+- Neo4jGraphStore: Neo4j (Cypher, giao thức Bolt) — mặc định.
+- AgeGraphStore: Apache AGE (openCypher chạy trong PostgreSQL).
 - SqlGraphStore: bảng kg_nodes/kg_edges + WITH RECURSIVE — dự phòng cho Postgres không cài được AGE
-  (ví dụ AWS RDS). Chọn bằng KG_BACKEND=age|sql.
+  (ví dụ AWS RDS). Chọn bằng KG_BACKEND=neo4j|age|sql.
 
 Mỗi cạnh lưu `chunk_ids` trỏ về kb_chunks để GraphRAG trích dẫn được đoạn văn bản gốc.
 """
 
 import json
 import re
+from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Protocol
 
 from sqlalchemy import text
@@ -40,6 +42,78 @@ def _cypher_str(s: str) -> str:
     if "$cy$" in s:
         raise ValueError("Chuỗi chứa ký tự không hợp lệ")
     return "'" + s.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+@lru_cache(maxsize=1)
+def neo4j_driver():
+    from neo4j import GraphDatabase
+    driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password),
+                                  notifications_min_severity="OFF")  # bỏ thông báo "constraint đã tồn tại"
+    with driver.session(database=settings.neo4j_database) as s:
+        for label in sorted(LABELS):  # ràng buộc duy nhất cũng tạo chỉ mục cho tra cứu theo tên
+            s.run(f"CREATE CONSTRAINT {label.lower()}_name IF NOT EXISTS FOR (n:{label}) REQUIRE n.name IS UNIQUE")
+    return driver
+
+
+class Neo4jGraphStore:
+    """Nhãn nút / loại cạnh lấy từ ontology cố định (đã kiểm tra trong _validate) nên chèn thẳng vào Cypher;
+    mọi giá trị khác truyền qua tham số."""
+
+    def __init__(self, session: Session = None):
+        self.driver = neo4j_driver()
+
+    def _run(self, query: str, **params) -> List[Any]:
+        with self.driver.session(database=settings.neo4j_database) as s:
+            return list(s.run(query, **params))
+
+    def upsert_triples(self, triples: Iterable[Dict[str, Any]]) -> int:
+        groups: Dict[tuple, List[Dict[str, Any]]] = {}
+        for t in triples:
+            _validate(t)
+            groups.setdefault((t["head_label"], t["relation"], t["tail_label"]), []).append({
+                "head": str(t["head"]), "tail": str(t["tail"]), "evidence": t.get("evidence", ""),
+                "source_doc": t.get("source_doc", ""), "chunk_ids": [int(c) for c in t.get("chunk_ids", [])],
+            })
+        n = 0
+        with self.driver.session(database=settings.neo4j_database) as s:
+            for (hl, rel, tl), rows in groups.items():
+                s.run(f"UNWIND $rows AS row "
+                      f"MERGE (h:{hl} {{name: row.head}}) MERGE (x:{tl} {{name: row.tail}}) "
+                      f"MERGE (h)-[r:{rel}]->(x) "
+                      f"SET r.evidence = row.evidence, r.source_doc = row.source_doc, r.chunk_ids = row.chunk_ids",
+                      rows=rows).consume()
+                n += len(rows)
+        return n
+
+    def neighborhood(self, start_names: List[str], max_hops: int = 2, limit: int = 60) -> List[Dict[str, Any]]:
+        if not start_names:
+            return []
+        records = self._run(f"MATCH p = (s)-[*1..{int(max_hops)}]-(t) WHERE s.name IN $names "
+                            f"RETURN p LIMIT $lim", names=list(start_names), lim=int(limit) * 4)
+        edges: Dict[str, Dict[str, Any]] = {}
+        for rec in records:
+            for hop, rel in enumerate(rec["p"].relationships, 1):
+                key = rel.element_id
+                if key in edges:
+                    edges[key]["hops"] = min(edges[key]["hops"], hop)
+                    continue
+                head, tail = rel.start_node, rel.end_node
+                edges[key] = {
+                    "head": head["name"], "head_label": next(iter(head.labels)),
+                    "relation": rel.type,
+                    "tail": tail["name"], "tail_label": next(iter(tail.labels)),
+                    "evidence": rel.get("evidence", ""), "source_doc": rel.get("source_doc", ""),
+                    "chunk_ids": list(rel.get("chunk_ids") or []), "hops": hop,
+                }
+        return sorted(edges.values(), key=lambda e: e["hops"])[:limit]
+
+    def stats(self) -> Dict[str, int]:
+        nodes = self._run("MATCH (n) RETURN count(n) AS c")[0]["c"]
+        edges = self._run("MATCH ()-[r]->() RETURN count(r) AS c")[0]["c"]
+        return {"nodes": int(nodes), "edges": int(edges)}
+
+    def clear(self) -> None:
+        self._run("MATCH (n) DETACH DELETE n")
 
 
 class AgeGraphStore:
@@ -171,4 +245,6 @@ class SqlGraphStore:
 
 
 def get_graph_store(session: Session) -> GraphStore:
+    if settings.kg_backend == "neo4j":
+        return Neo4jGraphStore(session)
     return SqlGraphStore(session) if settings.kg_backend == "sql" else AgeGraphStore(session)

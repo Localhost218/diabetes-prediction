@@ -4,7 +4,7 @@ Embedding văn bản cho RAG.
 - FastEmbedEmbedder: mô hình đa ngôn ngữ chạy ONNX trên CPU (không cần PyTorch/GPU).
 - HashingEmbedder: dự phòng offline (không tải được mô hình) — vector băm n-gram, chỉ khớp từ vựng.
 
-Cả hai cho ra vector cùng số chiều (EMBEDDING_DIM) để dùng chung cột pgvector;
+Cả hai cho ra vector cùng số chiều (EMBEDDING_DIM) để dùng chung collection Qdrant (hoặc cột pgvector);
 `name` được lưu cùng mỗi chunk và ingest sẽ embed lại khi đổi backend.
 """
 

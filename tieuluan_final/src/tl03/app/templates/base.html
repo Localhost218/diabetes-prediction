@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123a75">
+  <title>{% block title %}Hệ thống thông minh — Tiểu luận 03{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="logo">AI</span>
+    <span class="brand-text"><b>Hệ thống thông minh</b><small>Tiểu luận 03 · Nhóm 07 · Nguyễn Duy Nghĩa</small></span>
+  </a>
+  <nav class="chapnav">
+    {% for c in nav %}{% if c.serve %}
+    <a href="/#{{ c.id }}" class="chip" style="--c: {{ c.color }}">{{ c.icon }} <span>Ch.{{ c.no }}</span></a>
+    {% endif %}{% endfor %}
+  </nav>
+  {% if mock %}<span class="mockbadge">MOCK</span>{% endif %}
+</header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+<footer class="foot">Học viện Công nghệ Bưu chính Viễn thông · Phát triển các hệ thống thông minh · 2026 — mô hình chạy cục bộ, chỉ dùng cho mục đích học thuật.</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

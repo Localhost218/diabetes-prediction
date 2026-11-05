@@ -4,8 +4,11 @@ uvicorn[standard]>=0.30
 pydantic>=2.6
 python-multipart>=0.0.9
 
-# PostgreSQL (pgvector + Apache AGE)
+# Lưu trữ: SQLite (có sẵn trong Python) + Qdrant (vector) + Neo4j (Knowledge Graph)
 sqlalchemy>=2.0
+qdrant-client>=1.12
+neo4j>=5.20
+# Tùy chọn — bộ cũ PostgreSQL (pgvector + Apache AGE)
 psycopg[binary]>=3.1
 pgvector>=0.3
 

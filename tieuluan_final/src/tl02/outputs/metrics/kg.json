@@ -1,0 +1,590 @@
+{
+ "health": {
+  "nodes": 46,
+  "edges": 59,
+  "node_types": {
+   "Disease": 3,
+   "Guideline": 1,
+   "Biomarker": 4,
+   "RiskFactor": 4,
+   "Condition": 4,
+   "Complication": 8,
+   "Biguanide": 1,
+   "Sulfonylurea": 1,
+   "DPP4Inhibitor": 1,
+   "SGLT2Inhibitor": 1,
+   "GLP1Agonist": 1,
+   "Insulin": 1,
+   "RiskSubstance": 1,
+   "FoodGroup": 2,
+   "SafeFood": 3,
+   "RiskFood": 3,
+   "ModerateFood": 3,
+   "Lifestyle": 4
+  },
+  "relations": {
+   "THEO_HUONG_DAN": 1,
+   "CHI_DINH_DAU_TAY": 2,
+   "KHUYEN_NGHI_AN": 3,
+   "HAN_CHE_AN": 3,
+   "AN_DINH_LUONG": 3,
+   "KHUYEN_NGHI_LOI_SONG": 5,
+   "TIEN_TRIEN_THANH": 1,
+   "TIEU_CHUAN_CHAN_DOAN": 4,
+   "YEU_TO_NGUY_CO": 4,
+   "BIEN_CHUNG_CUA": 6,
+   "XU_TRI_BANG": 1,
+   "CHONG_CHI_DINH_KHI": 2,
+   "TUONG_TAC_NGUY_HIEM": 3,
+   "TANG_NGUY_CO": 7,
+   "DIEU_TRI": 5,
+   "UU_TIEN_KHI": 2,
+   "LA_MOT_DANG_CUA": 7
+  },
+  "classes": 23,
+  "predicates": 17,
+  "density": 0.057004830917874394,
+  "components": 1,
+  "avg_degree": 2.5652173913043477,
+  "with_source": 59,
+  "rdf_triples": 618,
+  "inferred": 172,
+  "inference_ms": 9.34419999975944,
+  "rdf_after": 790
+ },
+ "finance": {
+  "nodes": 31,
+  "edges": 40,
+  "node_types": {
+   "GlobalFactor": 6,
+   "MacroFactor": 3,
+   "PolicyTool": 3,
+   "MarketFlow": 1,
+   "Event": 1,
+   "Regulation": 2,
+   "GoldAsset": 4,
+   "Indicator": 1,
+   "Stock": 4,
+   "Index": 1,
+   "Exchange": 1,
+   "Sector": 4
+  },
+  "relations": {
+   "TAC_DONG_NGUOC_CHIEU": 13,
+   "TAC_DONG_CUNG_CHIEU": 16,
+   "QUY_DINH_VE": 1,
+   "SUA_DOI": 1,
+   "THUOC_VE": 5,
+   "THUOC_NGANH": 4
+  },
+  "classes": 16,
+  "predicates": 6,
+  "density": 0.08602150537634409,
+  "components": 1,
+  "avg_degree": 2.5806451612903225,
+  "with_source": 40,
+  "rdf_triples": 402,
+  "inferred": 111,
+  "inference_ms": 6.315599999652477,
+  "rdf_after": 513
+ },
+ "sparql": {
+  "q1_tuong_tac_ruou": {
+   "query": "SELECT ?thuoc ?mucdo ?hauqua WHERE {\n  ?thuoc ex:TUONG_TAC_NGUY_HIEM ex:Ruou_Bia .\n  ?st rdf:subject ?thuoc ; rdf:predicate ex:TUONG_TAC_NGUY_HIEM ; rdf:object ex:Ruou_Bia ;\n      ex:severity ?mucdo ; ex:effect ?hauqua .\n}",
+   "rows": [
+    [
+     "Insulin_Nen",
+     "cao",
+     "tăng mạnh nguy cơ hạ glucose huyết"
+    ],
+    [
+     "Gliclazide",
+     "cao",
+     "tăng mạnh nguy cơ hạ glucose huyết"
+    ],
+    [
+     "Metformin",
+     "cao",
+     "tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu"
+    ]
+   ],
+   "rows_before_inference": 3,
+   "ms": 3.936500000236265,
+   "domain": "health"
+  },
+  "q2_thuc_pham_gi": {
+   "query": "SELECT ?mon ?lop ?gi WHERE {\n  ?mon a ex:Food ; a ?lop ; ex:gi ?gi .\n  ?lop rdfs:subClassOf ex:Food .\n  FILTER(isNumeric(?gi))\n} ORDER BY DESC(?gi)",
+   "rows": [
+    [
+     "Khoai_Tay",
+     "RiskFood",
+     "78"
+    ],
+    [
+     "Com_Trang",
+     "ModerateFood",
+     "73"
+    ],
+    [
+     "Gao_Lut",
+     "ModerateFood",
+     "68"
+    ],
+    [
+     "Bun_Pho",
+     "ModerateFood",
+     "53"
+    ],
+    [
+     "Trai_Cay_GI_Thap",
+     "SafeFood",
+     "36"
+    ]
+   ],
+   "rows_before_inference": 0,
+   "ms": 6.417599999622325,
+   "domain": "health"
+  },
+  "q3_tieu_chuan": {
+   "query": "SELECT ?chiso ?nguong ?donvi WHERE {\n  ?chiso ex:TIEU_CHUAN_CHAN_DOAN ex:DTD_Tip2 ; ex:threshold ?nguong ; ex:unit ?donvi .\n}",
+   "rows": [
+    [
+     "OGTT_2h_Cao",
+     "200",
+     "mg/dL"
+    ],
+    [
+     "Glucose_Doi_Cao",
+     "126",
+     "mg/dL"
+    ],
+    [
+     "HbA1c_Cao",
+     "6.5",
+     "%"
+    ]
+   ],
+   "rows_before_inference": 3,
+   "ms": 2.1991999992678757,
+   "domain": "health"
+  },
+  "q4_thuoc_theo_lop": {
+   "query": "SELECT ?lop (COUNT(?t) AS ?so) WHERE {\n  ?t a ex:Drug ; a ?lop . ?lop rdfs:subClassOf ex:Drug .\n} GROUP BY ?lop ORDER BY ?lop",
+   "rows": [
+    [
+     "Biguanide",
+     "1"
+    ],
+    [
+     "DPP4Inhibitor",
+     "1"
+    ],
+    [
+     "GLP1Agonist",
+     "1"
+    ],
+    [
+     "Insulin",
+     "1"
+    ],
+    [
+     "SGLT2Inhibitor",
+     "1"
+    ],
+    [
+     "Sulfonylurea",
+     "1"
+    ]
+   ],
+   "rows_before_inference": 0,
+   "ms": 5.999699999847508,
+   "domain": "health"
+  },
+  "q5_lan_truyen_fed": {
+   "query": "SELECT DISTINCT ?bien WHERE {\n  ex:Lai_Suat_Fed (ex:TAC_DONG_CUNG_CHIEU|ex:TAC_DONG_NGUOC_CHIEU)+ ?bien .\n}",
+   "rows": [
+    [
+     "DXY"
+    ],
+    [
+     "USD_VND"
+    ],
+    [
+     "FPT"
+    ],
+    [
+     "Vang_Quy_Doi"
+    ],
+    [
+     "Vang_Nhan"
+    ],
+    [
+     "Vang_SJC"
+    ],
+    [
+     "VIC"
+    ],
+    [
+     "Khoi_Ngoai"
+    ],
+    [
+     "VN30"
+    ],
+    [
+     "HPG"
+    ],
+    [
+     "XAU_USD"
+    ]
+   ],
+   "rows_before_inference": 11,
+   "ms": 2.344200000152341,
+   "domain": "finance"
+  },
+  "q6_co_phieu_hose": {
+   "query": "SELECT ?cp ?nganh WHERE {\n  ?cp a ex:Stock ; ex:THUOC_VE ex:HOSE ; ex:THUOC_NGANH ?n . ?n rdfs:label ?nganh .\n}",
+   "rows": [
+    [
+     "VIC",
+     "Bất động sản"
+    ],
+    [
+     "VCB",
+     "Ngân hàng"
+    ],
+    [
+     "FPT",
+     "Công nghệ thông tin"
+    ],
+    [
+     "HPG",
+     "Thép"
+    ]
+   ],
+   "rows_before_inference": 0,
+   "ms": 2.792799999951967,
+   "domain": "finance"
+  },
+  "q7_bat_loi_ty_gia": {
+   "query": "SELECT ?dn ?cochế WHERE {\n  ex:USD_VND ex:TAC_DONG_NGUOC_CHIEU ?dn . ?dn a ex:Stock .\n  ?st rdf:subject ex:USD_VND ; rdf:object ?dn ; ex:mechanism ?cochế .\n}",
+   "rows": [
+    [
+     "VIC",
+     "gánh nặng nợ vay ngoại tệ tăng"
+    ],
+    [
+     "HPG",
+     "nhập quặng sắt, than cốc bằng USD; lỗ tỷ giá nợ vay"
+    ]
+   ],
+   "rows_before_inference": 2,
+   "ms": 3.071000000090862,
+   "domain": "finance"
+  }
+ },
+ "violations": [
+  {
+   "triple": [
+    "Rau_Xanh",
+    "CHI_DINH_DAU_TAY",
+    "Metformin"
+   ],
+   "error": "Vi phạm ràng buộc: chủ thể của CHI_DINH_DAU_TAY phải thuộc lớp Disease, 'Rau_Xanh' là SafeFood"
+  },
+  {
+   "triple": [
+    "Metformin",
+    "TIEU_CHUAN_CHAN_DOAN",
+    "DTD_Tip2"
+   ],
+   "error": "Vi phạm ràng buộc: chủ thể của TIEU_CHUAN_CHAN_DOAN phải thuộc lớp Biomarker, 'Metformin' là Biguanide"
+  },
+  {
+   "triple": [
+    "Com_Trang",
+    "TUONG_TAC_NGUY_HIEM",
+    "Ruou_Bia"
+   ],
+   "error": "Vi phạm ràng buộc: chủ thể của TUONG_TAC_NGUY_HIEM phải thuộc lớp Drug, 'Com_Trang' là ModerateFood"
+  },
+  {
+   "triple": [
+    "DTD_Tip2",
+    "KHUYEN_NGHI_AN",
+    "Metformin"
+   ],
+   "error": "Vi phạm ràng buộc: đối tượng của KHUYEN_NGHI_AN phải thuộc lớp Food, 'Metformin' là Biguanide"
+  }
+ ],
+ "demo_health": {
+  "warning": [
+   "Metformin —[tương tác nguy hiểm với]→ Rượu bia (ethanol) (severity: cao; effect: tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu)"
+  ],
+  "shared_risk": [
+   "Nhiễm toan lactic"
+  ],
+  "chicken": [
+   "Đái tháo đường típ 2 —[khuyến nghị ăn]→ Ức gà bỏ da luộc/hấp (reason: đạm nạc 31 g/100 g, không carbohydrate)",
+   "Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Gà rán, gà chiên, da gà (reason: nhiều chất béo bão hòa, tăng đề kháng insulin)"
+  ],
+  "rice": [
+   "Đái tháo đường típ 2 —[ăn có định lượng]→ Cơm trắng (reason: GI 73, GL 29; tối đa ~1 bát con/bữa, ăn rau trước)",
+   "Đái tháo đường típ 2 —[ăn có định lượng]→ Gạo lứt (reason: GI 68, giàu chất xơ; thay một phần gạo trắng)",
+   "Đái tháo đường típ 2 —[ăn có định lượng]→ Bún, phở (reason: GI 53; nước dùng trong, nhiều rau)",
+   "Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Khoai tây luộc (reason: GI 78)",
+   "Đái tháo đường típ 2 —[khuyến nghị hạn chế]→ Xôi nếp (reason: GI rất cao)"
+  ]
+ },
+ "demo_finance": {
+  "USD_VND->FPT": {
+   "verdict": "tích cực (+)",
+   "net": 1.0,
+   "paths": [
+    {
+     "nodes": [
+      "Tỷ giá USD/VND",
+      "FPT (Tập đoàn FPT)"
+     ],
+     "sign": 1
+    }
+   ]
+  },
+  "USD_VND->HPG": {
+   "verdict": "tiêu cực (−)",
+   "net": -1.0,
+   "paths": [
+    {
+     "nodes": [
+      "Tỷ giá USD/VND",
+      "HPG (Hòa Phát)"
+     ],
+     "sign": -1
+    }
+   ]
+  },
+  "Lai_Suat_Fed->Vang_SJC": {
+   "verdict": "hỗn hợp: 1 kênh (+), 2 kênh (−), ròng −",
+   "net": -0.3333333333333333,
+   "paths": [
+    {
+     "nodes": [
+      "Lãi suất Fed",
+      "Giá vàng thế giới (XAU/USD)",
+      "Giá vàng thế giới quy đổi (VND/lượng)",
+      "Vàng miếng SJC"
+     ],
+     "sign": -1
+    },
+    {
+     "nodes": [
+      "Lãi suất Fed",
+      "Chỉ số USD (DXY)",
+      "Giá vàng thế giới (XAU/USD)",
+      "Giá vàng thế giới quy đổi (VND/lượng)",
+      "Vàng miếng SJC"
+     ],
+     "sign": -1
+    },
+    {
+     "nodes": [
+      "Lãi suất Fed",
+      "Chỉ số USD (DXY)",
+      "Tỷ giá USD/VND",
+      "Giá vàng thế giới quy đổi (VND/lượng)",
+      "Vàng miếng SJC"
+     ],
+     "sign": 1
+    }
+   ]
+  },
+  "Lai_Suat_Fed->FPT": {
+   "verdict": "tích cực (+)",
+   "net": 0.3333333333333333,
+   "paths": [
+    {
+     "nodes": [
+      "Lãi suất Fed",
+      "Chỉ số USD (DXY)",
+      "Tỷ giá USD/VND",
+      "FPT (Tập đoàn FPT)"
+     ],
+     "sign": 1
+    }
+   ]
+  },
+  "ND_232_2025->Vang_SJC": {
+   "verdict": "tiêu cực (−)",
+   "net": -0.5,
+   "paths": [
+    {
+     "nodes": [
+      "Nghị định 232/2025/NĐ-CP",
+      "Phần bù vàng miếng SJC so với thế giới",
+      "Vàng miếng SJC"
+     ],
+     "sign": -1
+    }
+   ]
+  },
+  "DXY->VN30": {
+   "verdict": "tiêu cực (−)",
+   "net": -0.3333333333333333,
+   "paths": [
+    {
+     "nodes": [
+      "Chỉ số USD (DXY)",
+      "Tỷ giá USD/VND",
+      "Khối ngoại mua ròng",
+      "Chỉ số VN30"
+     ],
+     "sign": -1
+    }
+   ]
+  },
+  "Lai_Suat_NHNN->HPG": {
+   "verdict": "hỗn hợp: 1 kênh (+), 1 kênh (−), ròng −",
+   "net": -0.5,
+   "paths": [
+    {
+     "nodes": [
+      "Lãi suất điều hành NHNN",
+      "HPG (Hòa Phát)"
+     ],
+     "sign": -1
+    },
+    {
+     "nodes": [
+      "Lãi suất điều hành NHNN",
+      "Tỷ giá USD/VND",
+      "HPG (Hòa Phát)"
+     ],
+     "sign": 1
+    }
+   ]
+  }
+ },
+ "shock_dxy": {
+  "Giá vàng thế giới (XAU/USD)": -1,
+  "Tỷ giá USD/VND": 1,
+  "Giá vàng thế giới quy đổi (VND/lượng)": -1,
+  "Khối ngoại mua ròng": -1,
+  "FPT (Tập đoàn FPT)": 1,
+  "HPG (Hòa Phát)": -1,
+  "VIC (Vingroup)": -1,
+  "Vàng miếng SJC": -1,
+  "Vàng nhẫn 9999": -1,
+  "Chỉ số VN30": -1
+ },
+ "tabular": {
+  "diabetes": {
+   "records": 96128,
+   "documents": 96128,
+   "triples": 961280,
+   "nodes": 100528,
+   "edges": 961280,
+   "doc_s": 3.1702969000007215,
+   "kg_s": 5.348336900000504,
+   "sample_docs": [
+    "Hồ sơ Person_0: giới tính nữ, tuổi 80, tăng huyết áp không, bệnh tim có, tiền sử hút thuốc chưa từng, BMI 25.19, HbA1c 6.6, glucose máu 140, đái tháo đường không.",
+    "Hồ sơ Person_1: giới tính nữ, tuổi 54, tăng huyết áp không, bệnh tim không, tiền sử hút thuốc không rõ, BMI 27.32, HbA1c 6.6, glucose máu 80, đái tháo đường không.",
+    "Hồ sơ Person_2: giới tính nam, tuổi 28, tăng huyết áp không, bệnh tim không, tiền sử hút thuốc chưa từng, BMI 27.32, HbA1c 5.7, glucose máu 158, đái tháo đường không."
+   ],
+   "sample_triples": [
+    [
+     "Person_0",
+     "rdf:type",
+     "Patient"
+    ],
+    [
+     "Person_0",
+     "has_gender",
+     "Female"
+    ],
+    [
+     "Person_0",
+     "has_age",
+     "80.0"
+    ],
+    [
+     "Person_0",
+     "has_hypertension",
+     "0"
+    ],
+    [
+     "Person_0",
+     "has_heart_disease",
+     "1"
+    ],
+    [
+     "Person_0",
+     "has_smoking_history",
+     "never"
+    ],
+    [
+     "Person_0",
+     "has_bmi",
+     "25.19"
+    ],
+    [
+     "Person_0",
+     "has_hba1c_level",
+     "6.6"
+    ],
+    [
+     "Person_0",
+     "has_blood_glucose_level",
+     "140"
+    ],
+    [
+     "Person_0",
+     "has_diabetes_label",
+     "0"
+    ]
+   ]
+  },
+  "numeric_query": {
+   "kg_hits": 125,
+   "truth": 125,
+   "kg_exact": true,
+   "kg_ms": 85.96220000072208,
+   "tfidf_top20_correct": 2,
+   "truth_in_sample": 25
+  },
+  "fpt_max_close": {
+   "subject": "TradingDay_FPT_2450",
+   "date": "2025-01-23",
+   "close": 118050.6640625,
+   "volume": 8928117.0
+  },
+  "stocks": [
+   {
+    "symbol": "FPT",
+    "days": 2863,
+    "triples": 22904,
+    "nodes": 18308,
+    "edges": 22904
+   },
+   {
+    "symbol": "HPG",
+    "days": 2863,
+    "triples": 22904,
+    "nodes": 17916,
+    "edges": 22904
+   },
+   {
+    "symbol": "VCB",
+    "days": 2846,
+    "triples": 22768,
+    "nodes": 17529,
+    "edges": 22768
+   },
+   {
+    "symbol": "VIC",
+    "days": 2849,
+    "triples": 22792,
+    "nodes": 13869,
+    "edges": 22792
+   }
+  ]
+ }
+}

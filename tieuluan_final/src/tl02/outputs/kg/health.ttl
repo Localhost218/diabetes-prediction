@@ -1,0 +1,769 @@
+@prefix ex: <http://tl02.ptit.local/kg#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Biguanide a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:Biomarker a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:Complication a rdfs:Class ;
+    rdfs:subClassOf ex:Condition .
+
+ex:Condition a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:DPP4Inhibitor a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:Disease a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:Drug a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:Food a rdfs:Class ;
+    rdfs:subClassOf ex:Substance .
+
+ex:FoodGroup a rdfs:Class ;
+    rdfs:subClassOf ex:Food .
+
+ex:GLP1Agonist a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:Guideline a rdfs:Class ;
+    rdfs:subClassOf ex:Thing .
+
+ex:Insulin a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:Lifestyle a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:MedicalEntity a rdfs:Class ;
+    rdfs:subClassOf ex:Thing .
+
+ex:ModerateFood a rdfs:Class ;
+    rdfs:subClassOf ex:Food .
+
+ex:RiskFactor a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:RiskFood a rdfs:Class ;
+    rdfs:subClassOf ex:Food .
+
+ex:RiskSubstance a rdfs:Class ;
+    rdfs:subClassOf ex:Substance .
+
+ex:SGLT2Inhibitor a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:SafeFood a rdfs:Class ;
+    rdfs:subClassOf ex:Food .
+
+ex:Substance a rdfs:Class ;
+    rdfs:subClassOf ex:MedicalEntity .
+
+ex:Sulfonylurea a rdfs:Class ;
+    rdfs:subClassOf ex:Drug .
+
+ex:Thing a rdfs:Class .
+
+ex:stmt0 a rdf:Statement ;
+    ex:source "h01-chan-doan"@vi ;
+    rdf:object ex:QD_5481 ;
+    rdf:predicate ex:THEO_HUONG_DAN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt1 a rdf:Statement ;
+    ex:dose "500 mg x 1-2 lần/ngày"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Metformin ;
+    rdf:predicate ex:CHI_DINH_DAU_TAY ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt10 a rdf:Statement ;
+    ex:reason "GI 53; nước dùng trong, nhiều rau"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Bun_Pho ;
+    rdf:predicate ex:AN_DINH_LUONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt11 a rdf:Statement ;
+    ex:source "h05-van-dong"@vi ;
+    rdf:object ex:Van_Dong_150 ;
+    rdf:predicate ex:KHUYEN_NGHI_LOI_SONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt12 a rdf:Statement ;
+    ex:source "h05-van-dong"@vi ;
+    rdf:object ex:Giam_Can ;
+    rdf:predicate ex:KHUYEN_NGHI_LOI_SONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt13 a rdf:Statement ;
+    ex:source "h05-van-dong"@vi ;
+    rdf:object ex:Bo_Thuoc_La ;
+    rdf:predicate ex:KHUYEN_NGHI_LOI_SONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt14 a rdf:Statement ;
+    ex:note "bắt buộc suốt đời"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Insulin_Nen ;
+    rdf:predicate ex:CHI_DINH_DAU_TAY ;
+    rdf:subject ex:DTD_Tip1 .
+
+ex:stmt15 a rdf:Statement ;
+    ex:rate "5-10%/năm"@vi ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:TIEN_TRIEN_THANH ;
+    rdf:subject ex:Tien_DTD .
+
+ex:stmt16 a rdf:Statement ;
+    ex:effect "giảm 58% nguy cơ (DPP)"@vi ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:Van_Dong_150 ;
+    rdf:predicate ex:KHUYEN_NGHI_LOI_SONG ;
+    rdf:subject ex:Tien_DTD .
+
+ex:stmt17 a rdf:Statement ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:Giam_Can ;
+    rdf:predicate ex:KHUYEN_NGHI_LOI_SONG ;
+    rdf:subject ex:Tien_DTD .
+
+ex:stmt18 a rdf:Statement ;
+    ex:source "h01-chan-doan"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:TIEU_CHUAN_CHAN_DOAN ;
+    rdf:subject ex:HbA1c_Cao .
+
+ex:stmt19 a rdf:Statement ;
+    ex:source "h01-chan-doan"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:TIEU_CHUAN_CHAN_DOAN ;
+    rdf:subject ex:Glucose_Doi_Cao .
+
+ex:stmt2 a rdf:Statement ;
+    ex:reason "đạm nạc 31 g/100 g, không carbohydrate"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Uc_Ga_Bo_Da ;
+    rdf:predicate ex:KHUYEN_NGHI_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt20 a rdf:Statement ;
+    ex:source "h01-chan-doan"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:TIEU_CHUAN_CHAN_DOAN ;
+    rdf:subject ex:OGTT_2h_Cao .
+
+ex:stmt21 a rdf:Statement ;
+    ex:source "h01-chan-doan"@vi ;
+    rdf:object ex:Tien_DTD ;
+    rdf:predicate ex:TIEU_CHUAN_CHAN_DOAN ;
+    rdf:subject ex:HbA1c_Tien .
+
+ex:stmt22 a rdf:Statement ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:YEU_TO_NGUY_CO ;
+    rdf:subject ex:Beo_Phi .
+
+ex:stmt23 a rdf:Statement ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:YEU_TO_NGUY_CO ;
+    rdf:subject ex:It_Van_Dong .
+
+ex:stmt24 a rdf:Statement ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:YEU_TO_NGUY_CO ;
+    rdf:subject ex:Hut_Thuoc .
+
+ex:stmt25 a rdf:Statement ;
+    ex:source "h08-tien-dai-thao-duong"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:YEU_TO_NGUY_CO ;
+    rdf:subject ex:Tang_Huyet_Ap .
+
+ex:stmt26 a rdf:Statement ;
+    ex:source "h07-ha-duong-huyet"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Ha_Duong_Huyet .
+
+ex:stmt27 a rdf:Statement ;
+    ex:source "h07-ha-duong-huyet"@vi ;
+    rdf:object ex:Quy_Tac_15_15 ;
+    rdf:predicate ex:XU_TRI_BANG ;
+    rdf:subject ex:Ha_Duong_Huyet .
+
+ex:stmt28 a rdf:Statement ;
+    ex:source "h07-ha-duong-huyet"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Toan_Ceton .
+
+ex:stmt29 a rdf:Statement ;
+    ex:source "h06-bien-chung"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Benh_Tim_Mach .
+
+ex:stmt3 a rdf:Statement ;
+    ex:reason "chất xơ làm chậm hấp thu; ít nhất nửa đĩa"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Rau_Xanh ;
+    rdf:predicate ex:KHUYEN_NGHI_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt30 a rdf:Statement ;
+    ex:source "h06-bien-chung"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Benh_Vong_Mac .
+
+ex:stmt31 a rdf:Statement ;
+    ex:source "h06-bien-chung"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Benh_Than_DTD .
+
+ex:stmt32 a rdf:Statement ;
+    ex:source "h06-bien-chung"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:BIEN_CHUNG_CUA ;
+    rdf:subject ex:Loet_Ban_Chan .
+
+ex:stmt33 a rdf:Statement ;
+    ex:rule "eGFR < 30 mL/phút/1,73 m2"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Suy_Than_Nang ;
+    rdf:predicate ex:CHONG_CHI_DINH_KHI ;
+    rdf:subject ex:Metformin .
+
+ex:stmt34 a rdf:Statement ;
+    ex:rule "tạm ngưng trước chụp"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Chup_Can_Quang ;
+    rdf:predicate ex:CHONG_CHI_DINH_KHI ;
+    rdf:subject ex:Metformin .
+
+ex:stmt35 a rdf:Statement ;
+    ex:effect "tăng nguy cơ nhiễm toan lactic; tránh uống quá mức và say rượu"@vi ;
+    ex:severity "cao"@vi ;
+    ex:source "h03-ruou-bia"@vi ;
+    rdf:object ex:Ruou_Bia ;
+    rdf:predicate ex:TUONG_TAC_NGUY_HIEM ;
+    rdf:subject ex:Metformin .
+
+ex:stmt36 a rdf:Statement ;
+    ex:freq "hiếm"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Nhiem_Toan_Lactic ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Metformin .
+
+ex:stmt37 a rdf:Statement ;
+    ex:freq "dùng lâu dài"@vi ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Thieu_B12 ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Metformin .
+
+ex:stmt38 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:DIEU_TRI ;
+    rdf:subject ex:Gliclazide .
+
+ex:stmt39 a rdf:Statement ;
+    ex:effect "tăng mạnh nguy cơ hạ glucose huyết"@vi ;
+    ex:severity "cao"@vi ;
+    ex:source "h03-ruou-bia"@vi ;
+    rdf:object ex:Ruou_Bia ;
+    rdf:predicate ex:TUONG_TAC_NGUY_HIEM ;
+    rdf:subject ex:Gliclazide .
+
+ex:stmt4 a rdf:Statement ;
+    ex:reason "GI thấp, chia nhỏ"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Trai_Cay_GI_Thap ;
+    rdf:predicate ex:KHUYEN_NGHI_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt40 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Ha_Duong_Huyet ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Gliclazide .
+
+ex:stmt41 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:DIEU_TRI ;
+    rdf:subject ex:Sitagliptin .
+
+ex:stmt42 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:DIEU_TRI ;
+    rdf:subject ex:Empagliflozin .
+
+ex:stmt43 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Suy_Tim ;
+    rdf:predicate ex:UU_TIEN_KHI ;
+    rdf:subject ex:Empagliflozin .
+
+ex:stmt44 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Benh_Than_Man ;
+    rdf:predicate ex:UU_TIEN_KHI ;
+    rdf:subject ex:Empagliflozin .
+
+ex:stmt45 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:DIEU_TRI ;
+    rdf:subject ex:Semaglutide .
+
+ex:stmt46 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:DTD_Tip2 ;
+    rdf:predicate ex:DIEU_TRI ;
+    rdf:subject ex:Insulin_Nen .
+
+ex:stmt47 a rdf:Statement ;
+    ex:effect "tăng mạnh nguy cơ hạ glucose huyết"@vi ;
+    ex:severity "cao"@vi ;
+    ex:source "h03-ruou-bia"@vi ;
+    rdf:object ex:Ruou_Bia ;
+    rdf:predicate ex:TUONG_TAC_NGUY_HIEM ;
+    rdf:subject ex:Insulin_Nen .
+
+ex:stmt48 a rdf:Statement ;
+    ex:source "h02-thuoc-dieu-tri"@vi ;
+    rdf:object ex:Ha_Duong_Huyet ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Insulin_Nen .
+
+ex:stmt49 a rdf:Statement ;
+    ex:source "h03-ruou-bia"@vi ;
+    rdf:object ex:Nhiem_Toan_Lactic ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Ruou_Bia .
+
+ex:stmt5 a rdf:Statement ;
+    ex:reason "nhiều chất béo bão hòa, tăng đề kháng insulin"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Ga_Ran ;
+    rdf:predicate ex:HAN_CHE_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt50 a rdf:Statement ;
+    ex:source "h03-ruou-bia"@vi ;
+    ex:window "tới 24 giờ"@vi ;
+    rdf:object ex:Ha_Duong_Huyet ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Ruou_Bia .
+
+ex:stmt51 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Thit_Ga ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Uc_Ga_Bo_Da .
+
+ex:stmt52 a rdf:Statement ;
+    ex:reason "chất béo bão hòa, tăng LDL"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Benh_Tim_Mach ;
+    rdf:predicate ex:TANG_NGUY_CO ;
+    rdf:subject ex:Ga_Ran .
+
+ex:stmt53 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Thit_Ga ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Ga_Ran .
+
+ex:stmt54 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Tinh_Bot ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Com_Trang .
+
+ex:stmt55 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Tinh_Bot ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Gao_Lut .
+
+ex:stmt56 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Tinh_Bot ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Bun_Pho .
+
+ex:stmt57 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Tinh_Bot ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Khoai_Tay .
+
+ex:stmt58 a rdf:Statement ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Tinh_Bot ;
+    rdf:predicate ex:LA_MOT_DANG_CUA ;
+    rdf:subject ex:Xoi_Nep .
+
+ex:stmt6 a rdf:Statement ;
+    ex:reason "GI 78"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Khoai_Tay ;
+    rdf:predicate ex:HAN_CHE_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt7 a rdf:Statement ;
+    ex:reason "GI rất cao"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Xoi_Nep ;
+    rdf:predicate ex:HAN_CHE_AN ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt8 a rdf:Statement ;
+    ex:reason "GI 73, GL 29; tối đa ~1 bát con/bữa, ăn rau trước"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Com_Trang ;
+    rdf:predicate ex:AN_DINH_LUONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:stmt9 a rdf:Statement ;
+    ex:reason "GI 68, giàu chất xơ; thay một phần gạo trắng"@vi ;
+    ex:source "h04-dinh-duong"@vi ;
+    rdf:object ex:Gao_Lut ;
+    rdf:predicate ex:AN_DINH_LUONG ;
+    rdf:subject ex:DTD_Tip2 .
+
+ex:Benh_Than_DTD a ex:Complication ;
+    rdfs:label "Bệnh thận do đái tháo đường"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 .
+
+ex:Benh_Vong_Mac a ex:Complication ;
+    rdfs:label "Bệnh võng mạc"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 .
+
+ex:Beo_Phi a ex:RiskFactor ;
+    rdfs:label "BMI ≥ 25 (béo phì, chuẩn châu Á)"@vi ;
+    ex:YEU_TO_NGUY_CO ex:DTD_Tip2 ;
+    ex:threshold 25 .
+
+ex:DTD_Tip1 a ex:Disease ;
+    rdfs:label "Đái tháo đường típ 1"@vi ;
+    ex:CHI_DINH_DAU_TAY ex:Insulin_Nen ;
+    ex:icd10 "E10"@vi .
+
+ex:Glucose_Doi_Cao a ex:Biomarker ;
+    rdfs:label "Glucose lúc đói ≥ 126 mg/dL"@vi ;
+    ex:TIEU_CHUAN_CHAN_DOAN ex:DTD_Tip2 ;
+    ex:threshold 126 ;
+    ex:unit "mg/dL"@vi .
+
+ex:HbA1c_Cao a ex:Biomarker ;
+    rdfs:label "HbA1c ≥ 6,5%"@vi ;
+    ex:TIEU_CHUAN_CHAN_DOAN ex:DTD_Tip2 ;
+    ex:threshold 6.5e+00 ;
+    ex:unit "%"@vi .
+
+ex:HbA1c_Tien a ex:Biomarker ;
+    rdfs:label "HbA1c 5,7 - 6,4%"@vi ;
+    ex:TIEU_CHUAN_CHAN_DOAN ex:Tien_DTD ;
+    ex:high 6.4e+00 ;
+    ex:low 5.7e+00 ;
+    ex:unit "%"@vi .
+
+ex:Hut_Thuoc a ex:RiskFactor ;
+    rdfs:label "Hút thuốc lá"@vi ;
+    ex:YEU_TO_NGUY_CO ex:DTD_Tip2 .
+
+ex:It_Van_Dong a ex:RiskFactor ;
+    rdfs:label "Ít vận động"@vi ;
+    ex:YEU_TO_NGUY_CO ex:DTD_Tip2 .
+
+ex:Loet_Ban_Chan a ex:Complication ;
+    rdfs:label "Loét bàn chân"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 .
+
+ex:OGTT_2h_Cao a ex:Biomarker ;
+    rdfs:label "Glucose 2 giờ sau nghiệm pháp ≥ 200 mg/dL"@vi ;
+    ex:TIEU_CHUAN_CHAN_DOAN ex:DTD_Tip2 ;
+    ex:threshold 200 ;
+    ex:unit "mg/dL"@vi .
+
+ex:Semaglutide a ex:GLP1Agonist ;
+    rdfs:label "Semaglutide"@vi ;
+    ex:DIEU_TRI ex:DTD_Tip2 .
+
+ex:Sitagliptin a ex:DPP4Inhibitor ;
+    rdfs:label "Sitagliptin"@vi ;
+    ex:DIEU_TRI ex:DTD_Tip2 .
+
+ex:THEO_HUONG_DAN a rdf:Property ;
+    rdfs:label "theo hướng dẫn"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Guideline .
+
+ex:TIEN_TRIEN_THANH a rdf:Property ;
+    rdfs:label "có thể tiến triển thành"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Disease .
+
+ex:Tang_Huyet_Ap a ex:RiskFactor ;
+    rdfs:label "Tăng huyết áp"@vi ;
+    ex:YEU_TO_NGUY_CO ex:DTD_Tip2 .
+
+ex:Toan_Ceton a ex:Complication ;
+    rdfs:label "Nhiễm toan ceton"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 .
+
+ex:XU_TRI_BANG a rdf:Property ;
+    rdfs:label "xử trí bằng"@vi ;
+    rdfs:domain ex:Complication ;
+    rdfs:range ex:Lifestyle .
+
+ex:Benh_Than_Man a ex:Condition ;
+    rdfs:label "Bệnh thận mạn"@vi .
+
+ex:Bo_Thuoc_La a ex:Lifestyle ;
+    rdfs:label "Bỏ thuốc lá"@vi .
+
+ex:CHI_DINH_DAU_TAY a rdf:Property ;
+    rdfs:label "chỉ định đầu tay"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Drug ;
+    owl:inverseOf ex:DIEU_TRI .
+
+ex:CHONG_CHI_DINH_KHI a rdf:Property ;
+    rdfs:label "chống chỉ định khi"@vi ;
+    rdfs:domain ex:Drug ;
+    rdfs:range ex:Condition .
+
+ex:Chup_Can_Quang a ex:Condition ;
+    rdfs:label "Chụp cản quang có iod"@vi .
+
+ex:QD_5481 a ex:Guideline ;
+    rdfs:label "Quyết định 5481/QĐ-BYT"@vi ;
+    ex:year 2020 .
+
+ex:Quy_Tac_15_15 a ex:Lifestyle ;
+    rdfs:label "Quy tắc 15-15 (15 g carbohydrate, chờ 15 phút)"@vi .
+
+ex:Rau_Xanh a ex:SafeFood ;
+    rdfs:label "Rau xanh (rau muống, cải, bông cải)"@vi ;
+    ex:gi "rất thấp"@vi .
+
+ex:Suy_Than_Nang a ex:Condition ;
+    rdfs:label "Suy thận nặng (eGFR < 30)"@vi ;
+    ex:egfr_max 30 .
+
+ex:Suy_Tim a ex:Condition ;
+    rdfs:label "Suy tim"@vi .
+
+ex:Thieu_B12 a ex:Complication ;
+    rdfs:label "Thiếu vitamin B12"@vi .
+
+ex:Trai_Cay_GI_Thap a ex:SafeFood ;
+    rdfs:label "Táo, cam (GI thấp)"@vi ;
+    ex:gi 36 .
+
+ex:UU_TIEN_KHI a rdf:Property ;
+    rdfs:label "ưu tiên khi có"@vi ;
+    rdfs:domain ex:Drug ;
+    rdfs:range ex:Condition .
+
+ex:AN_DINH_LUONG a rdf:Property ;
+    rdfs:label "ăn có định lượng"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Food .
+
+ex:Benh_Tim_Mach a ex:Complication ;
+    rdfs:label "Bệnh tim mạch do xơ vữa"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 .
+
+ex:Bun_Pho a ex:ModerateFood ;
+    rdfs:label "Bún, phở"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Tinh_Bot ;
+    ex:gi 53 .
+
+ex:Com_Trang a ex:ModerateFood ;
+    rdfs:label "Cơm trắng"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Tinh_Bot ;
+    ex:gi 73 ;
+    ex:gl 29 .
+
+ex:Empagliflozin a ex:SGLT2Inhibitor ;
+    rdfs:label "Empagliflozin"@vi ;
+    ex:DIEU_TRI ex:DTD_Tip2 ;
+    ex:UU_TIEN_KHI ex:Benh_Than_Man,
+        ex:Suy_Tim .
+
+ex:Gao_Lut a ex:ModerateFood ;
+    rdfs:label "Gạo lứt"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Tinh_Bot ;
+    ex:gi 68 .
+
+ex:Gliclazide a ex:Sulfonylurea ;
+    rdfs:label "Gliclazide"@vi ;
+    ex:DIEU_TRI ex:DTD_Tip2 ;
+    ex:TANG_NGUY_CO ex:Ha_Duong_Huyet ;
+    ex:TUONG_TAC_NGUY_HIEM ex:Ruou_Bia .
+
+ex:HAN_CHE_AN a rdf:Property ;
+    rdfs:label "khuyến nghị hạn chế"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Food .
+
+ex:KHUYEN_NGHI_AN a rdf:Property ;
+    rdfs:label "khuyến nghị ăn"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Food .
+
+ex:Khoai_Tay a ex:RiskFood ;
+    rdfs:label "Khoai tây luộc"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Tinh_Bot ;
+    ex:gi 78 .
+
+ex:TUONG_TAC_NGUY_HIEM a rdf:Property ;
+    rdfs:label "tương tác nguy hiểm với"@vi ;
+    rdfs:domain ex:Drug ;
+    rdfs:range ex:RiskSubstance .
+
+ex:Uc_Ga_Bo_Da a ex:SafeFood ;
+    rdfs:label "Ức gà bỏ da luộc/hấp"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Thit_Ga ;
+    ex:carb_g 0 ;
+    ex:protein_g 31 .
+
+ex:Xoi_Nep a ex:RiskFood ;
+    rdfs:label "Xôi nếp"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Tinh_Bot ;
+    ex:gi "rất cao"@vi .
+
+ex:Ga_Ran a ex:RiskFood ;
+    rdfs:label "Gà rán, gà chiên, da gà"@vi ;
+    ex:LA_MOT_DANG_CUA ex:Thit_Ga ;
+    ex:TANG_NGUY_CO ex:Benh_Tim_Mach ;
+    ex:saturated_fat "cao"@vi .
+
+ex:Giam_Can a ex:Lifestyle ;
+    rdfs:label "Giảm 5 - 7% cân nặng"@vi ;
+    ex:pct 7 .
+
+ex:Nhiem_Toan_Lactic a ex:Complication ;
+    rdfs:label "Nhiễm toan lactic"@vi ;
+    ex:severity "nguy kịch"@vi .
+
+ex:TIEU_CHUAN_CHAN_DOAN a rdf:Property ;
+    rdfs:label "là tiêu chuẩn chẩn đoán"@vi ;
+    rdfs:domain ex:Biomarker ;
+    rdfs:range ex:Disease .
+
+ex:Thit_Ga a ex:FoodGroup ;
+    rdfs:label "Thịt gà"@vi .
+
+ex:Van_Dong_150 a ex:Lifestyle ;
+    rdfs:label "Vận động ≥ 150 phút/tuần"@vi ;
+    ex:minutes 150 .
+
+ex:YEU_TO_NGUY_CO a rdf:Property ;
+    rdfs:label "là yếu tố nguy cơ của"@vi ;
+    rdfs:domain ex:RiskFactor ;
+    rdfs:range ex:Disease .
+
+ex:Insulin_Nen a ex:Insulin ;
+    rdfs:label "Insulin"@vi ;
+    ex:DIEU_TRI ex:DTD_Tip2 ;
+    ex:TANG_NGUY_CO ex:Ha_Duong_Huyet ;
+    ex:TUONG_TAC_NGUY_HIEM ex:Ruou_Bia .
+
+ex:KHUYEN_NGHI_LOI_SONG a rdf:Property ;
+    rdfs:label "khuyến nghị lối sống"@vi ;
+    rdfs:domain ex:Disease ;
+    rdfs:range ex:Lifestyle .
+
+ex:Tien_DTD a ex:Disease ;
+    rdfs:label "Tiền đái tháo đường"@vi ;
+    ex:KHUYEN_NGHI_LOI_SONG ex:Giam_Can,
+        ex:Van_Dong_150 ;
+    ex:TIEN_TRIEN_THANH ex:DTD_Tip2 ;
+    ex:icd10 "R73.03"@vi .
+
+ex:BIEN_CHUNG_CUA a rdf:Property ;
+    rdfs:label "là biến chứng của"@vi ;
+    rdfs:domain ex:Complication ;
+    rdfs:range ex:Disease .
+
+ex:DIEU_TRI a rdf:Property ;
+    rdfs:label "điều trị"@vi ;
+    rdfs:domain ex:Drug ;
+    rdfs:range ex:Disease .
+
+ex:LA_MOT_DANG_CUA a rdf:Property,
+        owl:TransitiveProperty ;
+    rdfs:label "là một dạng của"@vi ;
+    rdfs:domain ex:Food ;
+    rdfs:range ex:FoodGroup .
+
+ex:Metformin a ex:Biguanide ;
+    rdfs:label "Metformin"@vi ;
+    ex:CHONG_CHI_DINH_KHI ex:Chup_Can_Quang,
+        ex:Suy_Than_Nang ;
+    ex:TANG_NGUY_CO ex:Nhiem_Toan_Lactic,
+        ex:Thieu_B12 ;
+    ex:TUONG_TAC_NGUY_HIEM ex:Ruou_Bia ;
+    ex:first_line true .
+
+ex:TANG_NGUY_CO a rdf:Property ;
+    rdfs:label "làm tăng nguy cơ"@vi ;
+    rdfs:domain ex:MedicalEntity ;
+    rdfs:range ex:Condition .
+
+ex:Ha_Duong_Huyet a ex:Complication ;
+    rdfs:label "Hạ glucose huyết (< 70 mg/dL)"@vi ;
+    ex:BIEN_CHUNG_CUA ex:DTD_Tip2 ;
+    ex:XU_TRI_BANG ex:Quy_Tac_15_15 ;
+    ex:threshold 70 .
+
+ex:Ruou_Bia a ex:RiskSubstance ;
+    rdfs:label "Rượu bia (ethanol)"@vi ;
+    ex:TANG_NGUY_CO ex:Ha_Duong_Huyet,
+        ex:Nhiem_Toan_Lactic ;
+    ex:kcal_per_g 7 .
+
+ex:Tinh_Bot a ex:FoodGroup ;
+    rdfs:label "Thực phẩm giàu tinh bột"@vi .
+
+ex:DTD_Tip2 a ex:Disease ;
+    rdfs:label "Đái tháo đường típ 2"@vi ;
+    ex:AN_DINH_LUONG ex:Bun_Pho,
+        ex:Com_Trang,
+        ex:Gao_Lut ;
+    ex:CHI_DINH_DAU_TAY ex:Metformin ;
+    ex:HAN_CHE_AN ex:Ga_Ran,
+        ex:Khoai_Tay,
+        ex:Xoi_Nep ;
+    ex:KHUYEN_NGHI_AN ex:Rau_Xanh,
+        ex:Trai_Cay_GI_Thap,
+        ex:Uc_Ga_Bo_Da ;
+    ex:KHUYEN_NGHI_LOI_SONG ex:Bo_Thuoc_La,
+        ex:Giam_Can,
+        ex:Van_Dong_150 ;
+    ex:THEO_HUONG_DAN ex:QD_5481 ;
+    ex:icd10 "E11"@vi .
+

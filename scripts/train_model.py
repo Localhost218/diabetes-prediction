@@ -4,9 +4,10 @@ Huấn luyện và so sánh ML (Gradient Boosting) với DL (MLP PyTorch) cho nh
     python scripts/fetch_nhanes.py                  # một lần: tải dữ liệu NHANES
     python scripts/train_model.py                   # train trên cả NHANES và bộ dữ liệu VN
     python scripts/train_model.py --dataset nhanes  # chỉ một bộ
-    python scripts/train_model.py --reload          # nạp lại CSV vào PostgreSQL
+    python scripts/fetch_brfss.py && python scripts/train_model.py --dataset brfss   # 3,17 triệu người
+    python scripts/train_model.py --reload          # nạp lại CSV vào DB
 
-Dữ liệu được đọc từ PostgreSQL (bảng nhanes_samples / training_samples). Chia 70/10/20 (train/val/test),
+Dữ liệu được đọc từ DB quan hệ (bảng nhanes_samples / training_samples). Chia 70/10/20 (train/val/test),
 tăng cường bằng cách che ngẫu nhiên đặc trưng; đánh giá trên tập test đầy đủ, tập test bị che (mô phỏng
 người dùng chatbot chỉ khai một phần) và nhóm con (người gốc Á với NHANES).
 """
@@ -41,8 +42,8 @@ def scores(y, p) -> dict:
 
 def run(name: str, reload: bool) -> dict:
     spec = DATASETS[name]
-    if name == "nhanes" and not Path(spec.csv_path).exists():
-        raise SystemExit("Chưa có dữ liệu NHANES — chạy: python scripts/fetch_nhanes.py")
+    if name in ("nhanes", "brfss") and not Path(spec.csv_path).exists():
+        raise SystemExit(f"Chưa có dữ liệu {name.upper()} — chạy: python scripts/fetch_{name}.py")
     df = load_dataframe(spec, engine, reload)
     X, y = df[spec.features].astype(float), df[spec.label].astype(int)
     group = df[spec.subgroup] if spec.subgroup else pd.Series(0, index=df.index)
@@ -56,7 +57,10 @@ def run(name: str, reload: bool) -> dict:
 
     print(f"\n=== {spec.title}: {len(df):,} mẫu, tỷ lệ dương tính {y.mean():.1%}, {len(spec.features)} đặc trưng ===")
     gbdt = GradientBoostingRisk.train(spec, X_aug, y_aug)
-    mlp = MLPRisk.train(spec, X_aug, y_aug, X_val_aug, y_val_aug)
+    # Bộ hàng triệu mẫu: batch lớn, ít epoch hơn (mỗi epoch đã đủ nhiều bước cập nhật)
+    big = len(X_aug) > 1_000_000
+    mlp = MLPRisk.train(spec, X_aug, y_aug, X_val_aug, y_val_aug,
+                        **({"epochs": 20, "patience": 3, "batch_size": 4096} if big else {}))
     logreg = make_pipeline(SimpleImputer(strategy="median", add_indicator=True), StandardScaler(),
                            LogisticRegression(max_iter=3000)).fit(X_aug, y_aug)
 
@@ -96,11 +100,11 @@ def run(name: str, reload: bool) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dataset", choices=["nhanes", "vn", "all"], default="all")
-    parser.add_argument("--reload", action="store_true", help="Nạp lại CSV vào PostgreSQL")
+    parser.add_argument("--dataset", choices=["nhanes", "brfss", "vn", "all"], default="all")
+    parser.add_argument("--reload", action="store_true", help="Nạp lại CSV vào DB")
     args = parser.parse_args()
     init_db()
-    for name in (["nhanes", "vn"] if args.dataset == "all" else [args.dataset]):
+    for name in (["nhanes", "brfss", "vn"] if args.dataset == "all" else [args.dataset]):
         run(name, args.reload)
 
 
