@@ -15,9 +15,8 @@ pgvector>=0.3
 # Lưu trữ file (SeaweedFS / S3)
 boto3>=1.34
 
-# LLM (chọn một qua LLM_PROVIDER)
-google-genai>=1.30
-anthropic>=0.70
+# LLM (Ollama qua httpx hoặc Qwen local qua transformers)
+transformers>=4.45
 
 # Đọc bệnh án
 pymupdf>=1.24
@@ -36,6 +35,7 @@ scipy>=1.12
 joblib>=1.3
 fastembed>=0.4
 httpx>=0.27
+curl_cffi>=0.7
 
 # Thực nghiệm & kiểm thử
 matplotlib>=3.8

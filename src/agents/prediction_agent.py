@@ -1,13 +1,13 @@
 """
-Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification trên sơ đồ)
-  - ML (Chương 2): Gradient Boosting
-  - DL: mạng nơ-ron MLP (PyTorch)
-  Cả hai huấn luyện trên cùng dữ liệu từ DB quan hệ (SQLite) (mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
+Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification)
+  - ML: HistGradientBoosting + Platt Scaling (`nhanes_gbdt.joblib`)
+  - DL: Mạng nơ-ron Residual/Deep MLP PyTorch (`nhanes_mlp.pt`)
+  Cả hai huấn luyện trên cùng dữ liệu từ DB quan hệ (SQLite, mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
   độ lệch giữa chúng là căn cứ để hội đồng chất vấn.
-  - Ý kiến thứ hai quy mô lớn: cặp GBDT + MLP huấn luyện trên BRFSS 2011–2023 (3,17 triệu người, nhãn tự khai).
+  - Ý kiến thứ hai quy mô lớn: cặp GBDT + MLP huấn luyện trên BRFSS 2021–2023 (120.000 mẫu sạch gần đây, nhãn tự khai).
     So sánh theo nguy cơ TƯƠNG ĐỐI (vì tỷ lệ nền hai bộ khác nhau); lệch nhiều thì hội đồng chất vấn.
-  - RNN Temporal (Chương 4): chỉ số CGM khi có chuỗi đo glucose (≥ 5 lần), dự báo 15–60 phút bằng LSTM/GRU khi ≥ 12 lần
-  - CNN Vision (Chương 3): ResNet-18 phân độ bệnh võng mạc khi có ảnh đáy mắt
+  - RNN Temporal: chỉ số CGM khi có chuỗi đo glucose (≥ 5 lần), dự báo 15–60 phút bằng LSTM (`rnn_glucose_lstm.pt`) khi ≥ 12 lần.
+  - CNN Vision: ResNet-18 phân độ bệnh võng mạc (`cnn_retinopathy_resnet18.pt`) kèm Grad-CAM khi có ảnh đáy mắt.
 Không tự sinh dữ liệu giả cho CNN/RNN khi người dùng không cung cấp.
 """
 

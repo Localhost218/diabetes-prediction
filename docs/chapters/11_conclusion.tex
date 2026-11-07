@@ -1,0 +1,28 @@
+\chapter{Kết luận}
+
+Báo cáo đã trình bày toàn diện tài liệu kiến trúc và kết quả hiện thực hóa \textbf{Hệ Đa Tác tử Thông minh hỗ trợ Dự đoán Nguy cơ, Chẩn đoán Sàng lọc và Tư vấn Quản lý Bệnh Đái tháo đường (Diabetes Multi-Agent System -- Project 01)} theo đúng khuôn mẫu kiến trúc chuẩn mực gồm 11 phần. Thay vì tiếp cận bài toán như một mô hình phân loại hộp đen đơn lẻ, hệ thống được thiết kế dưới dạng một hệ sinh thái đa tác tử lai (\emph{hybrid multi-agent architecture}) phân tầng 6 lớp, kết hợp chặt chẽ giữa suy luận biểu tượng dựa trên luật y khoa, mô hình dự đoán học máy/học sâu đa phương thức, đồ thị tri thức Neo4j kết hợp truy xuất lai RAG, mô hình học tăng cường có cổng an toàn và cơ chế tổng hợp ngôn ngữ tự nhiên Neo-Grounded.
+
+\section*{Tổng kết các đóng góp cốt lõi của đồ án}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Chuẩn hóa kiến trúc 6 lớp và mô hình hóa toán học $M = (\mathcal{A}, \mathcal{S}, \mathcal{O}, \mathcal{C}, \mathcal{F})$:}
+  Hệ thống phân tách rõ ràng giữa Tầng Tương tác (React + SSE), Tầng Cổng giao tiếp API (FastAPI + Pydantic), Tầng Điều phối Trung tâm (\agent{Orchestrator} \& \texttt{MessageBus}), Tầng Tác tử Chuyên biệt (8 tác tử trên 7 nhóm chức năng), Tầng Lưu trữ Tri thức \& Mô hình, và Tầng Hạ tầng Kiểm toán (\texttt{TraceCollector}). Mỗi tác tử giao tiếp qua phong bì thông điệp chuẩn hóa $m_i = \langle \text{sender}, \text{receiver}, \text{task\_type}, \text{payload}, \text{confidence}, \text{timestamp} \rangle$, đảm bảo tính mô-đun, khả năng kiểm chứng độc lập và khả năng mở rộng linh hoạt.
+
+  \item \textbf{Xây dựng kho dữ liệu đa nguồn chuẩn hóa và quy trình 10 Notebook thực nghiệm ML/DL:}
+  Dữ liệu được tổ chức minh bạch thành \path{data/download/} (dữ liệu thô từ NHANES 2011--2014, BRFSS 2021, APTOS 2019, OhioT1DM, cùng tài liệu ADA 2024, Bộ Y tế Việt Nam, Vinmec và Nhà thuốc FPT Long Châu) và \path{data/output/} (dữ liệu sạch). Chuỗi 10 Jupyter Notebooks (\texttt{00} đến \texttt{09}) đã huấn luyện và đánh giá toàn diện các họ mô hình từ GBDT, MLP + Platt Scaling (ROC-AUC $= 0.9469$, Brier $= 0.0445$ trên NHANES), LightGBM trên BRFSS ($253.680$ mẫu), đến ResNet18 CNN phân độ võng mạc ($\text{QWK} = 0.8707$) và BiLSTM + Attention dự báo đường huyết CGM ($\text{RMSE} = 7.21\text{ mg/dL}$).
+
+  \item \textbf{Tích hợp Đồ thị Tri thức Neo4j (43 nút, 55 cạnh) với đầy đủ hệ thống dược phẩm và Hybrid RAG:}
+  Tác tử \agent{KnowledgeAgent} kết hợp truy vấn láng giềng 2 bước bằng Cypher trên Neo4j (bao gồm 12 nút \texttt{:Drug} và 2 phác đồ phối hợp từ ADA 2024, Bộ Y tế, Vinmec và Nhà thuốc FPT Long Châu, 100\% cạnh liên kết về \texttt{chunk\_ids}) với truy xuất lai BM25 + Vector HNSW qua thuật toán RRF ($k = 60$). Nhờ đó, mọi khuyến nghị lâm sàng và thông tin thuốc tham chiếu đều đi kèm trích dẫn định danh \texttt{[C1..Ck]} chính xác tới nguồn văn bản gốc.
+
+  \item \textbf{Mở rộng Học tăng cường (\agent{TreatmentRLAgent}) có Cổng an toàn và Suy luận Lâm sàng 5 phần chuyên sâu:}
+  Tác tử RL mô hình hóa bài toán cá thể hóa cường độ can thiệp thành quá trình quyết định Markov (MDP) có lớp \texttt{SafetyGate} kiểm duyệt hai chiều. Toàn bộ kết quả suy luận từ các tác tử chuyên biệt và Hội đồng Phản biện (\agent{ConsensusCritic}) được \agent{ResponseAgent} tổng hợp thành báo cáo tư vấn lâm sàng 5 phần chi tiết, giải thích rõ cơ chế bệnh sinh và tuyệt đối tuân thủ giới hạn an toàn y khoa.
+\end{enumerate}
+
+\section*{Hướng phát triển tiếp theo}
+
+Từ nền tảng kiến trúc vững chắc đã hoàn thiện trong Đồ án Project 01, hệ thống mở ra các hướng nghiên cứu và phát triển thực tiễn trong tương lai:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Hiệu chỉnh dọc và kiểm định lâm sàng đa trung tâm:} Tích hợp dữ liệu bệnh án điện tử (EHR) theo thời gian thực tại các cơ sở y tế Việt Nam để tinh chỉnh mô hình dự báo nguy cơ dài hạn 5--10 năm.
+  \item \textbf{Học tăng cường ngoại tuyến (Offline RL) từ dữ liệu dọc:} Áp dụng các thuật toán Conservative Q-Learning (CQL) hoặc Decision Transformer trên chuỗi hồ sơ theo dõi HbA1c thực tế thay cho môi trường mô phỏng.
+  \item \textbf{Mở rộng đa phương thức lâm sàng:} Kết hợp trực tiếp mô hình CNN phân tích ảnh đáy mắt và mô hình BiLSTM đọc dữ liệu cảm biến CGM liên tục vào giao diện hội chẩn trực tuyến cho bác sĩ chuyên khoa Nội tiết.
+\end{itemize}

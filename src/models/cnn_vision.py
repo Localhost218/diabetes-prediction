@@ -1,8 +1,9 @@
 """
-Chương 3: CNN phân độ bệnh võng mạc đái tháo đường (DR) từ ảnh đáy mắt, thang ICDR 0–4.
+Mô hình CNN phân độ bệnh võng mạc đái tháo đường (DR) từ ảnh đáy mắt, thang ICDR 0–4.
 
-Mô hình ResNet-18 học chuyển giao từ ImageNet, tinh chỉnh trên RetinaMNIST 128×128 (lab/ch3_cnn.py →
-data/models/ch3_resnet18.pt). Kèm Grad-CAM để chỉ ra vùng ảnh quyết định dự đoán.
+Mô hình ResNet-18 học chuyển giao từ ImageNet, tinh chỉnh trên RetinaMNIST 128×128
+(`notebook/07_train_cnn_retinopathy.ipynb` → `notebook/model/cnn_retinopathy_resnet18.pt`).
+Kèm Grad-CAM để chỉ ra vùng ảnh quyết định dự đoán.
 """
 
 import base64
@@ -18,7 +19,7 @@ from PIL import Image
 
 from src.config import BASE_DIR
 
-MODEL_PATH = BASE_DIR / "data" / "models" / "ch3_resnet18.pt"
+MODEL_PATH = BASE_DIR / "notebook" / "model" / "cnn_retinopathy_resnet18.pt"
 MEAN, STD = np.array([0.485, 0.456, 0.406]), np.array([0.229, 0.224, 0.225])
 
 DR_CLASSES = [
@@ -109,6 +110,6 @@ class CNNRetinopathyEngine:
         grader = get_grader()
         image_b64 = (fundus or {}).get("image_b64")
         if grader is None or not image_b64:
-            return {"skipped": True, "reason": "Cần ảnh đáy mắt (image_b64) và mô hình ch3_resnet18.pt"}
+            return {"skipped": True, "reason": "Cần ảnh đáy mắt (image_b64) và mô hình cnn_retinopathy_resnet18.pt"}
         res = grader.predict(base64.b64decode(image_b64), with_cam=False)
         return {**res, "note": "Kết quả tham khảo từ CNN, không thay thế khám nhãn khoa"}

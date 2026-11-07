@@ -1,0 +1,89 @@
+\documentclass[a4paper,12pt,oneside]{report}
+\input{preamble}
+
+\begin{document}
+
+% ====================================================================== BÌA (giữ nguyên mẫu bìa của sinh viên)
+\pagenumbering{Alph}
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[line width=1.6pt] ($(current page.north west)+(2.3cm,-1.8cm)$) rectangle ($(current page.south east)+(-1.5cm,1.8cm)$);
+  \draw[line width=0.5pt] ($(current page.north west)+(2.45cm,-1.95cm)$) rectangle ($(current page.south east)+(-1.65cm,1.95cm)$);
+\end{tikzpicture}
+\centering
+\setstretch{1.25}
+\vspace*{0.4cm}
+{\bfseries HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG\\[2pt] KHOA CÔNG NGHỆ THÔNG TIN 1\\[-4pt]}
+\rule{5.2cm}{0.5pt}
+
+\vspace{1.0cm}
+\includegraphics[height=3.4cm]{ptit_logo}
+
+\vspace{1.0cm}
+{\fontsize{19}{25}\selectfont\bfseries PROJECT 01\\[4pt] PHÁT TRIỂN HỆ THỐNG THÔNG MINH\par}
+\vspace{1.1cm}
+{\fontsize{14.5}{20}\selectfont\bfseries HỆ ĐA AGENT CHO BỆNH TIỂU ĐƯỜNG\par}
+\vspace{0.4cm}
+{\itshape Deep Learning, Knowledge Base (Neo4j) và RAG,\\ Reinforcement Learning kết hợp luật, hội đồng tranh biện\par}
+
+\vspace{1.6cm}
+\begin{tabular}{@{}l@{\hspace{1.2cm}}l@{}}
+\textbf{Giảng viên hướng dẫn:} & PGS. TS. Trần Đình Quế \\
+\textbf{Sinh viên thực hiện:} & Nguyễn Tự Kiên \\
+\textbf{Mã sinh viên:} & B23DCCN465 \\
+\textbf{Nhóm lớp:} & CT01 \\
+\textbf{Nhóm:} & 07 \\
+\end{tabular}
+
+\vfill
+{\bfseries Hà Nội, tháng 11 năm 2026\par}
+\vspace{0.6cm}
+\end{titlepage}
+
+% ====================================================================== PHẦN ĐẦU
+\pagenumbering{roman}
+\setcounter{page}{2}
+
+\unnumberedchapter{TÓM TẮT BÁO CÁO}
+Báo cáo này trình bày kiến trúc tổng thể và kết quả triển khai thực nghiệm của \textbf{Hệ thống Đa Tác tử Lai Hỗ trợ Quyết định Lâm sàng Bệnh Đái tháo đường} (\emph{Hybrid Multiagent System Architecture for Diabetes Decision Support}). Hệ thống được xây dựng và mở rộng trên nền tảng hai thành phần cốt lõi đã phát triển: (i) tổ hợp các mô hình Học sâu (\emph{Deep Learning}) và Học máy (\emph{Machine Learning}) dự báo nguy cơ đái tháo đường và biến chứng được huấn luyện trên dữ liệu thực tế quy mô lớn (CDC NHANES 2011--2023, CDC BRFSS 2021--2023 và bộ dữ liệu nhân trắc người Việt), và (ii) hệ thống Đồ thị Tri thức (\emph{Knowledge Graph}) trên Neo4j kết hợp Sinh văn bản tăng cường truy xuất lai (\emph{Hybrid Retrieval-Augmented Generation -- RAG}) trên Qdrant và SQLite FTS5 được chuẩn hóa từ bốn nguồn tri thức y khoa: Hiệp hội Đái tháo đường Hoa Kỳ (ADA 2024), Quyết định 5481/QĐ-BYT của Bộ Y tế, Hệ thống Y tế Vinmec và Dược điển Nhà thuốc FPT Long Châu.
+
+Kiến trúc đề xuất bao gồm các tác tử chuyên biệt (\emph{specialized agents}) đảm nhiệm việc kiểm định và chuẩn hóa dữ liệu bệnh nhân (\emph{Patient Data Agent}), suy diễn dự báo bằng Học sâu và Học máy (\emph{DL Prediction Agent}), suy luận dựa trên luật lâm sàng và phản biện đồng thuận (\emph{Rule-Based \& Consensus Critic Agent}), truy xuất tri thức đồ thị và văn bản (\emph{KG/RAG Agent}), giải thích lâm sàng có dẫn chứng bằng mô hình ngôn ngữ lớn cục bộ Ollama/Qwen2.5 (\emph{Explanation Agent}), giám sát và kiểm toán vết thực thi (\emph{Monitoring Agent}), dưới sự điều phối tập trung của tác tử điều phối (\emph{Coordinator Agent}). Ngoài ra, tác tử Học tăng cường (\emph{Reinforcement Learning Agent}) sử dụng thuật toán Q-Learning kết hợp Cổng an toàn lâm sàng (\emph{Clinical Safety Gate}) được tích hợp như một mô-đun nâng cao hoạt động trong môi trường mô phỏng nhằm gợi ý lộ trình can thiệp bậc thang an toàn.
+
+Tài liệu này định nghĩa chi tiết kiến trúc phân tầng sáu lớp, phân loại trách nhiệm tác tử, mô hình hóa toán học, luồng tương tác tuần tự và song song, hợp đồng giao tiếp dữ liệu, cơ chế tích hợp mô hình -- tri thức, lộ trình triển khai chín giai đoạn cùng các nguyên tắc an toàn y khoa. Hệ thống là một nguyên mẫu nghiên cứu và giáo dục (\emph{educational and research prototype}), đóng vai trò công cụ hỗ trợ sàng lọc và tham khảo lâm sàng có giải trình, không thay thế quyết định chẩn đoán hay kê đơn trực tiếp của bác sĩ chuyên khoa.
+
+\clearpage
+\begin{spacing}{1.15}
+\tableofcontents
+\end{spacing}
+\clearpage
+\input{chapters/abbreviations}
+\clearpage
+\begin{spacing}{1.1}
+\listoffigures
+\clearpage
+\listoftables
+\end{spacing}
+\clearpage
+
+% ====================================================================== NỘI DUNG (11 chương theo đúng form của giảng viên)
+\pagenumbering{arabic}
+\input{chapters/01_intro}
+\input{chapters/02_architecture}
+\input{chapters/03_agents}
+\input{chapters/04_math}
+\input{chapters/05_workflow}
+\input{chapters/06_contracts}
+\input{chapters/07_integration}
+\input{chapters/08_rl}
+\input{chapters/09_roadmap}
+\input{chapters/10_safety}
+\input{chapters/11_conclusion}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
+\begin{spacing}{1.1}
+\begin{english}\printbibliography[title={TÀI LIỆU THAM KHẢO}]\end{english}
+\end{spacing}
+
+\end{document}

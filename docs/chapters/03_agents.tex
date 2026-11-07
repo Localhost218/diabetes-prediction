@@ -1,0 +1,77 @@
+\chapter{Phân loại tác tử và trách nhiệm}
+\label{chap:agents}
+
+\section{Phân loại tác tử (Agent Classification)}
+\label{sec:agent-classification}
+
+Hệ thống Đa Tác tử Lai được thiết kế theo mô hình tổ chức chuyên môn hóa: mỗi tác tử đại diện cho một vai trò chức năng trong hội đồng hỗ trợ quyết định y khoa và vận dụng mô thức Trí tuệ Nhân tạo phù hợp nhất với nhiệm vụ của mình. \tabref{tab:agent-classification} trình bày bảng phân loại đầy đủ các tác tử theo đề cương kiến trúc chuẩn, ánh xạ trực tiếp sang các lớp (\emph{class}) thực thi trong thư mục \texttt{src/agents/} và \texttt{src/communication/}.
+
+\begin{table}[htbp]
+\centering
+\caption{Phân loại các tác tử trong hệ thống, mô thức AI và trách nhiệm chính.}
+\label{tab:agent-classification}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\linewidth}{@{}L{3.7cm}L{3.2cm}Y@{}}
+\toprule
+\textbf{Tác tử (Class thực thi)} & \textbf{Mô thức AI (AI Paradigm)} & \textbf{Trách nhiệm chính (Main Responsibility)} \\
+\midrule
+\textbf{Patient Data Agent}\newline (\agent{ConversationAgent}, \agent{DocumentAgent}) &
+Xử lý tất định kết hợp trích xuất cấu trúc (\emph{Deterministic \& Structured Extraction}) &
+Phân loại ý định, bóc tách chỉ số lâm sàng từ hội thoại hoặc bệnh án (PDF, ảnh, DOCX, CSV), chuẩn hóa đơn vị đo lường, kiểm tra kiểu dữ liệu, giá trị khuyết thiếu và tính nhất quán của \texttt{PatientProfile}. \\
+\addlinespace[3pt]
+\textbf{DL Prediction Agent}\newline (\agent{PredictionAgent}) &
+Học sâu \& Học máy kết hợp (\emph{Deep Learning \& Calibrated Ensemble ML}) &
+Thực thi mô hình Học sâu (\texttt{nhanes\_mlp.pt}) và Học máy (\texttt{nhanes\_gbdt.joblib}) đã huấn luyện sẵn, đối chiếu với quần thể BRFSS (\texttt{brfss\_mlp.pt}, \texttt{brfss\_gbdt.joblib}), phân tích chuỗi CGM (\texttt{rnn\_glucose\_lstm.pt}) và ảnh võng mạc (\texttt{cnn\_retinopathy\_resnet18.pt}). \\
+\addlinespace[3pt]
+\textbf{Rule-Based Agent}\newline (\agent{ClarificationAgent}, \agent{ConsensusCriticAgent}) &
+Suy luận biểu tượng \& Phản biện đồng thuận (\emph{Symbolic Reasoning \& Debate}) &
+Áp dụng tường minh tiêu chuẩn ADA 2024 / Bộ Y tế, kiểm tra phạm vi sàng lọc, phát hiện mâu thuẫn giữa dự báo học sâu và xét nghiệm sinh hóa, tạo các cờ cảnh báo kiểm toán (\emph{auditable review flags}). \\
+\addlinespace[3pt]
+\textbf{KG/RAG Agent}\newline (\agent{KnowledgeAgent}) &
+Đồ thị Tri thức \& RAG lai (\emph{Knowledge Graph \& Hybrid RAG}) &
+Liên kết thực thể y khoa, truy vấn lân cận $k$-bước trên đồ thị Neo4j kết hợp tìm kiếm lai vector Qdrant + toàn văn FTS5 (RRF), trả về đường đi suy luận và nguồn bằng chứng gốc. \\
+\addlinespace[3pt]
+\textbf{Coordinator Agent}\newline (\agent{Orchestrator}) &
+Điều phối đa tác tử (\emph{Multiagent Orchestration}) &
+Lập lịch kích hoạt các tác tử chuyên môn qua \texttt{MessageBus}, điều khiển vòng lặp tranh biện, hợp nhất đầu ra và xử lý lỗi dừng an toàn. \\
+\addlinespace[3pt]
+\textbf{Explanation Agent}\newline (\agent{ResponseAgent}) &
+Suy luận bằng LLM cục bộ kết hợp khung biện luận (\emph{LLM \& Grounded Reasoning}) &
+Tổng hợp báo cáo lâm sàng 5~phần có dẫn chứng bằng tiếng Việt sử dụng Ollama / Qwen2.5 và cơ chế biện luận sinh lý bệnh, tuyệt đối không sinh dữ liệu ngoài bằng chứng. \\
+\addlinespace[3pt]
+\textbf{Monitoring Agent}\newline (\texttt{TraceCollector}) &
+Giám sát \& Kiểm toán (\emph{Monitoring \& Audit}) &
+Theo dõi thời gian thực từng bước thực thi, lưu vết thông điệp, độ trễ (ms), phiên bản mô hình và bản ghi kiểm toán vào cơ sở dữ liệu. \\
+\addlinespace[3pt]
+\textbf{RL Agent}\newline (\agent{TreatmentRLAgent}) &
+Học tăng cường có cổng an toàn (\emph{Safe Reinforcement Learning}) &
+Học và tra cứu chính sách can thiệp tối ưu trên bảng Q-table (\texttt{rl\_qtable.npz}) trong không gian mô phỏng 216~trạng thái, kết hợp Cổng an toàn lâm sàng và thuốc tham chiếu Vinmec / Long Châu. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Nguyên lý thiết kế tác tử (Agent Design Principles)}
+\label{sec:agent-design-principles}
+
+Để đảm bảo tính tin cậy của một hệ thống hỗ trợ quyết định trong lĩnh vực y sinh, mọi tác tử trong dự án đều tuân thủ nghiêm ngặt sáu nguyên lý thiết kế kỹ thuật phần mềm và tác tử thông minh:
+
+\begin{enumerate}
+  \item \textbf{Nguyên lý đơn trách nhiệm (\emph{Single Responsibility Principle})}:
+  Mỗi tác tử chỉ đảm nhận một miền nhiệm vụ xác định rõ ràng và không chồng lấn. Cụ thể, \agent{PredictionAgent} chỉ tính toán xác suất thống kê từ trọng số mạng nơ-ron/cây quyết định mà không phán xét tiêu chuẩn chẩn đoán; ngược lại, \agent{KnowledgeAgent} chỉ đối chiếu ngưỡng sinh hóa và truy xuất y văn từ Neo4j/Qdrant mà không can thiệp vào quá trình suy diễn của mô hình học sâu.
+
+  \item \textbf{Tính mô-đun và cô lập (\emph{Modularity})}:
+  Mỗi tác tử kế thừa từ lớp cơ sở trừu tượng \texttt{BaseAgent} (\texttt{src/communication/message\_bus.py}), khai báo tập thông điệp tiếp nhận qua thuộc tính \texttt{handles} và có thể được khởi tạo, kiểm thử đơn vị (\emph{unit test}) hoàn toàn độc lập với các tác tử còn lại.
+
+  \item \textbf{Giao diện và hợp đồng dữ liệu tường minh (\emph{Explicit Interfaces})}:
+  Các tác tử không gọi trực tiếp phương thức nội bộ của nhau mà chỉ trao đổi qua đối tượng \texttt{AgentMessage} bất biến (\texttt{frozen=True}) và lược đồ dữ liệu chuẩn hóa \texttt{PatientProfile} (Pydantic). Mọi giá trị lâm sàng đều đi kèm độ tin cậy (\texttt{confidence}), nguồn trích xuất (\texttt{source}), đoạn trích nguyên văn (\texttt{evidence}) và cờ cảnh báo đơn vị (\texttt{flags}).
+
+  \item \textbf{Khả năng truy vết toàn diện (\emph{Traceability})}:
+  Mọi kết luận quan trọng trong báo cáo cuối cùng đều gắn liền với bằng chứng gốc (\emph{evidence}) hoặc lý giải định lượng (\emph{rationale}): dự báo học sâu đi kèm độ đóng góp của từng đặc trưng (\texttt{top\_drivers}); khuyến cáo lâm sàng đi kèm đường đi trên đồ thị Neo4j (\texttt{graph\_paths}) và mã định danh đoạn văn (\texttt{chunk\_ids}) trỏ về tài liệu gốc của ADA 2024, Bộ Y tế, Vinmec và Nhà thuốc FPT Long Châu.
+
+  \item \textbf{Nhận thức lỗi và suy giảm êm (\emph{Failure Awareness \& Graceful Degradation})}:
+  Các lỗi định dạng tệp, thiếu chỉ số bắt buộc hoặc tình huống nằm ngoài phạm vi sàng lọc (mang thai, nhi khoa, cấp cứu tăng đường huyết) đều được trả về tường minh thông qua thông điệp \texttt{FAILURE} hoặc câu hỏi làm rõ chặn luồng (\texttt{blocking=True}) thay vì bị che giấu. Khi dịch vụ LLM cục bộ tạm ngừng, từng tác tử tự động chuyển sang nhánh xử lý tất định (\emph{deterministic fallback}) mà không làm gián đoạn hệ thống.
+
+  \item \textbf{Khả năng mở rộng (\emph{Extensibility})}:
+  Nhờ cơ chế đăng ký động \texttt{bus.register(agent)} trên \texttt{MessageBus}, việc thay thế một mô hình học sâu mới trong \texttt{/notebook/model/} hoặc bổ sung một tác tử chuyên khoa mới (ví dụ: tác tử dinh dưỡng cá thể hóa) hoàn toàn không đòi hỏi thiết kế lại kiến trúc tổng thể của hệ thống.
+\end{enumerate}

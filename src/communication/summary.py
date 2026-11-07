@@ -21,7 +21,7 @@ REQUEST_TEXT = {
     "CHALLENGE_ML_VS_LABS": "Mô hình và xét nghiệm đang nói khác nhau — anh giải thích thế nào?",
     "CHALLENGE_DATA_QUALITY": "Hồ sơ còn thiếu nhiều đặc trưng — dự đoán còn tin được không?",
     "CHALLENGE_MODEL_DISAGREEMENT": "ML và DL lệch nhau nhiều — vì sao?",
-    "CHALLENGE_COHORT_DISAGREEMENT": "Mô hình NHANES và mô hình BRFSS 3 triệu người nói ngược nhau — vì sao?",
+    "CHALLENGE_COHORT_DISAGREEMENT": "Mô hình NHANES và mô hình BRFSS 2021–2023 nói ngược nhau — vì sao?",
     "CHALLENGE_VERIFY_CRITERIA": "Xét nghiệm đã đủ tiêu chí chẩn đoán theo ADA chưa?",
     "CHALLENGE_SCREENING_PLAN": "Xét nghiệm bình thường nhưng nguy cơ dài hạn cao — nên tầm soát thế nào?",
 }
@@ -63,7 +63,7 @@ def summarize(msg: Dict[str, Any]) -> str:
             models = rm.get("models") or {}
             parts = " · ".join(f"{k.upper()} {_pct(v['risk_probability'])}" for k, v in models.items())
             ls = rm.get("large_scale") or {}
-            extra = f" BRFSS 3,17 triệu người: gấp {ls['relative_risk']} lần." if ls.get("relative_risk") else ""
+            extra = f" BRFSS 2021–2023: gấp {ls['relative_risk']} lần." if ls.get("relative_risk") else ""
             return _cut(f"Nguy cơ theo yếu tố nguy cơ {_pct(rm['risk_probability'])}"
                         + (f" ({parts})" if parts else "") + f", gấp {rm.get('relative_risk')} lần trung bình." + extra)
         if "glycemia" in p:

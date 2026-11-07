@@ -1,0 +1,111 @@
+\chapter{Giao thức truyền thông và Hợp đồng dữ liệu}
+\label{chap:contracts}
+
+\section{Cấu trúc thông điệp tác tử (Agent Message Structure)}
+\label{sec:message-structure}
+
+Mọi tương tác giữa các tác tử trong hệ thống đều được thực hiện thông qua các thông điệp có cấu trúc tường minh (\emph{structured messages}), tuân theo mô hình ngôn ngữ giao tiếp tác tử FIPA-ACL~\cite{fipa2002}. Về mặt hình thức, một thông điệp tổng quát $m_i$ được biểu diễn bởi bộ sáu:
+\begin{equation}
+  m_i = (\text{id},\, \text{agent},\, \text{status},\, \text{payload},\, \text{evidence},\, \text{version}),
+  \label{eq:message-tuple}
+\end{equation}
+trong đó ý nghĩa của từng trường được quy định như sau:
+\begin{itemize}
+  \item \texttt{id}: Mã định danh duy nhất của thông điệp (\texttt{msg\_id}) và mã phiên truy vết (\texttt{trace\_id}).
+  \item \texttt{agent}: Định danh tác tử gửi (\texttt{sender}) và tác tử nhận (\texttt{receiver}).
+  \item \texttt{status} / \texttt{performative}: Trạng thái thực thi hoặc hành vi ngôn trung của thông điệp, nhận một trong năm giá trị chuẩn: \texttt{REQUEST} (yêu cầu thực thi tác vụ), \texttt{INFORM} (trả kết quả thành công), \texttt{CHALLENGE} (chất vấn khi phát hiện mâu thuẫn), \texttt{RESPONSE} (giải trình phản biện), và \texttt{FAILURE} (báo lỗi tường minh).
+  \item \texttt{payload}: Nội dung dữ liệu đầu ra có cấu trúc (\texttt{Dict[str, Any]}).
+  \item \texttt{evidence}: Danh sách nguồn bằng chứng y khoa trích xuất từ Neo4j/Qdrant hoặc các yếu tố giải thích (\texttt{top\_drivers}, \texttt{citations}, \texttt{graph\_paths}).
+  \item \texttt{version}: Phiên bản mô hình hoặc cơ sở dữ liệu tri thức đã sử dụng (ví dụ: \texttt{nhanes\_mlp\_v2}, \texttt{nhanes\_gbdt\_v2}, \texttt{neo4j\_kg\_ada2024\_longchau}).
+\end{itemize}
+
+Trong mã nguồn \texttt{src/communication/message\_bus.py}, cấu trúc này được cài đặt dưới dạng lớp dữ liệu bất biến \texttt{AgentMessage(frozen=True)} đi kèm dấu thời gian \texttt{timestamp} và độ trễ xử lý \texttt{duration\_ms}.
+
+\section{Ví dụ thông điệp chuẩn (Example Message)}
+\label{sec:example-message}
+
+\coderef{code:example-message} minh họa một thông điệp JSON thực tế do tác tử dự đoán \agent{PredictionAgent} trả về trên \texttt{MessageBus} sau khi thực thi cặp mô hình Học sâu (\texttt{nhanes\_mlp.pt}) và Học máy (\texttt{nhanes\_gbdt.joblib}) trên hồ sơ bệnh nhân.
+
+\begin{code}{Ví dụ thông điệp dự báo nguy cơ từ \agent{PredictionAgent}}
+\label{code:example-message}
+\begin{minted}{json}
+{
+  "request_id": "req_98f4a21c",
+  "agent": "PredictionAgent",
+  "performative": "INFORM",
+  "msg_type": "RISK_PREDICTION",
+  "status": "ok",
+  "payload": {
+    "prediction": 1,
+    "risk_probability": 0.382,
+    "relative_risk": 1.93,
+    "model_disagreement": 0.168,
+    "models": {
+      "ml": {"name": "nhanes_gbdt", "risk_probability": 0.298, "roc_auc": 0.8167},
+      "dl": {"name": "nhanes_mlp", "risk_probability": 0.466, "roc_auc": 0.8250}
+    },
+    "large_cohort_opinion": {
+      "dataset": "BRFSS 2021-2023 (n=120,000)",
+      "relative_risk": 1.42
+    }
+  },
+  "evidence": [
+    {"feature": "Tiền sử gia đình mắc ĐTĐ", "contribution": 0.114},
+    {"feature": "BMI (26.4 kg/m² >= 23 châu Á)", "contribution": 0.089},
+    {"feature": "Tuổi (52 tuổi >= 35)", "contribution": 0.062}
+  ],
+  "model_version": "nhanes_ensemble_dl_ml_v2.0"
+}
+\end{minted}
+\end{code}
+
+Các con số xác suất trong \coderef{code:example-message} được hiệu chỉnh xác suất thực nghiệm (Platt Scaling và Temperature Calibration), phản ánh nguy cơ thống kê dựa trên yếu tố nhân trắc -- tiền sử và luôn được chuyển tiếp cho \agent{ConsensusCriticAgent} để đối chiếu chéo với xét nghiệm sinh hóa.
+
+\section{Thiết kế giao diện tác tử (Agent Interface Design)}
+\label{sec:agent-interfaces}
+
+Mỗi tác tử trong hệ thống công bố phương thức giao tiếp bất đồng bộ \texttt{async def handle(msg: AgentMessage) -> AgentMessage} với hợp đồng đầu vào và đầu ra chặt chẽ (\tabref{tab:agent-interfaces}).
+
+\begin{table}[H]
+\centering
+\caption{Hợp đồng giao diện đầu vào và đầu ra của các tác tử trong hệ thống.}
+\label{tab:agent-interfaces}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.3cm}L{4.2cm}Y@{}}
+\toprule
+\textbf{Tác tử (Agent)} & \textbf{Đầu vào (Input Contract)} & \textbf{Đầu ra (Output Contract)} \\
+\midrule
+\textbf{Data Agent}\newline (\agent{ConversationAgent}, \agent{DocumentAgent}) &
+Văn bản tin nhắn thô, danh sách tệp bệnh án (\texttt{document\_ids}) và \texttt{PatientProfile} hiện tại. &
+\texttt{PatientProfile} đã chuẩn hóa đơn vị, ý định hội thoại (\texttt{intent}) hoặc danh sách lỗi đọc tệp / trường còn thiếu. \\
+\addlinespace[3pt]
+\textbf{DL Agent}\newline (\agent{PredictionAgent}) &
+\texttt{PatientProfile} đã kiểm định (kèm chuỗi CGM \texttt{glucose\_history} hoặc ảnh đáy mắt nếu có). &
+Xác suất nguy cơ tổng hợp, xác suất từng mô hình (\texttt{ml}, \texttt{dl}, \texttt{brfss}), đóng góp đặc trưng, phân độ võng mạc ResNet-18 và dự báo LSTM. \\
+\addlinespace[3pt]
+\textbf{Rule Agent}\newline (\agent{ClarificationAgent}, \agent{ConsensusCriticAgent}) &
+\texttt{PatientProfile}, kết quả dự báo của DL Agent và bằng chứng từ KG/RAG Agent. &
+Kết quả đối chiếu ngưỡng ADA 2024 / Bộ Y tế, câu hỏi kiểm tra phạm vi, điểm nguy cơ đồng thuận và danh sách cờ cảnh báo (\texttt{safety\_guardrails}). \\
+\addlinespace[3pt]
+\textbf{KG/RAG Agent}\newline (\agent{KnowledgeAgent}) &
+Câu hỏi ngôn ngữ tự nhiên hoặc tập yếu tố nguy cơ / xét nghiệm của bệnh nhân. &
+Đường đi trên đồ thị Neo4j (\texttt{graph\_paths}), khuyến cáo tầm soát, chống chỉ định thuốc, các đoạn văn bản xếp hạng theo RRF và nguồn trích dẫn (\texttt{citations}). \\
+\addlinespace[3pt]
+\textbf{Coordinator}\newline (\agent{Orchestrator}) &
+Yêu cầu hội chẩn từ người dùng qua API (\texttt{run\_turn}). &
+Kết quả hội chẩn tổng hợp từ toàn bộ luồng tác tử kèm cấu trúc dữ liệu chi tiết. \\
+\addlinespace[3pt]
+\textbf{Explanation Agent}\newline (\agent{ResponseAgent}) &
+Kết quả dự báo, kết luận luật/phản biện, bằng chứng KG/RAG và khuyến cáo RL. &
+Báo cáo tư vấn 5~phần có cấu trúc Markdown bằng tiếng Việt, neo chặt vào nguồn trích dẫn. \\
+\addlinespace[3pt]
+\textbf{Monitoring Agent}\newline (\texttt{TraceCollector}) &
+Siêu dữ liệu thực thi từng bước của các tác tử trên \texttt{MessageBus}. &
+Bản ghi kiểm toán (\texttt{transcript}) và đồ thị tương tác (\texttt{interaction\_graph}) có gắn thời gian trễ (ms). \\
+\addlinespace[3pt]
+\textbf{RL Agent}\newline (\agent{TreatmentRLAgent}) &
+Trạng thái lâm sàng rời rạc hóa $s \in \{0,\dots,215\}$ và cờ an toàn thận/đường huyết. &
+Hành động can thiệp tối ưu $a^*$, vector giá trị $Q(s,a)$, danh mục thuốc tham chiếu (\texttt{reference\_drugs\_vn}) và kế hoạch theo dõi. \\
+\bottomrule
+\end{tabularx}
+\end{table}

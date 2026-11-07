@@ -276,11 +276,23 @@ def _compact(result: Dict[str, Any]) -> Dict[str, Any]:
         out["graph_paths"] = d["knowledge"]["graph_rag"]["paths"][:12]
         out["graph"] = _graph_view(d["knowledge"]["graph_rag"])
         out["citations"] = d["knowledge"]["citations"]
-        out["treatment"] = {k: d["treatment"][k] for k in ("recommended_action", "intervention_details", "notes",
-                                                           "overridden_by_consensus")}
+        out["treatment"] = {
+            k: d["treatment"].get(k)
+            for k in (
+                "recommended_action",
+                "intervention_details",
+                "reference_drugs_vn",
+                "monitoring_plan",
+                "notes",
+                "overridden_by_consensus",
+            )
+        }
         out["profile_summary"] = d.get("profile_summary", [])
     if "knowledge" in d and "consensus" not in d:
         out["citations"] = d["knowledge"].get("citations", [])
+        if d["knowledge"].get("graph_rag", {}).get("edges"):
+            out["graph_paths"] = d["knowledge"]["graph_rag"]["paths"][:12]
+            out["graph"] = _graph_view(d["knowledge"]["graph_rag"])
     if "missing_required" in d:
         out["missing_required"] = d["missing_required"]
     return _jsonable(out)

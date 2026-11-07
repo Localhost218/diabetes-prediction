@@ -1,10 +1,10 @@
 """
-Chương 4: Mạng nơ-ron hồi quy cho chuỗi đường huyết liên tục (CGM).
+Mạng nơ-ron hồi quy (LSTM/GRU) cho chuỗi đường huyết liên tục (CGM).
 
 - Chỉ số CGM theo đồng thuận quốc tế về Time in Range (2019): TIR 70–180 mg/dL > 70%, TBR < 70 mg/dL < 4%,
   TAR > 180 mg/dL < 25%, CV ≤ 36%.
-- Dự báo glucose sau 15/30/45/60 phút bằng mô hình hồi quy (LSTM/GRU) huấn luyện trên ShanghaiT1DM/T2DM
-  (lab/ch4_rnn.py → data/models/ch4_glucose_rnn.pt). Đầu vào: 12 điểm gần nhất cách nhau 15 phút.
+- Dự báo glucose sau 15/30/45/60 phút bằng mô hình hồi quy (LSTM) huấn luyện trên ShanghaiT1DM/T2DM
+  (`notebook/08_train_rnn_cgm_and_rl.ipynb` → `notebook/model/rnn_glucose_lstm.pt`). Đầu vào: 12 điểm gần nhất cách nhau 15 phút.
 """
 
 from datetime import datetime
@@ -17,7 +17,7 @@ import torch.nn as nn
 
 from src.config import BASE_DIR
 
-MODEL_PATH = BASE_DIR / "data" / "models" / "ch4_glucose_rnn.pt"
+MODEL_PATH = BASE_DIR / "notebook" / "model" / "rnn_glucose_lstm.pt"
 
 
 class SeqModel(nn.Module):
@@ -91,7 +91,7 @@ class RNNTemporalEngine:
         if fc is None or len(glucose_series) < fc.lookback:
             result["forecast"] = None
             result["forecast_note"] = (f"Cần ≥ {fc.lookback if fc else 12} điểm đo cách nhau 15 phút để dự báo"
-                                       if fc else "Chưa có mô hình dự báo (chạy lab/ch4_rnn.py)")
+                                       if fc else "Chưa có mô hình dự báo (notebook/model/rnn_glucose_lstm.pt)")
             return result
         hour = (last_time or datetime.now()).hour + (last_time or datetime.now()).minute / 60
         pred = fc.forecast(glucose_series, hour)

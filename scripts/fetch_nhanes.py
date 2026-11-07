@@ -26,8 +26,8 @@ from src.config import BASE_DIR  # noqa: E402
 CYCLES = {"G": 2011, "H": 2013, "I": 2015, "J": 2017}
 FILES = ["DEMO", "BMX", "BPX", "BPQ", "DIQ", "MCQ", "SMQ", "PAQ", "GHB", "GLU"]
 URL = "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/{year}/DataFiles/{name}_{suffix}.xpt"
-RAW_DIR = BASE_DIR / "data" / "nhanes" / "raw"
-OUT_CSV = BASE_DIR / "data" / "nhanes" / "nhanes_diabetes.csv"
+RAW_DIR = BASE_DIR / "data" / "download" / "nhanes"
+OUT_CSV = BASE_DIR / "data" / "output" / "datasets" / "nhanes_diabetes.csv"
 
 
 def download(name: str, suffix: str, year: int) -> Path:

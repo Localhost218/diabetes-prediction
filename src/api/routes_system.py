@@ -101,7 +101,7 @@ async def consultation(form: ConsultationForm):
     profile.derive()
     if not profile.is_ready():
         raise HTTPException(422, f"Thiếu dữ liệu bắt buộc: {', '.join(profile.missing_required())}")
-    result = await get_orchestrator().run_turn(profile, "", [])
+    result = await get_orchestrator().run_turn(profile, "Đánh giá nguy cơ đái tháo đường từ các chỉ số đã nhập.", [])
     return {"text": result["text"], "plan": result["plan"], "data": result["data"], "transcript": result["transcript"]}
 
 
@@ -121,12 +121,12 @@ def stats():
 
 @router.post("/api/transcribe")
 async def transcribe(audio: UploadFile = File(...)):
-    if not llm.enabled or llm.provider != "gemini":
-        raise HTTPException(501, "Chuyển giọng nói thành văn bản cần cấu hình Gemini (LLM_PROVIDER=gemini)")
+    if not llm.enabled:
+        raise HTTPException(501, "Chuyển giọng nói thành văn bản chưa khả dụng với cấu hình LLM hiện tại")
     data = await audio.read()
     mime = (audio.content_type or "audio/webm").split(";")[0]
     text_out = await llm.generate("Chép lại chính xác lời nói tiếng Việt trong đoạn ghi âm. Chỉ trả về văn bản đã chép, "
                                   "không thêm lời bình.", [Blob(data, mime)])
     if text_out is None:
-        raise HTTPException(502, "Không chuyển được giọng nói thành văn bản, vui lòng thử lại")
+        raise HTTPException(501, "Model LLM hiện tại (Ollama/Qwen text) không hỗ trợ trực tiếp đầu vào âm thanh; vui lòng dùng Web Speech API trên trình duyệt")
     return {"text": text_out}

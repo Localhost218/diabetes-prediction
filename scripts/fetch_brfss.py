@@ -21,10 +21,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
-RAW = ROOT / "data" / "brfss" / "raw"
-OUT = ROOT / "data" / "brfss" / "brfss_diabetes.csv.gz"
+RAW = ROOT / "data" / "download" / "brfss"
+OUT = ROOT / "data" / "output" / "datasets" / "brfss_diabetes.csv.gz"
 URL = "https://www.cdc.gov/brfss/annual_data/{y}/files/LLCP{y}XPT.zip"
-YEARS = [2011, 2013, 2015, 2017, 2019, 2021, 2023]
+YEARS = [2021, 2023]
 
 # Tên biến thay đổi theo năm: lấy biến đầu tiên có trong file
 CANDIDATES = {
@@ -122,15 +122,31 @@ def read_year(year: int) -> pd.DataFrame:
     return df
 
 
+def clean_and_filter(df: pd.DataFrame, max_per_year: int = 60_000) -> pd.DataFrame:
+    """Chỉ giữ các bản ghi gần đây (2021–2023), đầy đủ 100% đặc trưng (không khuyết thiếu) và BMI hợp lý."""
+    df = df[df["year"] >= 2021].dropna().copy()
+    df = df[df["bmi"].between(13.0, 55.0) & df["age_years"].between(18, 80)]
+    if max_per_year and len(df) > max_per_year * df["year"].nunique():
+        parts = []
+        for _, grp in df.groupby(["year", "diabetes"], group_keys=False):
+            year_total = len(df[df["year"] == grp["year"].iloc[0]])
+            n_take = min(len(grp), int(round(max_per_year * len(grp) / year_total)))
+            parts.append(grp.sample(n=n_take, random_state=42))
+        df = pd.concat(parts, ignore_index=True).sample(frac=1.0, random_state=42).reset_index(drop=True)
+    return df
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--years", type=int, nargs="+", default=YEARS)
+    ap.add_argument("--max-per-year", type=int, default=60_000, help="Số mẫu sạch tối đa mỗi năm (0 = giữ tất cả)")
     args = ap.parse_args()
     df = pd.concat([read_year(y) for y in args.years], ignore_index=True)
+    df = clean_and_filter(df, max_per_year=args.max_per_year)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT, index=False, compression="gzip")
-    print(f"\nTổng: {len(df):,} người ({min(args.years)}–{max(args.years)}), ĐTĐ {df.diabetes.mean():.1%} → {OUT}")
-    print("Tiếp theo: python scripts/train_model.py --dataset brfss")
+    print(f"\nTổng sau làm sạch: {len(df):,} người ({min(args.years)}–{max(args.years)}), ĐTĐ {df.diabetes.mean():.1%} → {OUT}")
+    print("Tiếp theo: python scripts/train_model.py --dataset brfss --reload")
 
 
 if __name__ == "__main__":

@@ -32,24 +32,25 @@ def _env_bool(key: str, default: bool) -> bool:
     return _env(key, str(default)).lower() in ("1", "true", "yes", "on")
 
 
-LLM_PROVIDER = _env("LLM_PROVIDER", "gemini").lower()  # gemini | anthropic
-DEFAULT_LLM_MODELS = {"gemini": "gemini-flash-latest", "anthropic": "claude-opus-5-5"}
+LLM_PROVIDER = _env("LLM_PROVIDER", "ollama").lower()  # ollama | qwen
+DEFAULT_LLM_MODELS = {
+    "ollama": "qwen2.5:3b",
+    "qwen": str(BASE_DIR / "data" / "output" / "storage" / "hf" / "Qwen2.5-1.5B-Instruct"),
+}
 
 
 def _llm_enabled() -> bool:
     mode = _env("LLM_ENABLED", "auto").lower()
-    if mode == "auto":
-        if LLM_PROVIDER == "anthropic":
-            return bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
-        return bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
-    return mode in ("1", "true", "yes", "on")
+    if mode in ("0", "false", "no", "off"):
+        return False
+    return mode in ("auto", "1", "true", "yes", "on")
 
 
 @dataclass(frozen=True)
 class Settings:
     # Bộ lưu trữ mặc định: SQLite (DB quan hệ + full-text FTS5) · Qdrant (vector) · Neo4j (Knowledge Graph).
     # Bộ cũ vẫn dùng được: DATABASE_URL=postgresql+psycopg://... VECTOR_BACKEND=pgvector KG_BACKEND=age|sql
-    database_url: str = _env("DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'multiagent.db'}")
+    database_url: str = _env("DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'output' / 'storage' / 'multiagent.db'}")
     vector_backend: str = _env("VECTOR_BACKEND", "qdrant")  # qdrant | pgvector
     kg_backend: str = _env("KG_BACKEND", "neo4j")  # neo4j | age | sql
     kg_graph_name: str = _env("KG_GRAPH_NAME", "diabetes_kg")
@@ -57,7 +58,7 @@ class Settings:
     # Qdrant: QDRANT_URL rỗng → chế độ nhúng (lưu trên đĩa tại QDRANT_PATH, không cần server)
     qdrant_url: str = _env("QDRANT_URL", "")
     qdrant_api_key: str = _env("QDRANT_API_KEY", "")
-    qdrant_path: Path = Path(_env("QDRANT_PATH", str(BASE_DIR / "data" / "qdrant")))
+    qdrant_path: Path = Path(_env("QDRANT_PATH", str(BASE_DIR / "data" / "output" / "storage" / "qdrant")))
     qdrant_collection: str = _env("QDRANT_COLLECTION", "kb_chunks")
 
     # Neo4j
@@ -78,18 +79,19 @@ class Settings:
     s3_region: str = _env("S3_REGION", "us-east-1")
     s3_bucket_uploads: str = _env("S3_BUCKET_UPLOADS", "astarcare-uploads")
     s3_bucket_kb: str = _env("S3_BUCKET_KB", "astarcare-kb")
-    local_storage_dir: Path = BASE_DIR / "data" / "local_storage"
+    local_storage_dir: Path = BASE_DIR / "data" / "output" / "storage" / "local_storage"
     upload_ttl_days: int = int(_env("UPLOAD_TTL_DAYS", "30"))
     max_upload_mb: int = int(_env("MAX_UPLOAD_MB", "15"))
 
-    # LLM (Gemini hoặc Claude) — không bắt buộc, mọi agent đều có nhánh dự phòng bằng luật
+    # LLM (Ollama hoặc Qwen local HuggingFace) — mọi agent đều có nhánh dự phòng bằng luật
     llm_provider: str = LLM_PROVIDER
     llm_enabled: bool = field(default_factory=_llm_enabled)
-    llm_model: str = _env("LLM_MODEL", DEFAULT_LLM_MODELS.get(LLM_PROVIDER, "gemini-flash-latest"))
-    llm_timeout_s: float = float(_env("LLM_TIMEOUT_S", "25"))  # cho mỗi lần thử một model
-    # Gemini: thử lần lượt khi model chính quá tải / không khả dụng
+    llm_model: str = _env("LLM_MODEL", DEFAULT_LLM_MODELS.get(LLM_PROVIDER, "qwen2.5:3b"))
+    llm_timeout_s: float = float(_env("LLM_TIMEOUT_S", "90"))
+    ollama_base_url: str = _env("OLLAMA_BASE_URL", "http://localhost:11434")
+    qwen_local_path: Path = Path(_env("QWEN_LOCAL_PATH", str(BASE_DIR / "data" / "output" / "storage" / "hf" / "Qwen2.5-1.5B-Instruct")))
     llm_fallback_models: tuple = tuple(m.strip() for m in _env(
-        "LLM_FALLBACK_MODELS", "gemini-3.5-flash,gemini-flash-lite-latest").split(",") if m.strip())
+        "LLM_FALLBACK_MODELS", "qwen2.5:1.5b,qwen2.5:7b").split(",") if m.strip())
 
     # Embedding cho RAG
     embedding_backend: str = _env("EMBEDDING_BACKEND", "fastembed")  # fastembed | hashing
@@ -102,11 +104,13 @@ class Settings:
     # Hội đồng tranh biện
     max_debate_rounds: int = int(_env("MAX_DEBATE_ROUNDS", "2"))
 
-    # Đường dẫn dữ liệu
-    dataset_csv: Path = BASE_DIR / "data" / "vietnam_diabetes_dataset.csv"
-    model_dir: Path = BASE_DIR / "data" / "models"
-    kb_sources_dir: Path = BASE_DIR / "data" / "kb_sources"
-    frontend_dist: Path = BASE_DIR / "frontend" / "dist"
+    # Đường dẫn dữ liệu (chia thành data/download và data/output)
+    download_dir: Path = BASE_DIR / "data" / "download"
+    output_dir: Path = BASE_DIR / "data" / "output"
+    dataset_csv: Path = BASE_DIR / "data" / "output" / "datasets" / "vietnam_diabetes_dataset.csv"
+    model_dir: Path = BASE_DIR / "notebook" / "model"
+    kb_sources_dir: Path = BASE_DIR / "data" / "output" / "kb" / "kb_sources"
+    frontend_dist: Path = BASE_DIR / "web" / "dist"
 
 
 settings = Settings()

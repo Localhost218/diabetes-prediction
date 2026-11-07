@@ -1,0 +1,56 @@
+\chapter{Mở rộng với Học tăng cường}
+\label{chap:rl}
+
+\section{Vai trò của Tác tử Học tăng cường (Role of the RL Agent)}
+\label{sec:rl-role}
+
+Trong kiến trúc Hệ thống Đa Tác tử Lai, Tác tử Học tăng cường (\agent{TreatmentRLAgent}) đóng vai trò một mô-đun mở rộng nâng cao (\emph{advanced extension module}). Hệ thống lõi hoàn toàn có thể thực hiện sàng lọc nguy cơ và đối chiếu phác đồ mà không phụ thuộc vào RL; tuy nhiên, việc bổ sung \agent{TreatmentRLAgent} cho phép hệ thống mô hình hóa bài toán lựa chọn lộ trình can thiệp bậc thang theo thời gian (\emph{sequential decision-making}) trong một môi trường mô phỏng tổng hợp (\emph{synthetic simulation environment}).
+
+Quá trình Quyết định Markov (\emph{Markov Decision Process} -- MDP) cho bài toán gợi ý lộ trình can thiệp được định nghĩa bởi bộ năm~\cite{sutton2018}:
+\begin{equation}
+  \mathcal{M}_{\text{RL}} = (\mathcal{S}_{\text{RL}},\, \mathcal{A}_{\text{RL}},\, P,\, R,\, \gamma),
+  \label{eq:mdp-tuple}
+\end{equation}
+trong đó:
+\begin{itemize}
+  \item $\mathcal{S}_{\text{RL}}$ là không gian trạng thái bệnh nhân mô phỏng đã rời rạc hóa với $|\mathcal{S}_{\text{RL}}| = 6 \times 4 \times 3 \times 3 = 216$ trạng thái, được tạo thành từ tích Descartes của 4~chiều lâm sàng:
+  \begin{enumerate}
+    \item Mức đường huyết lúc đói $\text{FPG} \in \{<90,\allowbreak\, [90,100),\allowbreak\, [100,110),\allowbreak\, [110,126),\allowbreak\, [126,180),\allowbreak\, \ge 180\}\text{ mg/dL}$ (6~mức);
+    \item Phân tầng BMI châu Á $\in \{<18{,}5,\, [18{,}5,23),\, [23,25),\, \ge 25\}\text{ kg/m}^2$ (4~mức);
+    \item Nhóm tuổi $\in \{<40,\, [40,60),\, \ge 60\}$ (3~mức);
+    \item Mức độ tuân thủ lối sống $\in \{\text{Thấp},\, \text{Trung bình},\, \text{Cao}\}$ (3~mức).
+  \end{enumerate}
+  \item $\mathcal{A}_{\text{RL}} = \{a_0, a_1, a_2, a_3\}$ là không gian 4~hành động can thiệp mô phỏng được phép:
+  \begin{itemize}
+    \item $a_0$: Can thiệp lối sống tích cực (chế độ ăn giảm GI, vận động $\ge 150\text{ phút/tuần}$, giảm 5--7\% cân nặng theo chuẩn ADA/Vinmec);
+    \item $a_1$: Định hướng Đơn trị liệu Thuốc Đầu tay (\emph{Metformin Monotherapy} -- tham chiếu \emph{Glucophage 500mg/850mg/XR} hoặc thay thế bằng \emph{Linagliptin / Trajenta 5mg} khi suy thận);
+    \item $a_2$: Định hướng Phối hợp Kép Bảo vệ Tim -- Thận -- Cân nặng (\emph{Dual Therapy}: \emph{Metformin} + \emph{SGLT2i Forxiga 10mg / Jardiance 25mg} hoặc \emph{DPP-4i Januvia 100mg / Trajenta 5mg});
+    \item $a_3$: Khám Chuyên khoa Nội tiết Khẩn \& Đánh giá Phác đồ Tích cực (\emph{Basal Insulin Lantus SoloStar} hoặc đa trị liệu).
+  \end{itemize}
+  \item $P(s' \mid s, a)$ là phân phối xác suất chuyển trạng thái sinh lý mô phỏng sau mỗi chu kỳ tái khám 3~tháng.
+  \item $R(s, a, s')$ là hàm thưởng đa mục tiêu thưởng điểm dương cao ($+10$) khi đưa đường huyết về ngưỡng mục tiêu an toàn ($\text{FPG} < 110\text{ mg/dL}$), phạt nặng khi để tăng đường huyết kéo dài ($-12$), hạ đường huyết quá mức ($-15$) hoặc lạm dụng thuốc bậc cao khi chưa cần thiết ($-0{,}8 \cdot a$).
+  \item $\gamma = 0{,}95$ là hệ số chiết khấu tương lai.
+\end{itemize}
+
+Tác tử Học tăng cường tìm kiếm chính sách tối ưu $\pi^* : \mathcal{S}_{\text{RL}} \to \mathcal{A}_{\text{RL}}$ cực đại hóa tổng phần thưởng chiết khấu kỳ vọng:
+\begin{equation}
+  \pi^* = \arg\max_{\pi}\, \mathbb{E}_{\pi}\!\left[\sum_{t=0}^{T} \gamma^t r_t\right],
+  \label{eq:optimal-policy}
+\end{equation}
+thông qua quy tắc cập nhật Tabular Q-Learning~\cite{watkins1992} trong 5.000~tập mô phỏng:
+\begin{equation}
+  Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \Big[r_t + \gamma \max_{a' \in \mathcal{A}_{\text{RL}}} Q(s_{t+1}, a') - Q(s_t, a_t)\Big].
+  \label{eq:q-learning-update}
+\end{equation}
+
+\section{Cổng an toàn lâm sàng và giới hạn vận hành của RL (Clinical Safety Gate)}
+\label{sec:rl-safety-gate}
+
+Đúng theo yêu cầu an toàn y khoa nghiêm ngặt của đề cương, \textbf{chính sách RL tuyệt đối không tự động kê đơn thuốc, không tự ý thay đổi phác đồ điều trị hay điều khiển chăm sóc trực tiếp cho bệnh nhân thực}. Trong \texttt{src/agents/treatment\_rl\_agent.py}, đầu ra của bảng Q-table (\texttt{notebook/model/rl\_qtable.npz}) luôn phải đi qua một \textbf{Cổng An toàn Lâm sàng (\emph{Clinical Safety Gate})} cứng dựa trên luật:
+\begin{enumerate}
+  \item \textbf{Chặn chỉ định thuốc khi chưa xác nhận chẩn đoán}: Nếu trạng thái đường huyết ở mức bình thường, tiền đái tháo đường, hoặc mới có duy nhất 1~xét nghiệm vượt ngưỡng chưa được kiểm chứng lần~2 (\texttt{confirmation\_required = True}), mà chính sách $Q(s,a)$ lại chọn $a \in \{a_1, a_2\}$, Cổng an toàn tự động hạ bậc khuyến cáo về $a_0$ (Can thiệp lối sống tích cực và đi xét nghiệm lại).
+  \item \textbf{Bảo vệ trường hợp tăng đường huyết cấp}: Nếu $\text{FPG} \ge 180\text{ mg/dL}$ hoặc $\text{HbA1c} \ge 8{,}5\%$, Cổng an toàn bắt buộc nâng lên hành động $a_3$ (Khám chuyên khoa Nội tiết sớm).
+  \item \textbf{Kiểm soát chống chỉ định thận theo đồ thị Neo4j}: Khi lân cận đồ thị Neo4j xuất hiện cảnh báo \texttt{CONTRAINDICATED\_IN} đối với \emph{Metformin} hoặc \emph{Sulfonylurea} do suy thận nặng ($\text{eGFR} < 30\text{ mL/phút/1{,}73m}^2$), tác tử tự động đính kèm cảnh báo chống chỉ định và ghi chú ưu tiên trao đổi với bác sĩ về hoạt chất không cần chỉnh liều thận như \emph{Linagliptin (Trajenta 5mg)}.
+\end{enumerate}
+
+\figw[0.92\linewidth]{ch7_ops}{Sự hội tụ của chính sách Q-Learning và phân bố hành động tối ưu theo mức đường huyết và BMI trong môi trường mô phỏng.}

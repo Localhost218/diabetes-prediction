@@ -1,41 +1,61 @@
 .env
 .venv/
+.venv-gpu/
 .backup/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Data & local storage
 data/local_storage/
-frontend/node_modules/
 data/nhanes/raw/
-.venv-gpu/
-lab/data/
-# LaTeX build artifacts & temporary files
-report/*.aux
-report/*.log
-report/*.out
-report/*.toc
-report/*.lof
-report/*.lot
-report/*.bbl
-report/*.bcf
-report/*.blg
-report/*.run.xml
-report/*.fdb_latexmk
-report/*.fls
-report/*.xdv
-report/*.synctex.gz
-report/*-SAVE-ERROR
-report/build.log
-report/_minted*/
+data/brfss/raw/
+data/cdc_brfss_diabetes.csv
+data/multiagent.db*
+data/qdrant/
+data/models/hf/
+data/download/
+data/output/
 
-# Logs
+# Notebook & lab raw data and models
+notebook/lab/data/
+notebook/model/
+
+# Large model binaries and archives
+*.safetensors
+*.pt
+*.joblib
+*.bin
+*.xpt
+*.zip
+*.tar.gz
+*.parquet
+
+# Web (React + Vite)
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Docs / LaTeX build artifacts
+docs/**/*.aux
+docs/**/*.log
+docs/**/*.out
+docs/**/*.toc
+docs/**/*.lof
+docs/**/*.lot
+docs/**/*.bbl
+docs/**/*.bcf
+docs/**/*.blg
+docs/**/*.run.xml
+docs/**/*.fdb_latexmk
+docs/**/*.fls
+docs/**/*.xdv
+docs/**/*.synctex.gz
+docs/**/*-SAVE-ERROR
+docs/**/_minted*/
+
+# Logs & OS / Editor temporary files
 *.log
-
-# Frontend build & cache
-frontend/dist/
-frontend/.vite/
-
-# OS / Editor temporary files
 .DS_Store
 Thumbs.db
 *.swp
@@ -43,61 +63,3 @@ Thumbs.db
 *~
 .idea/
 .vscode/
-
-# Lưu trữ cục bộ: SQLite + Qdrant nhúng
-data/multiagent.db*
-data/qdrant/
-
-# Báo cáo Project 01 (LaTeX)
-report_project/*.aux
-report_project/*.out
-report_project/*.toc
-report_project/*.lof
-report_project/*.lot
-report_project/*.bbl
-report_project/*.bcf
-report_project/*.blg
-report_project/*.run.xml
-report_project/*.fdb_latexmk
-report_project/*.fls
-report_project/*.xdv
-report_project/*.synctex.gz
-report_project/*-SAVE-ERROR
-report_project/_minted*/
-report_project/main.pdf
-data/brfss/raw/
-data/cdc_brfss_diabetes.csv
-logs/
-
-# Tiểu luận final (LaTeX & heavy data/models)
-tieuluan_final/report/*.aux
-tieuluan_final/report/*.out
-tieuluan_final/report/*.toc
-tieuluan_final/report/*.lof
-tieuluan_final/report/*.lot
-tieuluan_final/report/*.bbl
-tieuluan_final/report/*.bcf
-tieuluan_final/report/*.blg
-tieuluan_final/report/*.run.xml
-tieuluan_final/report/*.fdb_latexmk
-tieuluan_final/report/*.fls
-tieuluan_final/report/*.xdv
-tieuluan_final/report/*.synctex.gz
-tieuluan_final/report/*-SAVE-ERROR
-tieuluan_final/report/_minted*/
-tieuluan_final/report/main.pdf
-tieuluan_final/logs/
-tieuluan_final/models/
-tieuluan_final/src/tl01/data/
-tieuluan_final/src/tl01/models/
-tieuluan_final/src/tl01/outputs/logs/
-tieuluan_final/src/tl01/outputs/metrics_nghia/
-tieuluan_final/src/tl02/data/
-tieuluan_final/src/tl02/models/
-tieuluan_final/src/tl03/data/
-tieuluan_final/src/tl03/models/
-tieuluan_final/src/tl03/outputs/logs/
-tieuluan_final/src/tl03/outputs/metrics_nghia/
-tieuluan_final/src/tl03/outputs/*.npz
-tieuluan_final/src/tl03/outputs/*.lock
-

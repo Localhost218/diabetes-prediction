@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 from src.communication.message_bus import AgentMessage, BaseAgent
 from src.knowledge.clinical_criteria import evaluate_glycemia, graph_entities
 from src.knowledge.embedder import get_embedder
+from src.knowledge.entity_linking import link_entities
 from src.schemas.patient_profile import PatientProfile
 from src.storage.db import session_scope
 from src.storage.graph_store import get_graph_store
@@ -33,13 +34,27 @@ class KnowledgeAgent(BaseAgent):
         if msg.msg_type == "RETRIEVE_EVIDENCE":
             return self.reply(msg, "CLINICAL_EVIDENCE", await asyncio.to_thread(self._evidence, msg.payload))
         if msg.msg_type == "ANSWER_QUESTION":
-            passages = await asyncio.to_thread(self._search, msg.payload["question"], 5)
-            return self.reply(msg, "KNOWLEDGE_PASSAGES", {"passages": passages, "citations": _citations(passages)})
+            return self.reply(msg, "KNOWLEDGE_PASSAGES", await asyncio.to_thread(self._answer_question, msg.payload["question"]))
         if msg.msg_type == "CHALLENGE_SCREENING_PLAN":
             return self.reply(msg, "CHALLENGE_RESPONSE", await asyncio.to_thread(self._screening_plan, msg.payload),
                               "RESPONSE")
         return self.reply(msg, "CHALLENGE_RESPONSE", await asyncio.to_thread(self._verify_criteria, msg.payload),
                           "RESPONSE")
+
+    def _answer_question(self, question: str) -> Dict[str, Any]:
+        passages = self._search(question, 5)
+        matched_entities = link_entities(question)
+        graph = self._graph(matched_entities) if matched_entities else {"start_entities": [], "paths": [], "edges": [], "linked_chunks": []}
+        seen = {p["chunk_id"] for p in passages}
+        for c in graph.get("linked_chunks", []):
+            if c["chunk_id"] not in seen and len(passages) < 6:
+                seen.add(c["chunk_id"])
+                passages.append({**c, "score": 0.01})
+        return {
+            "passages": passages,
+            "citations": _citations(passages),
+            "graph_rag": {k: v for k, v in graph.items() if k != "linked_chunks"},
+        }
 
     # ------------------------------------------------------------------
     def _search(self, query: str, k: int) -> List[Dict[str, Any]]:

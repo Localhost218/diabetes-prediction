@@ -1,9 +1,8 @@
 """
 Tác tử Hội thoại (Conversation / Text Intake Agent)
 Bóc tách chỉ số lâm sàng từ tin nhắn tự do của người dùng thành PatientProfile.
-LLM (structured output) là nhánh chính; regex luôn chạy song song và bù các trường LLM bỏ sót
-(model dự phòng khi Gemini quá tải đôi khi chỉ trích được vài trường), nên cùng một tin nhắn luôn cho
-ít nhất cùng một tập chỉ số.
+LLM (Ollama / Qwen structured output) là nhánh chính; regex luôn chạy song song và bù các trường LLM bỏ sót,
+nên cùng một tin nhắn luôn cho ít nhất cùng một tập chỉ số chuẩn xác.
 """
 
 import re

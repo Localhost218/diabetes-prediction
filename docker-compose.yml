@@ -40,17 +40,20 @@ services:
       - "9333:9333"   # Master UI
     volumes:
       - seaweed:/data
-      - ./docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+      - ./src/storage/seaweedfs_s3.json:/etc/seaweedfs/s3.json:ro
 
   backend:
     profiles: ["app"]
     build: .
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: sqlite:////app/data/db/multiagent.db
+      DATABASE_URL: sqlite:////app/data/output/storage/db/multiagent.db
       QDRANT_URL: http://qdrant:6333
       NEO4J_URI: bolt://neo4j:7687
       S3_ENDPOINT_URL: http://seaweedfs:8333
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -59,7 +62,11 @@ services:
       interval: 15s
       retries: 10
     volumes:
-      - sqlitedata:/app/data/db
+      - ./src:/app/src
+      - ./web/dist:/app/web/dist
+      - ./data:/app/data
+      - ./notebook:/app/notebook
+      - ./app.py:/app/app.py
     depends_on:
       neo4j:
         condition: service_healthy

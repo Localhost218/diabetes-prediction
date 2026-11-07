@@ -1,0 +1,81 @@
+\chapter{Mô hình hóa toán học Hệ Đa Tác tử}
+\label{chap:math}
+
+\section{Định nghĩa hình thức Hệ Đa Tác tử (Multiagent System Definition)}
+\label{sec:mas-definition}
+
+Theo lý thuyết hệ thống đa tác tử~\cite{wooldridge2009}, toàn bộ Hệ thống Đa Tác tử Lai hỗ trợ quyết định lâm sàng bệnh đái tháo đường được mô hình hóa hình thức bởi một bộ năm (\emph{5-tuple}):
+\begin{equation}
+  M = (\mathcal{A}, \mathcal{S}, \mathcal{O}, \mathcal{C}, \mathcal{F}),
+  \label{eq:mas-tuple}
+\end{equation}
+trong đó:
+\begin{itemize}
+  \item $\mathcal{A} = \{A_1, A_2, \dots, A_n\}$ là tập hữu hạn các tác tử chuyên biệt trong hệ thống.
+  \item $\mathcal{S}$ là không gian trạng thái toàn cục của hệ thống (\emph{global system state space}), tại mỗi thời điểm hội thoại $t$ được biểu diễn bởi cặp trạng thái $s_t = (P_t, H_t) \in \mathcal{S}$, với $P_t \in \mathcal{X}_{\text{patient}}$ là hồ sơ lâm sàng tích lũy (\texttt{PatientProfile}) gồm các biến sinh hóa/nhân trắc có gắn độ tin cậy và $H_t$ là lịch sử các lượt hội chẩn trong phiên.
+  \item $\mathcal{O} = \{O_1, O_2, \dots, O_n\}$ là tập các phép chiếu quan sát của từng tác tử (\emph{agent observations}), trong đó mỗi tác tử $A_i$ chỉ quan sát một tập con thông tin liên quan đến miền chuyên môn của mình thông qua hàm quan sát $o_i: \mathcal{S} \to X_i$.
+  \item $\mathcal{C}$ là cơ chế truyền thông (\emph{communication mechanism}), được định nghĩa bởi không gian thông điệp có cấu trúc $\mathcal{M}_{\text{msg}}$ truyền qua kênh bất đồng bộ \texttt{MessageBus} với tập hành vi ngôn trung $\mathcal{P}_{\text{ACL}} = \{\texttt{REQUEST}, \allowbreak \texttt{INFORM}, \allowbreak \texttt{CHALLENGE}, \allowbreak \texttt{RESPONSE}, \allowbreak \texttt{FAILURE}\}$.
+  \item $\mathcal{F}$ là hàm điều phối và hợp nhất (\emph{coordination and aggregation function}) do tác tử điều phối thực thi nhằm kết hợp đầu ra của các tác tử thành viên thành quyết định tổng thể của hệ thống.
+\end{itemize}
+
+Đối với hệ thống đề xuất trong dự án này, tập tác tử $\mathcal{A}$ được định nghĩa tường minh gồm tám thành phần chức năng:
+\begin{equation}
+  \mathcal{A} = \{A_{\text{data}}, A_{\text{DL}}, A_{\text{rule}}, A_{\text{KG}}, A_{\text{coord}}, A_{\text{exp}}, A_{\text{monitor}}, A_{\text{RL}}\},
+  \label{eq:agent-set}
+\end{equation}
+trong đó:
+\begin{itemize}
+  \item $A_{\text{data}} = \{\agent{ConversationAgent}, \agent{DocumentAgent}\}$: tác tử bóc tách, chuẩn hóa và kiểm định dữ liệu bệnh nhân;
+  \item $A_{\text{DL}} = \agent{PredictionAgent}$: tác tử suy diễn Học sâu và Học máy kết hợp;
+  \item $A_{\text{rule}} = \{\agent{ClarificationAgent}, \agent{ConsensusCriticAgent}\}$: tác tử kiểm định luật lâm sàng và phản biện đồng thuận;
+  \item $A_{\text{KG}} = \agent{KnowledgeAgent}$: tác tử truy xuất Đồ thị Tri thức Neo4j và Hybrid RAG;
+  \item $A_{\text{coord}} = \agent{Orchestrator}$: tác tử điều phối trung tâm;
+  \item $A_{\text{exp}} = \agent{ResponseAgent}$: tác tử giải thích và tổng hợp báo cáo lâm sàng;
+  \item $A_{\text{monitor}} = \texttt{TraceCollector}$: tác tử giám sát và kiểm toán vết thực thi;
+  \item $A_{\text{RL}} = \agent{TreatmentRLAgent}$: tác tử Học tăng cường tối ưu lộ trình can thiệp trong không gian mô phỏng.
+\end{itemize}
+
+\section{Ánh xạ đầu vào, đầu ra và hàm tổng hợp (Agent Input and Output)}
+\label{sec:agent-io}
+
+Mỗi tác tử $A_i \in \mathcal{A}$ được mô hình hóa toán học như một ánh xạ hàm từ không gian đầu vào $X_i$ sang không gian đầu ra có cấu trúc $Y_i$:
+\begin{equation}
+  A_i : X_i \longrightarrow Y_i.
+  \label{eq:agent-map}
+\end{equation}
+
+Cụ thể, các ánh xạ thành phần chính trong hệ thống được xác định như sau:
+
+\paragraph{1. Tác tử Dự đoán Học sâu và Học máy ($A_{\text{DL}}$):}
+Nhận vector đặc trưng bệnh nhân $x \in X_{\text{patient}} \subset (\mathbb{R} \cup \{\text{NaN}\})^d$ và trả về cấu trúc dự báo $y_{\text{DL}} \in Y_{\text{prediction}}$:
+\begin{equation}
+  A_{\text{DL}} : X_{\text{patient}} \longrightarrow Y_{\text{prediction}}, \qquad
+  p_{\text{ens}}(x) = \frac{1}{2}\Big(\sigma\big(a \cdot f_{\text{GBDT}}(x) + b\big) + f_{\text{MLP}}(x)\Big),
+  \label{eq:dl-agent}
+\end{equation}
+trong đó $\sigma(a \cdot f_{\text{GBDT}}(x) + b)$ là xác suất của mô hình cây tăng cường gradient sau hiệu chỉnh Platt~\cite{platt1999}, $f_{\text{MLP}}(x)$ là xác suất đầu ra của mạng nơ-ron sâu có kết nối tắt (\emph{Residual MLP}), đi kèm tỷ số nguy cơ tương đối $\text{RR}(x) = p_{\text{ens}}(x) / \bar{p}_{\text{pop}}$ và độ lệch bất đồng giữa hai mô hình $\Delta_{\text{model}}(x) = |p_{\text{GBDT}}(x) - p_{\text{MLP}}(x)|$.
+
+\paragraph{2. Tác tử Truy xuất Đồ thị Tri thức và RAG ($A_{\text{KG}}$):}
+Biểu diễn ánh xạ từ không gian truy vấn và thực thể lâm sàng $Q$ sang không gian bằng chứng y khoa có nguồn gốc $E$:
+\begin{equation}
+  A_{\text{KG}} : Q \longrightarrow E, \qquad
+  \text{RRF}(d) = \frac{1}{k_0 + r_{\text{vec}}(d)} + \frac{1}{k_0 + r_{\text{fts}}(d)} \quad (k_0 = 60),
+  \label{eq:kg-agent}
+\end{equation}
+kết hợp tập đường đi lân cận $k$-bước ($k \le 2$) trên đồ thị Neo4j $G_{\text{Neo4j}} = (V, R_{\text{edge}})$ xuất phát từ tập nút thực thể $V_0 \subset V$ khớp với hồ sơ bệnh nhân.
+
+\paragraph{3. Tác tử Luật và Phản biện Đồng thuận ($A_{\text{rule}}$):}
+Đánh giá các tiêu chuẩn chẩn đoán ADA 2024 / Bộ Y tế và tính điểm nguy cơ hội đồng sau khi thực hiện các vòng chất vấn (\texttt{CHALLENGE}):
+\begin{equation}
+  S_{\text{consensus}} = \max\Big(s_{\text{lab}}(x),\, w_{\text{lab}} \cdot s_{\text{lab}}(x) + (1 - w_{\text{lab}}) \cdot p_{\text{ens}}(x)\Big),
+  \label{eq:consensus-score}
+\end{equation}
+trong đó $s_{\text{lab}}(x) \in \{0{,}15;\, 0{,}55;\, 0{,}90\}$ tương ứng với ngưỡng bình thường, tiền đái tháo đường và ngưỡng đái tháo đường theo ADA~2024~\cite{ada2024}. Công thức $\max(\cdot)$ đảm bảo nguyên tắc an toàn lâm sàng: một xác suất mô hình thấp không bao giờ được phép hạ thấp cảnh báo khi xét nghiệm sinh hóa đã vượt ngưỡng bệnh lý.
+
+\paragraph{4. Hàm điều phối và tổng hợp toàn hệ thống ($\mathcal{F}$):}
+Tác tử điều phối $A_{\text{coord}}$ tích hợp đầu ra của các tác tử thành viên thông qua hàm tổng hợp:
+\begin{equation}
+  \mathcal{F}\big(y_{\text{DL}},\, y_{\text{rule}},\, y_{\text{KG}},\, y_{\text{RL}},\, y_{\text{monitor}}\big) = y_{\text{system}}.
+  \label{eq:aggregation-func}
+\end{equation}
+Điểm cốt lõi trong thiết kế hàm $\mathcal{F}$ của hệ thống là \textbf{bảo toàn sự phân biệt rạch ròi} giữa bốn nguồn thông tin trong cấu trúc $y_{\text{system}}$: (i)~dự báo xác suất từ mô hình Học sâu / Học máy ($y_{\text{DL}}$), (ii)~kết quả đối chiếu luật lâm sàng và cờ phản biện ($y_{\text{rule}}$), (iii)~bằng chứng truy xuất từ Đồ thị Tri thức Neo4j và Qdrant ($y_{\text{KG}}$), và (iv)~gợi ý mô phỏng từ Học tăng cường ($y_{\text{RL}}$). Sự tách bạch này giúp bác sĩ và người dùng kiểm chứng độc lập từng nguồn suy luận.

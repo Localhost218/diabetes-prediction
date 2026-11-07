@@ -1,0 +1,39 @@
+\chapter{Giới hạn an toàn y khoa và Phạm vi nghiên cứu}
+\label{chap:safety}
+
+\section{Các nguyên tắc an toàn lâm sàng bắt buộc (Safety Requirements)}
+\label{sec:safety-requirements}
+
+Hệ thống Đa Tác tử Lai được phát triển trong dự án này là một nguyên mẫu phục vụ mục đích nghiên cứu và giáo dục (\emph{educational and research prototype}). Để đảm bảo đạo đức Trí tuệ Nhân tạo trong y tế và an toàn cho người sử dụng, hệ thống thiết lập và thực thi cưỡng bức bảy nguyên tắc an toàn cốt lõi sau đây:
+
+\begin{enumerate}
+  \item \textbf{Không trình bày đầu ra như một chẩn đoán y khoa xác định (\emph{No Autonomous Clinical Diagnosis})}:
+  Mọi kết quả phân tầng nguy cơ của mô hình Học sâu (\texttt{nhanes\_mlp.pt}) hay đối chiếu ngưỡng sinh hóa đều chỉ mang tính chất hỗ trợ sàng lọc ban đầu. Đặc biệt, khi mới chỉ có một chỉ số xét nghiệm vượt ngưỡng và người bệnh chưa có triệu chứng tăng đường huyết điển hình, hệ thống bắt buộc gắn cờ \texttt{confirmation\_required = True} và yêu cầu thực hiện xét nghiệm lần thứ hai tại cơ sở y tế theo đúng hướng dẫn của ADA~2024~\cite{ada2024}.
+
+  \item \textbf{Không tự động kê đơn thuốc hoặc chỉ định liều lượng (\emph{No Autonomous Prescription})}:
+  Hệ thống tuyệt đối không đóng vai trò bác sĩ kê đơn. Danh mục các nhóm thuốc và biệt dược tham chiếu từ ADA, Bộ Y tế, Vinmec và Nhà thuốc FPT Long Châu (như \emph{Glucophage}, \emph{Forxiga}, \emph{Jardiance}, \emph{Januvia}, \emph{Trajenta}, \emph{Diamicron MR}, \emph{Lantus SoloStar}) chỉ được cung cấp như tài liệu thông tin dược lý chuẩn xác để người bệnh hiểu rõ cơ chế, tác dụng phụ, chống chỉ định và chủ động trao đổi với bác sĩ chuyên khoa Nội tiết.
+
+  \item \textbf{Tác tử Học tăng cường chỉ vận hành trong môi trường mô phỏng có kiểm soát (\emph{Simulation-Only RL Operation})}:
+  Bảng chính sách Q-table (\texttt{rl\_qtable.npz}) được huấn luyện hoàn toàn trên môi trường mô phỏng MDP tổng hợp và chịu sự giám sát trực tiếp của Cổng an toàn lâm sàng (\emph{Clinical Safety Gate}). Chính sách RL không bao giờ được phép tự ý thay đổi phác đồ điều trị của bệnh nhân thực.
+
+  \item \textbf{Các luật lâm sàng cần được chuyên gia y tế thẩm định trước khi ứng dụng thực tế (\emph{Professional Clinical Review})}:
+  Mọi ngưỡng chẩn đoán và quy tắc sàng lọc trong \texttt{src/knowledge/clinical\_criteria.py} được trích xuất từ tài liệu công bố của ADA~2024 và Quyết định 5481/QĐ-BYT, song vẫn cần hội đồng bác sĩ chuyên khoa thẩm định trước khi triển khai tại bất kỳ cơ sở khám chữa bệnh nào.
+
+  \item \textbf{Sử dụng dữ liệu công khai đã khử định danh (\emph{De-identified \& Public Data})}:
+  Toàn bộ dữ liệu huấn luyện mô hình (CDC NHANES, CDC BRFSS, bộ dữ liệu nhân trắc học) và kho tri thức y khoa đều là dữ liệu công khai hoặc đã được khử định danh hoàn toàn (\emph{de-identified}), tuân thủ quy định bảo mật dữ liệu sức khỏe cá nhân.
+
+  \item \textbf{Mọi nội dung truy xuất từ KG/RAG phải truy vết được nguồn gốc (\emph{Full Source Traceability})}:
+  Mỗi đoạn văn bản từ Qdrant/FTS5 và mỗi cạnh quan hệ trên đồ thị Neo4j đều phải gắn liền với định danh tài liệu (\texttt{source\_doc}), tiêu đề mục và đường dẫn URL gốc đã kiểm chứng.
+
+  \item \textbf{Gắn cờ cảnh báo tường minh đối với các kết quả bất định hoặc mâu thuẫn (\emph{Explicit Uncertainty \& Conflict Flagging})}:
+  Khi độ lệch xác suất giữa mô hình Học sâu và Học máy vượt ngưỡng ($\Delta_{\text{model}} \ge 0{,}15$), hoặc khi dự báo từ bộ dữ liệu lâm sàng NHANES mâu thuẫn với bộ dữ liệu hành vi BRFSS, hoặc khi bệnh nhân thiếu hơn 50\% đặc trưng đầu vào, \agent{ConsensusCriticAgent} bắt buộc hạ hệ số tin cậy (\texttt{confidence}) và hiển thị hộp cảnh báo màu vàng trên giao diện để nhắc nhở tham khảo ý kiến bác sĩ.
+\end{enumerate}
+
+\section{Giới hạn nghiên cứu hiện tại (Research Limitations)}
+\label{sec:research-limitations}
+
+Bên cạnh các kết quả đạt được, hệ thống nguyên mẫu vẫn tồn tại một số giới hạn kỹ thuật cần được nhìn nhận khách quan:
+\begin{itemize}
+  \item \textbf{Khác biệt quần thể dịch tễ}: Tập dữ liệu lâm sàng chính (CDC NHANES) được thu thập tại Hoa Kỳ; mặc dù hệ thống đã hiệu chỉnh ngưỡng nhân trắc châu Á ($\text{BMI} \ge 23\text{ kg/m}^2$, vòng eo $\ge 90\text{ cm}$ ở nam và $\ge 80\text{ cm}$ ở nữ theo chuẩn WHO/IDF~\cite{who2004asian}) trong tầng luật lâm sàng, việc hiệu chỉnh lại trọng số mạng nơ-ron trên dữ liệu xét nghiệm dọc (\emph{longitudinal cohort}) tại các bệnh viện Việt Nam là bước cần thiết tiếp theo.
+  \item \textbf{Độ phân giải của không gian trạng thái RL}: Không gian trạng thái rời rạc 216~trạng thái trong Tabular Q-Learning mới xét 4~chiều cốt lõi (FPG, BMI, tuổi, mức độ tuân thủ), chưa tích hợp trực tiếp chuỗi biến thiên đường huyết liên tục từ CGM vào vector trạng thái của RL.
+\end{itemize}

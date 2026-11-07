@@ -1,0 +1,135 @@
+\chapter{Luồng tương tác giữa các tác tử}
+\label{chap:workflow}
+
+\section{Luồng xử lý tuần tự và song song (Sequential \& Parallel Workflow)}
+\label{sec:sequential-workflow}
+
+Luồng tương tác giữa các tác tử trong một lượt hội chẩn (\emph{consultation turn}) tuân thủ quy trình 11~bước chặt chẽ, kết hợp kiểm định tuần tự ở đầu vào với suy diễn song song ở tầng chuyên môn:
+
+\begin{enumerate}
+  \item \textbf{Bước 1}: Người dùng gửi các chỉ số sức khỏe, tệp bệnh án đính kèm (nếu có) và câu hỏi tự nhiên qua giao diện Web.
+  \item \textbf{Bước 2}: Tầng Cổng API (\texttt{routes\_chat.py}) tiếp nhận yêu cầu, tạo mã phiên và chuyển luồng điều khiển cho Tác tử Điều phối (\agent{Orchestrator}).
+  \item \textbf{Bước 3}: Tác tử Dữ liệu Bệnh nhân (\agent{DocumentAgent} và \agent{ConversationAgent}) bóc tách chỉ số, chuẩn hóa đơn vị đo lường, kiểm tra tính hợp lệ của \texttt{PatientProfile} và phối hợp với \agent{ClarificationAgent} kiểm tra phạm vi sàng lọc.
+  \item \textbf{Bước 4}: Nếu dữ liệu không hợp lệ, thiếu chỉ số bắt buộc (chưa có cả đường huyết/HbA1c lẫn cặp tuổi + BMI) hoặc gặp điều kiện chặn luồng (\texttt{blocking=True} như đang mang thai, bệnh nhi), Tác tử Điều phối dừng sớm luồng suy diễn và trả về thông báo yêu cầu làm rõ / bổ sung dữ liệu.
+  \item \textbf{Bước 5}: Tác tử Dự đoán Học sâu (\agent{PredictionAgent}) thực thi song song cặp mô hình đã huấn luyện (\texttt{nhanes\_mlp.pt} + \texttt{nhanes\_gbdt.joblib}) cùng mô hình đối chứng quy mô lớn BRFSS (\texttt{brfss\_mlp.pt} + \texttt{brfss\_gbdt.joblib}).
+  \item \textbf{Bước 6}: Tác tử Truy xuất Tri thức (\agent{KnowledgeAgent}) đối chiếu xét nghiệm với ngưỡng ADA 2024 / Bộ Y tế, đồng thời truy xuất đường đi trên Đồ thị Tri thức Neo4j và các đoạn hướng dẫn từ Qdrant/FTS5.
+  \item \textbf{Bước 7}: Tác tử Luật và Phản biện (\agent{ConsensusCriticAgent}) đánh giá các luật lâm sàng tường minh; nếu phát hiện mâu thuẫn giữa dự báo Học sâu và xét nghiệm sinh hóa, tác tử này phát thông điệp chất vấn (\texttt{CHALLENGE}) để các tác tử liên quan giải trình.
+  \item \textbf{Bước 8}: Tác tử Học tăng cường (\agent{TreatmentRLAgent}) ánh xạ trạng thái bệnh nhân vào bảng Q-table (\texttt{rl\_qtable.npz}) và áp dụng Cổng an toàn lâm sàng để chọn khuyến cáo can thiệp kèm danh mục thuốc tham chiếu.
+  \item \textbf{Bước 9}: Tác tử Điều phối (\agent{Orchestrator}) thu thập và hợp nhất toàn bộ đầu ra từ các tác tử chuyên môn.
+  \item \textbf{Bước 10}: Tác tử Giải thích (\agent{ResponseAgent}) sinh báo cáo hỗ trợ quyết định lâm sàng có cấu trúc 5~phần, trong khi Tác tử Giám sát (\texttt{TraceCollector}) ghi nhận toàn bộ siêu dữ liệu thực thi (\emph{execution metadata}).
+  \item \textbf{Bước 11}: Báo cáo hoàn chỉnh kèm vết suy luận và trích dẫn nguồn được trả về cho người dùng.
+\end{enumerate}
+
+\section{Biểu đồ tuần tự (Sequence Diagram)}
+\label{sec:sequence-diagram}
+
+\figref{fig:sequence-diagram} trình bày biểu đồ tuần tự (\emph{sequence diagram}) mô tả luồng trao đổi thông điệp giữa người dùng, Tác tử Điều phối và các tác tử chuyên môn trong một chu trình hội chẩn chuẩn.
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tikzpicture}[
+  font=\scriptsize,
+  actor/.style={draw=blue!75!black, fill=blue!8, rounded corners=2pt, minimum width=1.85cm, minimum height=0.8cm, align=center, font=\scriptsize\bfseries},
+  msg/.style={-{Stealth[length=2mm,width=1.4mm]}, line width=0.55pt, draw=black!80},
+  ret/.style={-{Stealth[length=2mm,width=1.4mm]}, line width=0.55pt, dashed, draw=teal!75!black},
+  life/.style={dashed, draw=black!40, line width=0.45pt}
+]
+
+% Actors across the top
+\node[actor] (u) at (0,0) {Người dùng\\(User)};
+\node[actor] (c) at (2.4,0) {Coordinator\\(\agent{Orchestrator})};
+\node[actor] (d) at (4.9,0) {Data Agent\\(\agent{Conversation})};
+\node[actor] (dl) at (7.4,0) {DL Agent\\(\agent{Prediction})};
+\node[actor] (r) at (9.9,0) {Rule/Critic\\(\agent{Consensus})};
+\node[actor] (kg) at (12.4,0) {KG/RAG Agent\\(\agent{Knowledge})};
+\node[actor] (e) at (14.9,0) {Explanation\\(\agent{Response})};
+
+% Lifelines
+\foreach \n in {u,c,d,dl,r,kg,e} {
+  \draw[life] (\n.south) -- ++(0,-8.6cm);
+}
+
+% Step 1: User -> Coordinator
+\draw[msg] (0,-0.9) -- node[above, font=\tiny]{1. Yêu cầu khám / Câu hỏi} (2.4,-0.9);
+
+% Step 2: Coordinator -> Data Agent
+\draw[msg] (2.4,-1.55) -- node[above, font=\tiny]{2. \texttt{PROCESS\_TURN} (Kiểm định)} (4.9,-1.55);
+\draw[ret] (4.9,-2.15) -- node[above, font=\tiny]{3. Hồ sơ hợp lệ (\texttt{PatientProfile})} (2.4,-2.15);
+
+% Step 3: Coordinator -> DL Agent
+\draw[msg] (2.4,-2.85) -- node[above, font=\tiny]{4. \texttt{PREDICT\_RISK}} (7.4,-2.85);
+\draw[ret] (7.4,-3.45) -- node[above, font=\tiny]{5. Dự báo DL/ML ($p_{\text{ens}}, \text{RR}$)} (2.4,-3.45);
+
+% Step 4: Coordinator -> KG/RAG Agent
+\draw[msg] (2.4,-4.15) -- node[above, font=\tiny]{6. \texttt{RETRIEVE\_EVIDENCE}} (12.4,-4.15);
+\draw[ret] (12.4,-4.75) -- node[above, font=\tiny]{7. Bằng chứng Neo4j KG + Qdrant RAG} (2.4,-4.75);
+
+% Step 5: Coordinator -> Rule/Critic Agent (+ Debate + RL)
+\draw[msg] (2.4,-5.45) -- node[above, font=\tiny]{8. \texttt{EVALUATE\_CONSENSUS} (+ RL)} (9.9,-5.45);
+\draw[ret] (9.9,-6.10) -- node[above, font=\tiny]{9. Kết quả luật, cờ phản biện \& phác đồ} (2.4,-6.10);
+
+% Step 6: Coordinator -> Explanation Agent
+\draw[msg] (2.4,-6.85) -- node[above, font=\tiny]{10. \texttt{COMPOSE\_ASSESSMENT}} (14.9,-6.85);
+\draw[ret] (14.9,-7.45) -- node[above, font=\tiny]{11. Báo cáo 5 phần có dẫn chứng} (2.4,-7.45);
+
+% Step 7: Coordinator -> User
+\draw[ret] (2.4,-8.15) -- node[above, font=\tiny]{12. Trả báo cáo + Vết kiểm toán (\texttt{Trace})} (0,-8.15);
+
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Biểu đồ tuần tự tương tác giữa các tác tử trong Hệ thống Đa Tác tử Lai.}
+\label{fig:sequence-diagram}
+\end{figure}
+
+\section{Thuật toán điều phối của Coordinator (Coordinator Workflow)}
+\label{sec:coordinator-workflow}
+
+Tác tử điều phối \agent{Orchestrator} hiện thực hóa thuật toán điều khiển 12~bước chuẩn hóa sau đây trong phương thức \texttt{run\_turn()}:
+\begin{enumerate}
+  \item Tiếp nhận yêu cầu từ người dùng (kèm văn bản, danh sách tệp đính kèm và trạng thái hồ sơ hiện tại).
+  \item Khởi tạo mã định danh lượt xử lý (\texttt{trace\_id}) và đối tượng giám sát \texttt{TraceCollector}.
+  \item Gọi Tác tử Dữ liệu Bệnh nhân (\agent{DocumentAgent} nếu có tệp, sau đó là \agent{ConversationAgent}) để bóc tách và hợp nhất \texttt{PatientProfile}.
+  \item Kiểm tra trạng thái hợp lệ, ý định hội thoại và điều kiện phạm vi qua \agent{ClarificationAgent}.
+  \item Nếu hồ sơ chưa đủ chỉ số tối thiểu hoặc gặp điều kiện chặn (\texttt{blocking\_questions}), trả về ngay thông báo hướng dẫn bổ sung dữ liệu.
+  \item Kích hoạt Tác tử Dự đoán Học sâu (\agent{PredictionAgent}) với thông điệp \texttt{PREDICT\_RISK}.
+  \item Kích hoạt Tác tử Truy xuất Tri thức (\agent{KnowledgeAgent}) với thông điệp \texttt{RETRIEVE\_EVIDENCE}.
+  \item Kích hoạt Tác tử Luật và Phản biện (\agent{ConsensusCriticAgent}) với thông điệp \texttt{EVALUATE\_CONSENSUS} (bao gồm việc thực thi các thông điệp \texttt{CHALLENGE} nếu phát hiện mâu thuẫn).
+  \item Kích hoạt Tác tử Học tăng cường (\agent{TreatmentRLAgent}) với thông điệp \texttt{RECOMMEND\_TREATMENT} và thu thập toàn bộ đầu ra.
+  \item Gọi Tác tử Giải thích (\agent{ResponseAgent}) với thông điệp \texttt{COMPOSE\_ASSESSMENT} để tổng hợp báo cáo 5~phần.
+  \item Ghi nhận toàn bộ vết thực thi (\texttt{trace.transcript()}) và biểu đồ tương tác (\texttt{trace.interaction\_graph()}).
+  \item Trả về cấu trúc kết quả hoàn chỉnh cho tầng API.
+\end{enumerate}
+
+\coderef{code:orchestrator-core} trích dẫn đoạn mã thực tế của phương thức \texttt{Orchestrator.run\_turn()} trong tệp \texttt{src/agents/orchestrator.py}.
+
+\begin{code}{Thuật toán điều phối trung tâm trong \texttt{src/agents/orchestrator.py}}
+\label{code:orchestrator-core}
+\begin{minted}{python}
+# Bước 5 & 6: Kích hoạt song song DL Prediction Agent và KG/RAG Agent
+pred_msg, know_msg = await asyncio.gather(
+    self.request("PredictionAgent", "PREDICT_RISK",
+                 {"profile": profile.model_dump()}, trace),
+    self.request("KnowledgeAgent", "RETRIEVE_EVIDENCE",
+                 {"profile": profile.model_dump()}, trace),
+)
+prediction, knowledge = pred_msg.payload, know_msg.payload
+
+# Bước 7: Rule-Based & Consensus Critic Agent kiểm định và tranh biện đa vòng
+consensus = await self._run_consensus_debate(profile, prediction, knowledge, trace)
+
+# Bước 8: RL Agent tra cứu chính sách can thiệp + Safety Gate
+treat_msg = await self.request("TreatmentRLAgent", "RECOMMEND_TREATMENT", {
+    "profile": profile.model_dump(),
+    "consensus": consensus,
+    "knowledge": knowledge,
+}, trace)
+
+# Bước 10: Explanation Agent tổng hợp báo cáo 5 phần có dẫn chứng
+resp = await self.request("ResponseAgent", "COMPOSE_ASSESSMENT", {
+    "profile": profile.model_dump(), "prediction": prediction,
+    "knowledge": knowledge, "consensus": consensus,
+    "treatment": treat_msg.payload, "questions": questions,
+}, trace)
+\end{minted}
+\end{code}

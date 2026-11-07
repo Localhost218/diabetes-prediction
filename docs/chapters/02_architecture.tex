@@ -1,0 +1,103 @@
+\chapter{Kiến trúc tổng thể hệ thống}
+\label{chap:architecture}
+
+\section{Kiến trúc phân tầng sáu lớp (Layered Architecture)}
+\label{sec:layered-architecture}
+
+Hệ thống Đa Tác tử Lai hỗ trợ quyết định lâm sàng bệnh đái tháo đường được tổ chức thành sáu tầng chức năng (\emph{six-layer architecture}), đảm bảo sự tách biệt rõ ràng giữa giao diện người dùng, xử lý dữ liệu đầu vào, điều phối tác tử, suy diễn thông minh, lưu trữ mô hình -- tri thức và kiểm toán vết thực thi:
+
+\begin{enumerate}[label=\textbf{Tầng \arabic*.}, wide=0pt, leftmargin=1.8cm]
+  \item \textbf{Tầng Tương tác Người dùng (\emph{User Interaction Layer})}:
+  Cung cấp giao diện Web tương tác trực quan (xây dựng bằng React 18 và Vite tại thư mục \texttt{/web}) phục vụ ba nhóm đối tượng: người bệnh cần sàng lọc nguy cơ sớm, bác sĩ cần đối chiếu nhanh bằng chứng phác đồ, và sinh viên / nhà nghiên cứu cần theo dõi luồng suy luận đa tác tử. Tầng này hỗ trợ nhập hội thoại tự nhiên tiếng Việt, tải lên bệnh án đa phương thức (PDF, ảnh chụp phiếu xét nghiệm, DOCX, CSV), ghi âm giọng nói và hiển thị trực tiếp tiến trình suy luận thời gian thực qua giao thức \emph{Server-Sent Events} (SSE).
+
+  \item \textbf{Tầng Cổng API và Xử lý Dữ liệu (\emph{API and Data Processing Layer})}:
+  Được hiện thực hóa bằng FastAPI~\cite{fastapi} tại \texttt{src/api/} (\texttt{routes\_chat.py}, \texttt{routes\_session.py}, \texttt{routes\_system.py}) kết hợp mô-đun tiền xử lý \texttt{src/document\_processing/} và \texttt{src/extraction/}. Tầng này tiếp nhận yêu cầu HTTP/SSE, lưu trữ tệp bệnh án gốc lên hệ thống lưu trữ đối tượng SeaweedFS S3 (\texttt{s3\_bucket\_uploads}), phân loại định dạng tài liệu, chuẩn hóa đơn vị đo lường sinh hóa (ví dụ: quy đổi tự động glucose từ $\text{mmol/L}$ sang $\text{mg/dL}$ với hệ số $18{,}0182$, creatinin từ $\mu\text{mol/L}$ sang $\text{mg/dL}$, tính chỉ số BMI và mức lọc cầu thận ước tính eGFR) và kiểm định tính hợp lệ của lược đồ \texttt{PatientProfile}.
+
+  \item \textbf{Tầng Điều phối Đa tác tử (\emph{Multiagent Coordination Layer})}:
+  Bao gồm tác tử điều phối trung tâm \agent{Orchestrator} (\texttt{src/agents/orchestrator.py}) và kênh truyền thông bất đồng bộ \texttt{MessageBus} (\texttt{src/communication/message\_bus.py}). Tầng này chịu trách nhiệm định tuyến thông điệp theo chuẩn FIPA-ACL~\cite{fipa2002}, phân bổ tác vụ chạy tuần tự hoặc song song (\texttt{asyncio.gather}), điều khiển vòng lặp chất vấn -- phản biện đa vòng (\emph{multi-round debate}) và hợp nhất kết quả từ các tác tử chuyên môn.
+
+  \item \textbf{Tầng Tác tử Thông minh (\emph{Intelligent Agent Layer})}:
+  Chứa các tác tử chuyên biệt đảm nhiệm từng mảng suy luận độc lập: tác tử dữ liệu và hội thoại bệnh nhân (\agent{ConversationAgent}, \agent{DocumentAgent}), tác tử kiểm tra phạm vi và làm rõ thông tin (\agent{ClarificationAgent}), tác tử dự đoán Học sâu và Học máy (\agent{PredictionAgent}), tác tử truy xuất Đồ thị Tri thức và RAG (\agent{KnowledgeAgent}), tác tử phản biện luật và đồng thuận (\agent{ConsensusCriticAgent}), tác tử Học tăng cường (\agent{TreatmentRLAgent}) và tác tử giải thích lâm sàng (\agent{ResponseAgent}).
+
+  \item \textbf{Tầng Tri thức và Mô hình (\emph{Knowledge and Model Layer})}:
+  Bao gồm kho trọng số mô hình Học sâu / Học máy đã huấn luyện tại \texttt{/notebook/model/}, cơ sở dữ liệu đồ thị Neo4j~\cite{neo4j} lưu trữ đồ thị tri thức đái tháo đường, cơ sở dữ liệu vector Qdrant~\cite{qdrant} kết hợp chỉ mục toàn văn SQLite FTS5~\cite{sqlitefts5} (nạp từ \texttt{data/output/kb/kb\_sources/}), mô hình ngôn ngữ lớn cục bộ Ollama / Qwen2.5 (\texttt{qwen2.5:3b}, \texttt{Qwen2.5-1.5B-Instruct}) cùng môi trường mô phỏng MDP cho Học tăng cường.
+
+  \item \textbf{Tầng Đánh giá và Kiểm toán (\emph{Evaluation and Audit Layer})}:
+  Được thực thi bởi bộ thu thập vết \texttt{TraceCollector} (\texttt{src/communication/trace.py}) và cơ sở dữ liệu quan hệ SQLite/PostgreSQL (\texttt{src/storage/models.py}). Tầng này ghi nhận toàn bộ chuỗi thông điệp trao đổi giữa các tác tử, thời gian trễ từng bước (ms), phiên bản mô hình, độ tin cậy, nguồn trích dẫn và lưu trữ lịch sử hội chẩn (\texttt{Consultation}) phục vụ kiểm toán lâm sàng và đánh giá thực nghiệm.
+\end{enumerate}
+
+\section{Sơ đồ kiến trúc tổng thể (Architecture Diagram)}
+\label{sec:architecture-diagram}
+
+\figref{fig:mas-architecture} minh họa kiến trúc tổng thể của Hệ thống Đa Tác tử Lai hỗ trợ quyết định lâm sàng bệnh đái tháo đường, thể hiện đầy đủ luồng đi từ người dùng qua Cổng API, Tác tử Điều phối đến các Tác tử Chuyên môn, Tầng Mô hình -- Tri thức và Báo cáo Hỗ trợ Quyết định đầu ra.
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tikzpicture}[
+  font=\footnotesize,
+  node distance=0.55cm and 0.45cm,
+  box/.style={draw=black!75, rounded corners=3pt, align=center, minimum height=0.95cm, inner sep=4pt, fill=white, line width=0.6pt},
+  layer/.style={draw=blue!65!black, fill=blue!6, rounded corners=3pt, align=center, minimum width=6.2cm, minimum height=0.92cm, inner sep=4pt, line width=0.7pt},
+  agentbox/.style={draw=teal!70!black, fill=teal!6, rounded corners=3pt, align=center, minimum width=3.15cm, minimum height=1.25cm, inner sep=3.5pt, line width=0.65pt},
+  storebox/.style={draw=orange!75!black, fill=orange!8, rounded corners=3pt, align=center, minimum width=3.5cm, minimum height=1.05cm, inner sep=3.5pt, line width=0.65pt},
+  arr/.style={-{Stealth[length=2.2mm,width=1.6mm]}, line width=0.6pt, draw=black!75}
+]
+
+% Layer 1 & 2
+\node[layer] (ui) {\textbf{Người bệnh / Bác sĩ / Sinh viên}\\Giao diện Web tương tác (\texttt{web/} -- React \& SSE)};
+\node[layer, below=0.45cm of ui] (api) {\textbf{API Gateway \& Xử lý Dữ liệu (\texttt{src/api/})}\\Kiểm định đầu vào, chuẩn hóa đơn vị và bóc tách yêu cầu};
+\node[layer, below=0.45cm of api, fill=blue!12, draw=blue!80!black] (coord) {\textbf{Coordinator Agent (\agent{Orchestrator})}\\Điều phối tác vụ qua \texttt{MessageBus} và tổng hợp kết quả};
+
+% Layer 4: Specialized Agents (Row of 5 core agents)
+\node[agentbox, below=0.75cm of coord] (rule) {\textbf{Rule-Based \& Critic}\\\agent{ClarificationAgent}\\\agent{ConsensusCritic}};
+\node[agentbox, left=0.32cm of rule] (dl) {\textbf{DL Prediction Agent}\\\agent{PredictionAgent}\\(MLP + GBDT + CNN/RNN)};
+\node[agentbox, left=0.32cm of dl] (data) {\textbf{Patient Data Agent}\\\agent{ConversationAgent}\\\agent{DocumentAgent}};
+\node[agentbox, right=0.32cm of rule] (kg) {\textbf{KG / RAG Agent}\\\agent{KnowledgeAgent}\\(Neo4j + Qdrant RRF)};
+\node[agentbox, right=0.32cm of kg] (exp) {\textbf{Explanation Agent}\\\agent{ResponseAgent}\\(Ollama/Qwen Grounded)};
+
+% Monitoring & RL Agents on sides of Coordinator
+\node[agentbox, left=1.2cm of coord, minimum width=3.3cm] (mon) {\textbf{Monitoring / Audit}\\\texttt{TraceCollector}\\Lưu vết \& Kiểm toán};
+\node[agentbox, right=1.2cm of coord, minimum width=3.3cm] (rl) {\textbf{RL Agent}\\\agent{TreatmentRLAgent}\\Môi trường MDP + Safety Gate};
+
+% Layer 5: Knowledge & Model Stores
+\node[storebox, below=0.75cm of dl] (models) {\textbf{Mô hình DL/ML đã huấn luyện}\\\texttt{nhanes\_mlp.pt}, \texttt{nhanes\_gbdt.joblib}\\\texttt{cnn\_retinopathy}, \texttt{rnn\_glucose}};
+\node[storebox, below=0.75cm of kg] (neo4j) {\textbf{Đồ thị Tri thức Neo4j \& Qdrant}\\43 nút, 55 cạnh (12 nút \texttt{:Drug})\\ADA 2024, BYT, Vinmec, Long Châu};
+\node[storebox, below=0.75cm of exp] (report) {\textbf{Báo cáo Hỗ trợ Quyết định}\\Dự báo + Bằng chứng + Phác đồ\\+ Giải thích cơ chế + Giới hạn};
+
+% Connections
+\draw[arr] (ui) -- (api);
+\draw[arr] (api) -- (coord);
+\draw[arr] (coord) -- (mon);
+\draw[arr] (coord) -- (rl);
+
+\draw[arr] (coord.south) -- ++(0,-0.32cm) -| (data.north);
+\draw[arr] (coord.south) -- ++(0,-0.32cm) -| (dl.north);
+\draw[arr] (coord.south) -- (rule.north);
+\draw[arr] (coord.south) -- ++(0,-0.32cm) -| (kg.north);
+\draw[arr] (coord.south) -- ++(0,-0.32cm) -| (exp.north);
+
+\draw[arr] (dl.south) -- (models.north);
+\draw[arr] (kg.south) -- (neo4j.north);
+\draw[arr] (exp.south) -- (report.north);
+
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Kiến trúc Hệ thống Đa Tác tử Lai (Hybrid MAS) hỗ trợ quyết định lâm sàng bệnh đái tháo đường.}
+\label{fig:mas-architecture}
+\end{figure}
+
+\section{Giải thích kiến trúc (Architecture Interpretation)}
+\label{sec:architecture-interpretation}
+
+Trong kiến trúc trên (\figref{fig:mas-architecture}), mỗi thành phần đóng một vai trò chuyên biệt nhưng phối hợp chặt chẽ trong một chu trình khép kín:
+\begin{itemize}
+  \item \textbf{Tác tử Điều phối (\emph{Coordinator Agent} -- \agent{Orchestrator})} là hạt nhân điều khiển trung tâm của toàn hệ thống. Cần nhấn mạnh rằng \agent{Orchestrator} không tự mình thực hiện suy diễn học sâu hay tra cứu y văn, tức là không thay thế trí thông minh của các tác tử chuyên môn. Thay vào đó, nó quản lý vòng đời phiên hội chẩn, điều khiển thứ tự kích hoạt các tác tử chuyên biệt, phát hiện các điểm bất đồng để khởi tạo vòng chất vấn (\texttt{CHALLENGE}) và tích hợp các đầu ra thành một cấu trúc dữ liệu thống nhất.
+  \item \textbf{Tác tử Dữ liệu Bệnh nhân (\emph{Patient Data Agent} -- tổ hợp \agent{ConversationAgent} và \agent{DocumentAgent})} chịu trách nhiệm tiếp nhận dữ liệu thô từ tin nhắn hoặc tệp đính kèm, trích xuất các chỉ số sinh hóa và yếu tố nguy cơ, chuẩn hóa đơn vị đo lường và kiểm tra mức độ đầy đủ của hồ sơ (\texttt{PatientProfile.is\_ready()}).
+  \item \textbf{Tác tử Dự đoán Học sâu (\emph{DL Prediction Agent} -- \agent{PredictionAgent})} chịu trách nhiệm thực thi suy diễn bằng các mô hình Học sâu (\texttt{MLPRisk} PyTorch) và Học máy (\texttt{GradientBoostingRisk}) đã huấn luyện sẵn trên tập dữ liệu lâm sàng NHANES và tập hành vi quy mô lớn BRFSS, đồng thời kích hoạt mô hình thị giác ResNet-18 hoặc chuỗi thời gian Bi-LSTM khi có dữ liệu tương ứng.
+  \item \textbf{Tác tử Truy xuất Tri thức (\emph{KG/RAG Agent} -- \agent{KnowledgeAgent})} truy hồi thông tin chuyên môn từ Đồ thị Tri thức Neo4j và kho văn bản Qdrant/FTS5, cung cấp các đường đi nhân quả (\texttt{graph\_paths}) và các đoạn hướng dẫn lâm sàng có gắn nguồn trích dẫn rõ ràng.
+  \item \textbf{Tác tử Luật và Phản biện (\emph{Rule-Based \& Critic Agent} -- tổ hợp \agent{ClarificationAgent} và \agent{ConsensusCriticAgent})} thực thi các luật y khoa tường minh đã được kiểm chứng (tiêu chuẩn ADA 2024, Quyết định 5481/QĐ-BYT, quy tắc loại trừ thai kỳ / nhi khoa / bệnh cấp tính) và đối chiếu chéo giữa xác suất mô hình với kết quả xét nghiệm để gắn cờ cảnh báo (\emph{review flags}).
+  \item \textbf{Tác tử Giải thích (\emph{Explanation Agent} -- \agent{ResponseAgent})} xây dựng báo cáo tư vấn có cấu trúc 5~phần từ đầu ra của các tác tử khác, sử dụng mô hình ngôn ngữ lớn cục bộ (Ollama / Qwen2.5) kết hợp bộ biện luận sinh lý bệnh để giải thích rõ ràng, không bịa đặt thông tin ngoài bằng chứng.
+  \item \textbf{Tác tử Giám sát (\emph{Monitoring Agent} -- \texttt{TraceCollector})} ghi lại nhật ký kiểm toán (\emph{audit trail}) cho từng thông điệp, đảm bảo khả năng truy vết đầy đủ từ câu trả lời cuối cùng ngược về từng bước suy diễn.
+  \item \textbf{Tác tử Học tăng cường (\emph{RL Agent} -- \agent{TreatmentRLAgent})} đóng vai trò mô-đun mở rộng nâng cao, vận hành trên bảng giá trị Q-table đã học trong môi trường mô phỏng kết hợp Cổng an toàn lâm sàng để gợi ý lộ trình can thiệp lối sống và nhóm thuốc tham chiếu (ADA / Vinmec / Nhà thuốc Long Châu) phục vụ trao đổi với bác sĩ.
+\end{itemize}

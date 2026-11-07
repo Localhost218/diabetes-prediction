@@ -1,0 +1,53 @@
+\chapter{Lộ trình triển khai và Kết quả thực nghiệm}
+\label{chap:roadmap}
+
+\section{Lộ trình triển khai chín giai đoạn (Implementation Roadmap)}
+\label{sec:implementation-roadmap}
+
+Dự án được triển khai tuần tự qua 9~giai đoạn chuẩn hóa (\tabref{tab:roadmap}), đi từ việc tích hợp các mô hình Học sâu và Đồ thị Tri thức có sẵn, xây dựng các tác tử kiểm định dữ liệu, luật lâm sàng, điều phối và giải thích, cho tới hoàn thiện giao diện Web, bộ kiểm thử tự động và mô-đun Học tăng cường nâng cao.
+
+\begin{table}[htbp]
+\centering
+\caption{Lộ trình triển khai 9 giai đoạn của dự án và sản phẩm bàn giao thực tế.}
+\label{tab:roadmap}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\linewidth}{@{}C{1.3cm}L{4.4cm}L{3.8cm}Y@{}}
+\toprule
+\textbf{Giai đoạn} & \textbf{Nhiệm vụ phát triển (Development Task)} & \textbf{Sản phẩm kỳ vọng (Expected Deliverable)} & \textbf{Hiện thực hóa trong dự án (\texttt{MultiAgent/})} \\
+\midrule
+1 & Tích hợp mô hình Học sâu và Học máy đã huấn luyện & \textbf{Diabetes Prediction Agent} & \texttt{src/agents/prediction\_agent.py} nạp 10~mô hình từ \texttt{notebook/model/} (\texttt{nhanes\_mlp.pt}, \texttt{nhanes\_gbdt.joblib}...). \\
+\addlinespace[3pt]
+2 & Tích hợp Đồ thị Tri thức Neo4j và Hybrid RAG & \textbf{Knowledge Retrieval Agent} & \texttt{src/agents/knowledge\_agent.py} + \texttt{entity\_linking.py} (Neo4j 43~nút, 55~cạnh + Qdrant RRF). \\
+\addlinespace[3pt]
+3 & Xây dựng bộ kiểm định và bóc tách dữ liệu bệnh nhân & \textbf{Patient Data Agent} & \texttt{conversation\_agent.py} + \texttt{document\_agent.py} + \texttt{patient\_profile.py} (chuẩn hóa đơn vị, đọc PDF/ảnh/DOCX). \\
+\addlinespace[3pt]
+4 & Cài đặt luật lâm sàng tường minh và phản biện & \textbf{Rule-Based \& Critic Agent} & \texttt{clarification\_agent.py} + \texttt{consensus\_critic\_agent.py} + \texttt{clinical\_criteria.py} (luật ADA 2024 / Bộ Y tế). \\
+\addlinespace[3pt]
+5 & Hiện thực hóa bộ điều phối và bus thông điệp & \textbf{Coordinator Agent} & \texttt{src/agents/orchestrator.py} + \texttt{message\_bus.py} + \texttt{trace.py} (\texttt{TraceCollector}). \\
+\addlinespace[3pt]
+6 & Xây dựng tác tử giải thích lâm sàng có dẫn chứng & \textbf{Explanation Agent} & \texttt{src/agents/response\_agent.py} + \texttt{src/llm/client.py} (Ollama / Qwen2.5 + báo cáo 5~phần). \\
+\addlinespace[3pt]
+7 & Phát triển giao diện người dùng và cổng API & \textbf{Working MAS Prototype} & \texttt{app.py} (FastAPI) + \texttt{web/} (React 18, SSE trực tuyến) + \texttt{docker-compose.yml}. \\
+\addlinespace[3pt]
+8 & Thực hiện kiểm thử và đánh giá thực nghiệm & \textbf{Experimental Report \& Test Suite} & Chuỗi 10~notebook đánh giá + 46/46 ca kiểm thử tự động trong \texttt{test/} (\texttt{pytest}). \\
+\addlinespace[3pt]
+9 & Phát triển mô phỏng Học tăng cường có cổng an toàn & \textbf{Optional Advanced RL Agent} & \texttt{treatment\_rl\_agent.py} + \texttt{rl\_qtable.npz} + danh mục thuốc Vinmec / Long Châu. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Minh họa hệ thống thực tế và Kiểm thử tự động (System Prototype \& Evaluation)}
+\label{sec:system-demo}
+
+Toàn bộ kho mã nguồn của dự án được chuẩn hóa gọn gàng thành 7~thư mục cấp cao nhất: \texttt{/data} (chia rõ \texttt{/data/download} lưu dữ liệu gốc kèm \texttt{data/README.md} kiểm soát nguồn và \texttt{/data/output} lưu cơ sở tri thức, cơ sở dữ liệu sau xử lý), \texttt{/notebook} (10~notebook huấn luyện và đánh giá xuất trọng số vào \texttt{/notebook/model}), \texttt{/src} (logic xử lý đa tác tử kèm \texttt{src/README.md}), \texttt{/scripts} (công cụ thu thập dữ liệu Long Châu / Vinmec và nạp KB), \texttt{/web} (giao diện người dùng React), \texttt{/test} (bộ kiểm thử tự động) và \texttt{/docs} (tài liệu báo cáo kỹ thuật).
+
+\figw[0.92\linewidth]{ui_thinking_done}{Giao diện hiển thị tiến trình suy luận đa tác tử và nhật ký thông điệp kiểm toán trên ứng dụng Web.}
+
+Về mặt kiểm thử chất lượng phần mềm và tính đúng đắn y khoa, bộ kiểm thử tự động tại thư mục \texttt{/test} gồm 46~ca kiểm thử (\texttt{test\_clinical\_Pipeline.py}, \texttt{test\_knowledge\_rag.py}, \texttt{test\_models.py}, \texttt{test\_api.py}) đã được thực thi và vượt qua 100\% (\texttt{46 passed in 5.21s}). Các kịch bản kiểm thử xác nhận:
+\begin{itemize}
+  \item Khả năng quy đổi chính xác các đơn vị sinh hóa ($\text{mmol/L} \leftrightarrow \text{mg/dL}$, $\mu\text{mol/L} \leftrightarrow \text{mg/dL}$) và phát hiện các tình huống ngoài phạm vi sàng lọc (mang thai, trẻ em, đang dùng corticoid / insulin);
+  \item Tính nhất quán của điểm nguy cơ đồng thuận $S_{\text{consensus}}$ khi mô hình học sâu và xét nghiệm sinh hóa bất đồng;
+  \item Khả năng truy xuất chính xác các nút thuốc (\texttt{:Drug}) trên đồ thị Neo4j và đoạn văn bản tương ứng trên Qdrant cho toàn bộ các nhóm thuốc điều trị đái tháo đường tại Việt Nam;
+  \item Cổng an toàn lâm sàng của \agent{TreatmentRLAgent} chặn 100\% chỉ định thuốc khi chưa đủ tiêu chuẩn chẩn đoán hoặc khi có chống chỉ định suy thận nặng ($\text{eGFR} < 30$).
+\end{itemize}

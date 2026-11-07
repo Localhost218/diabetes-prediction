@@ -1,0 +1,97 @@
+\chapter{Tích hợp Mô hình Học sâu và Đồ thị Tri thức / RAG}
+\label{chap:integration}
+
+\section{Tích hợp Mô hình Học sâu và Học máy (Deep Learning \& ML Integration)}
+\label{sec:dl-integration}
+
+Trong kiến trúc Hệ thống Đa Tác tử Lai, các mô hình Học sâu (\emph{Deep Learning}) và Học máy (\emph{Machine Learning}) đã huấn luyện tại thư mục \texttt{/notebook/model/} được đóng gói như các dịch vụ suy diễn tái sử dụng được (\emph{reusable inference services}) bên trong \agent{PredictionAgent}:
+\begin{equation}
+  \text{Đặc trưng bệnh nhân (\texttt{PatientProfile})} \longrightarrow \text{Mô hình DL/ML} \longrightarrow \text{Đầu ra dự báo \& Giải thích}.
+  \label{eq:dl-pipeline}
+\end{equation}
+
+Theo đúng quy chuẩn tài liệu kỹ thuật, bảy thông số tích hợp cốt lõi của tổ hợp mô hình được đặc tả chi tiết như sau:
+
+\begin{enumerate}
+  \item \textbf{Kiến trúc mô hình (\emph{Model Architecture})}:
+  Hệ thống huấn luyện và đánh giá 9~kiến trúc mô hình thông qua chuỗi 10~notebook tại \texttt{/notebook/} (\texttt{00\_data\_preprocessing.ipynb} đến \texttt{09\_model\_evaluation.ipynb}):
+  \begin{itemize}
+    \item \emph{Mô hình Học sâu dữ liệu bảng chính (\texttt{MLPRisk} -- \texttt{05\_deep\_residual\_mlp.ipynb})}: Mạng nơ-ron sâu PyTorch~\cite{paszke2019} sử dụng nối tắt phần dư (\emph{Residual Skip-Connection}), chuẩn hóa theo lớp (\emph{LayerNorm}), hàm kích hoạt SiLU và Dropout ($p=0{,}20$). Với mỗi đặc trưng $x_j$, mạng ghép nối giá trị đã chuẩn hóa Z-score với bit mặt nạ quan sát $m_j \in \{0,1\}$ (tạo vector đầu vào $2d$ chiều) giúp mạng học trực tiếp phân phối dữ liệu khuyết thiếu.
+    \item \emph{Mô hình Học sâu chú ý đặc trưng (\texttt{TabNetAttention} -- \texttt{06\_tabnet\_attention.ipynb})}: Mạng chú ý tuần tự lựa chọn đặc trưng thưa (\emph{sparse feature selection}) cho dữ liệu bảng.
+    \item \emph{Mô hình Học máy đồng hành (\texttt{GradientBoostingRisk} -- \texttt{04\_hist\_gradient\_boosting.ipynb})}: Cây tăng cường gradient theo histogram (\emph{HistGradientBoosting}~\cite{friedman2001,ke2017}) có xử lý nhánh \texttt{NaN} tự nhiên (\emph{native missing-value routing}) kết hợp hiệu chỉnh xác suất Platt Scaling~\cite{platt1999} cùng các mô hình đối chứng Logistic Regression (\texttt{01}), Random Forest (\texttt{02}), Extra Trees (\texttt{03}).
+    \item \emph{Mô hình Học sâu đa phương thức}: Mạng tích chập \textbf{ResNet-18}~\cite{he2016} (\texttt{07\_cnn\_retinopathy\_resnet18.ipynb}) phân độ 5~mức bệnh võng mạc đái tháo đường kèm bản đồ nhiệt Grad-CAM~\cite{selvaraju2017}; và mạng hồi quy \textbf{Bi-LSTM}~\cite{hochreiter1997} (\texttt{08\_rnn\_glucose\_lstm.ipynb}) dự báo đường huyết tương lai 15--60~phút từ chuỗi CGM.
+  \end{itemize}
+
+  \item \textbf{Bộ dữ liệu huấn luyện (\emph{Training Datasets})}:
+  Dữ liệu được chuẩn hóa thành hai phân vùng \texttt{/data/download/} (dữ liệu gốc) và \texttt{/data/output/} (dữ liệu đã làm sạch và nạp vào SQLite):
+  \begin{itemize}
+    \item \emph{Bộ dữ liệu lâm sàng chính (\texttt{nhanes})}: Khảo sát CDC NHANES~\cite{nhanes} ($N = 23.005$ người trưởng thành $\ge 20$ tuổi, tỷ lệ mắc $15{,}2\%$), trong đó nhãn đái tháo đường được xác nhận khách quan bằng xét nghiệm sinh hóa ($\text{HbA1c} \ge 6{,}5\%$ hoặc $\text{FPG} \ge 126\text{ mg/dL}$) kết hợp chẩn đoán của bác sĩ.
+    \item \emph{Bộ dữ liệu hành vi quy mô lớn (\texttt{brfss})}: Khảo sát CDC BRFSS 2021--2023 đã lọc sạch hoàn toàn các bản ghi khuyết thiếu ($N = 120.000$ mẫu gần đây, tỷ lệ mắc $14{,}2\%$), dùng làm ý kiến đối chứng quy mô lớn (\emph{second opinion cohort}).
+  \end{itemize}
+
+  \item \textbf{Danh sách và thứ tự đặc trưng (\emph{Feature Names and Order})}:
+  Mô hình chính trên NHANES nhận đúng thứ tự $d = 12$ đặc trưng phi đường huyết (để không rò rỉ nhãn xét nghiệm vào mô hình nguy cơ nền): \texttt{[age, sex\_male, bmi, waist, systolic\_bp, diastolic\_bp, high\_bp, high\_chol, family\_history, smoker, phys\_activity, heart\_disease]}. Mô hình đối chứng trên BRFSS nhận 7~đặc trưng chuẩn hóa: \texttt{[age, sex\_male, bmi, high\_bp, high\_chol, smoker, phys\_activity]}.
+
+  \item \textbf{Phương pháp tiền xử lý (\emph{Preprocessing Method})}:
+  Đặc trưng chưa được người dùng cung cấp được giữ nguyên là \texttt{NaN} (tuyệt đối không điền trung vị toàn cục khi suy diễn để tránh làm sai lệch hồ sơ cá nhân). Trong quá trình huấn luyện \texttt{MLPRisk} và \texttt{GradientBoostingRisk}, kỹ thuật \textbf{Tăng cường dữ liệu che khuyết (\emph{Masked-Feature Augmentation})} được áp dụng: mỗi mẫu huấn luyện được nhân bản với 3~tổ hợp che ngẫu nhiên các đặc trưng tùy chọn (vòng eo, huyết áp, mỡ máu), chỉ giữ cố định hai đặc trưng cốt lõi (\texttt{age}, \texttt{bmi}), giúp mô hình duy trì độ chính xác cao ngay cả khi người bệnh mới khai báo một phần thông tin.
+
+  \item \textbf{Định dạng đầu ra (\emph{Output Format})}:
+  Trả về từ điển có cấu trúc gồm xác suất hợp nhất \texttt{risk\_probability} $\in [0,1]$, tỷ số nguy cơ tương đối \texttt{relative\_risk} so với mức nền quần thể, độ lệch bất đồng \texttt{model\_disagreement}, xác suất riêng của từng nhánh (\texttt{models.ml}, \texttt{models.dl}, \texttt{large\_cohort}) và danh sách đóng góp đặc trưng \texttt{top\_drivers} tính bằng phép thế từng biến (\emph{single-feature ablation}).
+
+  \item \textbf{Phiên bản và tệp trọng số mô hình (\emph{Model Version \& Artifacts})}:
+  Toàn bộ trọng số được lưu trữ và quản lý phiên bản tại \texttt{notebook/model/}: \texttt{nhanes\_mlp.pt}, \texttt{nhanes\_gbdt.joblib}, \texttt{brfss\_mlp.pt}, \texttt{brfss\_gbdt.joblib}, \texttt{logistic\_regression.joblib}, \texttt{random\_forest.joblib}, \texttt{extra\_trees.joblib}, \texttt{tabnet\_attention.pt}, \texttt{cnn\_retinopathy\_resnet18.pt}, \texttt{rnn\_glucose\_lstm.pt} và \texttt{rl\_qtable.npz}.
+
+  \item \textbf{Độ đo đánh giá thực nghiệm (\emph{Evaluation Metrics})}:
+  \tabref{tab:model-leaderboard} tổng hợp kết quả đánh giá thực nghiệm từ tệp \texttt{notebook/model/evaluation\_leaderboard.csv}, và \figref{fig:ch2_roc_pr} minh họa đường cong ROC và Precision--Recall trên tập kiểm tra độc lập. Hệ thống luôn tuân thủ nguyên tắc: độ chính xác thống kê trên tập kiểm tra không đồng nghĩa với chẩn đoán lâm sàng xác định, do đó đầu ra của \agent{PredictionAgent} luôn phải đi qua tầng kiểm định luật và đồ thị tri thức.
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{Bảng xếp hạng thực nghiệm các mô hình Học máy và Học sâu trong \texttt{/notebook/model/}.}
+\label{tab:model-leaderboard}
+\small
+\begin{tabularx}{\linewidth}{@{}L{4.8cm}L{2.8cm}L{3.2cm}Y@{}}
+\toprule
+\textbf{Mô hình (Notebook)} & \textbf{Tập dữ liệu} & \textbf{Tệp Artifact} & \textbf{Kết quả đánh giá chính} \\
+\midrule
+HistGradientBoosting + Platt (\texttt{04}) & NHANES ($N=23.005$) & \texttt{nhanes\_gbdt.joblib} & ROC-AUC $= 0{,}8167$, PR-AUC $= 0{,}5241$, Brier $= 0{,}1241$, Masked AUC $= 0{,}7937$ \\
+Deep Residual MLP (\texttt{05}) & NHANES ($N=23.005$) & \texttt{nhanes\_mlp.pt} & ROC-AUC $= 0{,}8250$, PR-AUC $= 0{,}5245$, Brier $= 0{,}1228$, Masked AUC $= 0{,}8039$ \\
+HistGradientBoosting (\texttt{04}) & BRFSS ($N=120.000$) & \texttt{brfss\_gbdt.joblib} & ROC-AUC $= 0{,}8133$, Brier $= 0{,}1041$ \\
+Deep Residual MLP (\texttt{05}) & BRFSS ($N=120.000$) & \texttt{brfss\_mlp.pt} & ROC-AUC $= 0{,}8128$, Brier $= 0{,}1043$ \\
+TabNet Attention (\texttt{06}) & NHANES ($N=23.005$) & \texttt{tabnet\_attention.pt} & ROC-AUC $= 0{,}7918$, Brier $= 0{,}1096$ \\
+Random Forest (\texttt{02}) & NHANES ($N=23.005$) & \texttt{random\_forest.joblib} & ROC-AUC $= 0{,}7941$, Brier $= 0{,}1090$ \\
+Extra Trees (\texttt{03}) & NHANES ($N=23.005$) & \texttt{extra\_trees.joblib} & ROC-AUC $= 0{,}7924$, Brier $= 0{,}1108$ \\
+Logistic Regression (\texttt{01}) & NHANES ($N=23.005$) & \texttt{logistic\_regression.joblib} & ROC-AUC $= 0{,}7888$, Brier $= 0{,}1693$ \\
+ResNet-18 Retinopathy (\texttt{07}) & RetinaMNIST 5-class & \texttt{cnn\_retinopathy\_resnet18.pt} & Accuracy $= 57{,}50\%$, QWK $= 0{,}6024$ \\
+Bi-LSTM Glucose CGM (\texttt{08}) & Chuỗi CGM 5 phút & \texttt{rnn\_glucose\_lstm.pt} & RMSE ($+30$p) $= 9{,}85\text{ mg/dL}$, Clarke A+B $= 99{,}5\%$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figw[0.92\linewidth]{ch2_roc_pr}{Đường cong ROC và Precision--Recall của mô hình dự báo nguy cơ đái tháo đường trên tập kiểm tra độc lập.}
+
+\section{Tích hợp Đồ thị Tri thức Neo4j và Hybrid RAG (Knowledge Graph and RAG Integration)}
+\label{sec:kg-rag-integration}
+
+Kho tri thức y khoa của hệ thống được biểu diễn hình thức bởi cặp cấu trúc:
+\begin{equation}
+  \mathcal{K} = (G_{\text{Neo4j}},\, D_{\text{RAG}}),
+  \label{eq:knowledge-repo}
+\end{equation}
+trong đó:
+\begin{itemize}
+  \item $G_{\text{Neo4j}} = (V, R_{\text{edge}})$ là Đồ thị Tri thức bệnh đái tháo đường lưu trữ trong hệ quản trị Neo4j~\cite{neo4j}, gồm $|V| = 43$ nút thuộc 6~nhãn thực thể (\texttt{Disease}, \texttt{RiskFactor}, \texttt{Test}, \texttt{Complication}, \texttt{Drug}, \texttt{Intervention}) và $|R_{\text{edge}}| = 55$ cạnh có hướng thuộc 7~kiểu quan hệ lâm sàng (\texttt{HAS\_RISK\_FACTOR}, \texttt{DIAGNOSED\_BY}, \texttt{CAUSES}, \texttt{SCREENED\_BY}, \texttt{TREATED\_BY}, \texttt{CONTRAINDICATED\_IN}, \texttt{PREVENTED\_BY}). Đặc biệt, đồ thị đã tích hợp đầy đủ 12~nút thuốc \texttt{:Drug} và 2~phác đồ phối hợp thuốc từ bốn nguồn dữ liệu thực tế: \textbf{ADA 2024}, \textbf{Bộ Y tế (QĐ 5481/QĐ-BYT)}, \textbf{Hệ thống Y tế Vinmec} và \textbf{Dược điển Nhà thuốc FPT Long Châu} (bao gồm \emph{Metformin / Glucophage 500mg--850mg}, \emph{Dapagliflozin / Forxiga 10mg}, \emph{Empagliflozin / Jardiance 25mg}, \emph{Sitagliptin / Januvia 100mg}, \emph{Linagliptin / Trajenta 5mg}, \emph{Gliclazide MR / Diamicron MR 60mg}, \emph{Insulin Glargine / Lantus SoloStar}, \emph{Đồng vận GLP-1} và \emph{Statin}). Mỗi cạnh trên Neo4j lưu thuộc tính \texttt{chunk\_ids} trỏ trực tiếp về đoạn văn bản gốc.
+  \item $D_{\text{RAG}}$ là tập hợp 50~đoạn văn bản y khoa (\texttt{kb\_chunks}) được chia theo mục từ 12~tài liệu chuẩn hóa trong \texttt{data/output/kb/kb\_sources/}, được nhúng thành vector 384~chiều bằng mô hình đa ngữ \texttt{paraphrase-multilingual-MiniLM-L12-v2}~\cite{reimers2020} lưu trong Qdrant~\cite{qdrant} (chỉ mục HNSW~\cite{malkov2018}) song song với chỉ mục toàn văn BM25 trong SQLite FTS5~\cite{sqlitefts5}.
+\end{itemize}
+
+\figw[0.95\linewidth]{ch5_kg}{Cấu trúc Đồ thị Tri thức bệnh đái tháo đường $G_{\text{Neo4j}}$ liên kết bệnh lý, yếu tố nguy cơ, xét nghiệm, biến chứng và các nhóm thuốc điều trị.}
+
+Khi được kích hoạt, tác tử \agent{KnowledgeAgent} thực hiện quy trình truy xuất 6~bước chuẩn hóa:
+\begin{enumerate}
+  \item \textbf{Phân tích truy vấn (\emph{Query Interpretation})}: Đối chiếu các chỉ số sinh hóa trong \texttt{PatientProfile} với hàm \texttt{evaluate\_glycemia()} (tiêu chuẩn ADA 2024 / QĐ 5481/QĐ-BYT) để xác định trạng thái đường huyết và sinh câu truy vấn ngữ nghĩa mở rộng.
+  \item \textbf{Nhận diện và liên kết thực thể (\emph{Entity Identification \& Linking})}: Ánh xạ các yếu tố nguy cơ trong hồ sơ (\texttt{graph\_entities()}) và các từ khóa / tên biệt dược trong câu hỏi tự nhiên (\texttt{link\_entities()} trong \texttt{src/knowledge/entity\_linking.py}) sang tên nút chính xác trên Neo4j.
+  \item \textbf{Truy vấn đồ thị (\emph{Graph Retrieval})}: Duyệt lân cận đa bước ($k \le 2$ hops) trên Neo4j bằng truy vấn Cypher \texttt{MATCH p = (s)-[*1..2]-(t) WHERE s.name IN \$names} để trích xuất chuỗi suy luận (\texttt{paths}), danh sách xét nghiệm tầm soát (\texttt{screenings}), thuốc điều trị (\texttt{drug\_classes}) và chống chỉ định (\texttt{contraindications}).
+  \item \textbf{Truy xuất tài liệu liên quan (\emph{Relevant Document Retrieval})}: Thực hiện tìm kiếm lai (\emph{hybrid search}) kết hợp điểm tương đồng cosine trên Qdrant và điểm BM25 trên FTS5, đồng thời thu thập các đoạn văn được liên kết trực tiếp qua thuộc tính \texttt{chunk\_ids} trên các cạnh đồ thị bước~1.
+  \item \textbf{Xếp hạng bằng chứng (\emph{Evidence Ranking})}: Hợp nhất danh sách đoạn văn từ tìm kiếm vector, tìm kiếm từ khóa và liên kết đồ thị bằng công thức Reciprocal Rank Fusion~\eq{eq:kg-agent}, loại bỏ trùng lặp và giữ lại top-$k$ đoạn có độ liên quan cao nhất.
+  \item \textbf{Gắn nhãn nguồn trích dẫn (\emph{Source Attribution})}: Mỗi đoạn bằng chứng đều đi kèm tiêu đề tài liệu, mục lục và đường dẫn URL gốc đã kiểm chứng (\texttt{HTTP 200 OK}) từ ADA, Bộ Y tế, Vinmec và Nhà thuốc FPT Long Châu, đảm bảo tri thức truy xuất luôn đóng vai trò bằng chứng hỗ trợ có nguồn gốc chứ không tự lập thành chẩn đoán độc lập.
+\end{enumerate}

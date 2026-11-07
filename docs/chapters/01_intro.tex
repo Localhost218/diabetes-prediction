@@ -1,0 +1,39 @@
+\chapter{Giới thiệu}
+\label{chap:intro}
+
+\section{Bối cảnh dự án (Project Background)}
+\label{sec:project-background}
+
+Đái tháo đường típ~2 (\emph{Type~2 Diabetes Mellitus} -- ĐTĐ típ~2) là một trong những bệnh lý chuyển hóa mạn tính có tốc độ gia tăng nhanh nhất trên toàn cầu cũng như tại Việt Nam~\cite{idf2021,byt5481}. Đặc thù lâm sàng của bệnh là diễn tiến âm thầm trong nhiều năm ở giai đoạn tiền đái tháo đường (\emph{prediabetes}) trước khi xuất hiện các biến chứng mạch máu nhỏ (võng mạc, thận, thần kinh ngoại biên) và mạch máu lớn (nhồi máu cơ tim, đột quỵ)~\cite{ada2024}. Trong thực tế hỗ trợ quyết định lâm sàng (\emph{Clinical Decision Support System} -- CDSS), việc dựa đơn thuần vào một mô hình học sâu hộp đen (\emph{black-box Deep Learning}) hoặc một bộ câu hỏi cố định đều bộc lộ hạn chế: mô hình học sâu thiếu khả năng trích dẫn phác đồ y khoa chính thống, trong khi hệ thống tra cứu văn bản thuần túy không định lượng được xác suất nguy cơ đa biến khi dữ liệu bệnh nhân bị khuyết thiếu.
+
+Trong giai đoạn phát triển trước của dự án, các thành phần nền tảng sau đây đã được xây dựng và kiểm nghiệm độc lập:
+\begin{enumerate}
+  \item \textbf{Tổ hợp mô hình Học sâu và Học máy (\emph{Deep Learning \& Machine Learning Models}) dự đoán đái tháo đường}: Được huấn luyện và đánh giá có hệ thống thông qua chuỗi 10~notebook chuẩn hóa (\texttt{00\_data\_preprocessing.ipynb} đến \texttt{09\_model\_evaluation.ipynb}) trên dữ liệu dịch tễ thực tế từ Khảo sát Sức khỏe và Dinh dưỡng Quốc gia Hoa Kỳ (CDC NHANES~\cite{nhanes}), Hệ thống Giám sát Yếu tố Nguy cơ Hành vi (CDC BRFSS 2021--2023) và bộ dữ liệu nhân trắc học người Việt, xuất ra các trọng số mô hình tại \texttt{/notebook/model/} (bao gồm mạng nơ-ron sâu có kết nối tắt \texttt{nhanes\_mlp.pt}, cây tăng cường gradient \texttt{nhanes\_gbdt.joblib}, mạng TabNet \texttt{tabnet\_attention.pt}, mạng tích chập ResNet-18 phân độ võng mạc \texttt{cnn\_retinopathy\_resnet18.pt} và mạng Bi-LSTM dự báo chuỗi glucose \texttt{rnn\_glucose\_lstm.pt}).
+  \item \textbf{Hệ thống Đồ thị Tri thức (\emph{Knowledge Graph}) và Truy xuất Tăng cường Sinh văn bản (\emph{RAG}) trên Neo4j và Qdrant}: Khởi tạo cơ sở dữ liệu đồ thị Neo4j~\cite{neo4j} lưu trữ mạng lưới thực thể y khoa (bệnh lý, yếu tố nguy cơ, xét nghiệm, biến chứng, thuốc điều trị và can thiệp lối sống) kết hợp chỉ mục vector ngữ nghĩa Qdrant~\cite{qdrant} và tìm kiếm toàn văn SQLite FTS5~\cite{sqlitefts5}.
+  \item \textbf{Kho ngữ liệu y khoa chuẩn hóa đa nguồn}: Kết hợp Khuyến cáo \emph{ADA Standards of Care 2024}~\cite{ada2024}, Quyết định số 5481/QĐ-BYT của Bộ Y tế Việt Nam~\cite{byt5481}, phác đồ điều trị cá thể hóa từ Hệ thống Y tế Vinmec và dữ liệu dược điển thực tế từ Hệ thống Nhà thuốc FPT Long Châu.
+\end{enumerate}
+
+Bước phát triển trọng tâm của báo cáo này là tích hợp toàn bộ các thành phần rời rạc nói trên thành một \textbf{Hệ thống Đa Tác tử Lai (\emph{Hybrid Multiagent System} -- Hybrid MAS)} thống nhất~\cite{wooldridge2009,guo2024mas}. Hệ thống đề xuất kết hợp hài hòa sáu mô thức Trí tuệ Nhân tạo (\emph{AI Paradigms}):
+\begin{itemize}
+  \item \textbf{Học sâu và Học máy kết hợp (\emph{Deep Learning \& Calibrated Ensemble ML})}: Thực hiện suy diễn xác suất nguy cơ mắc bệnh, phân tích ảnh đáy mắt và dự báo chuỗi đường huyết liên tục (CGM) với cơ chế chịu lỗi khi dữ liệu đầu vào khuyết thiếu (\emph{Masked-Feature Augmentation}).
+  \item \textbf{Đồ thị Tri thức và RAG lai (\emph{Knowledge Graph \& Hybrid RAG})}: Truy xuất ngữ cảnh lâm sàng có cấu trúc từ Neo4j và các đoạn hướng dẫn điều trị từ Qdrant/FTS5 theo cơ chế gộp xếp hạng nghịch đảo (\emph{Reciprocal Rank Fusion} -- RRF~\cite{cormack2009}).
+  \item \textbf{Suy luận dựa trên luật và Phản biện đồng thuận (\emph{Rule-Based Reasoning \& Multiagent Debate})}: Áp dụng tường minh các tiêu chuẩn chẩn đoán của ADA 2024 / Bộ Y tế, kiểm tra phạm vi sàng lọc và tổ chức tranh biện đa vòng để phát hiện mâu thuẫn giữa mô hình học sâu và xét nghiệm sinh hóa~\cite{du2024debate}.
+  \item \textbf{Mô hình Ngôn ngữ Lớn cục bộ (\emph{Local Large Language Models} -- Ollama / Qwen2.5)}: Thực hiện bóc tách thực thể lâm sàng từ văn bản tự nhiên / bệnh án đa phương thức và sinh báo cáo giải thích cơ chế bệnh sinh bằng tiếng Việt có neo chặt vào bằng chứng (\emph{grounded generation}).
+  \item \textbf{Học tăng cường (\emph{Reinforcement Learning})}: Học chính sách gợi ý lộ trình can thiệp bậc thang bằng thuật toán Tabular Q-Learning~\cite{watkins1992,sutton2018} trong môi trường mô phỏng có kiểm soát bởi Cổng an toàn lâm sàng (\emph{Clinical Safety Gate}).
+  \item \textbf{Điều phối Đa tác tử (\emph{Multiagent Coordination})}: Quản lý luồng thực thi, phân bổ tác vụ bất đồng bộ và tổng hợp đầu ra thành báo cáo hỗ trợ quyết định lâm sàng thống nhất.
+\end{itemize}
+
+\section{Mục tiêu dự án (Project Objectives)}
+\label{sec:project-objectives}
+
+Bám sát đề cương kỹ thuật của học phần Phát triển Hệ thống Thông minh, dự án đặt ra tám mục tiêu cụ thể sau đây:
+\begin{enumerate}
+  \item \textbf{Thiết kế kiến trúc đa tác tử mô-đun (\emph{Modular Multiagent Architecture})}: Phân tách hệ thống thành 6~tầng chức năng rõ ràng và 8~tác tử độc lập, giao tiếp qua bus thông điệp chuẩn hóa mà không phụ thuộc cứng vào nhau.
+  \item \textbf{Tái sử dụng hiệu quả các mô hình Học sâu và Học máy đã huấn luyện}: Đóng gói các mô hình trong \texttt{/notebook/model/} (\texttt{nhanes\_mlp.pt}, \texttt{nhanes\_gbdt.joblib}, \texttt{brfss\_mlp.pt}, \texttt{brfss\_gbdt.joblib}, \texttt{cnn\_retinopathy\_resnet18.pt}, \texttt{rnn\_glucose\_lstm.pt}) thành dịch vụ suy diễn chuẩn hóa trong \agent{PredictionAgent} mà không cần huấn luyện lại khi vận hành.
+  \item \textbf{Tái sử dụng và mở rộng Đồ thị Tri thức Neo4j}: Tích hợp trực tiếp đồ thị Neo4j (43~nút, 55~cạnh, bao gồm 12~nút thuốc \texttt{:Drug} từ ADA, Bộ Y tế, Vinmec và Nhà thuốc Long Châu) vào luồng suy luận của \agent{KnowledgeAgent}.
+  \item \textbf{Định nghĩa tường minh trách nhiệm và hợp đồng giao diện của từng tác tử}: Chuẩn hóa lược đồ đầu vào (\emph{Input Schema}), đầu ra (\emph{Output Schema}) bằng Pydantic và bảng giao diện hàm cho mọi tác tử trong \texttt{/src/agents/}.
+  \item \textbf{Hiện thực hóa cơ chế giao tiếp và điều phối tác tử}: Xây dựng \texttt{MessageBus} bất đồng bộ hỗ trợ 5~hành vi ngôn trung FIPA-ACL (\texttt{REQUEST}, \texttt{INFORM}, \texttt{CHALLENGE}, \texttt{RESPONSE}, \texttt{FAILURE}) dưới sự điều phối của \agent{Orchestrator}.
+  \item \textbf{Xây dựng báo cáo hỗ trợ quyết định lâm sàng có cấu trúc (\emph{Structured Decision-Support Report})}: Tổng hợp báo cáo 5~phần chuyên sâu gồm: (1)~Phân tầng nguy cơ \& đối chiếu xét nghiệm ADA/BYT, (2)~Suy luận ML/DL \& phản biện hội đồng, (3)~Chuỗi suy luận đồ thị Neo4j GraphRAG \& tầm soát biến chứng, (4)~Định hướng lối sống \& thuốc tham chiếu RL/Vinmec/Long Châu, và (5)~Biện luận cơ chế bệnh sinh cá thể hóa.
+  \item \textbf{Đánh giá thực nghiệm từng tác tử và toàn bộ hệ thống MAS}: Kiểm chứng bằng bảng xếp hạng thực nghiệm 9~mô hình ML/DL và bộ kiểm thử tự động 46~kịch bản (\texttt{pytest}) bao phủ toàn bộ các nhánh luồng.
+  \item \textbf{Tạo nền tảng mở rộng cho nghiên cứu hệ thống thông minh đa tác tử}: Đảm bảo khả năng thay thế mô hình LLM (Ollama \texttt{qwen2.5} / HuggingFace Qwen cục bộ), bổ sung tác tử chuyên khoa mới hoặc mở rộng cơ sở tri thức mà không làm thay đổi kiến trúc lõi.
+\end{enumerate}

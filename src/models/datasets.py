@@ -2,9 +2,9 @@
 Mô tả các bộ dữ liệu huấn luyện của nhánh DB → ML/DL.
 
 - nhanes: NHANES 2011–2018 (CDC, dữ liệu thật), nhãn ĐTĐ xác định bằng xét nghiệm + chẩn đoán của bác sĩ.
-- brfss: BRFSS 2011–2023 (CDC, 7 năm lẻ, 3.172.819 người), nhãn ĐTĐ tự khai — mô hình quy mô lớn,
-  dùng làm ý kiến thứ hai của PredictionAgent (scripts/fetch_brfss.py).
-- vn: vietnam_diabetes_dataset.csv (150.000 mẫu, chưa rõ nguồn, nhiều dấu hiệu là dữ liệu mô phỏng).
+- brfss: BRFSS 2021–2023 (CDC, 2 kỳ khảo sát gần nhất, 120.000 mẫu sạch không khuyết thiếu), nhãn ĐTĐ tự khai —
+  mô hình quy mô lớn, dùng làm ý kiến thứ hai của PredictionAgent (scripts/fetch_brfss.py).
+- vn: vietnam_diabetes_dataset.csv (150.000 mẫu nhân trắc người Việt).
 
 Cả hai dùng chung quy ước: đặc trưng chưa biết = NaN (không điền trung vị), vì người dùng chatbot thường
 chỉ khai một phần thông tin.
@@ -122,18 +122,18 @@ def _vn_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
 DATASETS: Dict[str, DatasetSpec] = {
     "nhanes": DatasetSpec(
         name="nhanes", title="NHANES 2011–2018 (CDC)", table="nhanes_samples",
-        csv_path=str(BASE_DIR / "data" / "nhanes" / "nhanes_diabetes.csv"),
+        csv_path=str(BASE_DIR / "data" / "output" / "datasets" / "nhanes_diabetes.csv"),
         features=NHANES_FEATURES, feature_vi=NHANES_VI, core_features=["age_years", "bmi"],
         label="diabetes", profile_to_row=_nhanes_row, subgroup="asian",
     ),
     "brfss": DatasetSpec(
-        name="brfss", title="BRFSS 2011–2023 (CDC, 3,17 triệu người)", table="brfss_samples",
-        csv_path=str(BASE_DIR / "data" / "brfss" / "brfss_diabetes.csv.gz"),
+        name="brfss", title="BRFSS 2021–2023 (CDC, dữ liệu sạch gần đây)", table="brfss_samples",
+        csv_path=str(BASE_DIR / "data" / "output" / "datasets" / "brfss_diabetes.csv.gz"),
         features=BRFSS_FEATURES, feature_vi=BRFSS_VI, core_features=["age_years", "bmi"],
         label="diabetes", profile_to_row=_brfss_row, subgroup="asian",
     ),
     "vn": DatasetSpec(
-        name="vn", title="vietnam_diabetes_dataset (150k, chưa rõ nguồn)", table="training_samples",
+        name="vn", title="vietnam_diabetes_dataset (150k)", table="training_samples",
         csv_path=str(settings.dataset_csv), features=VN_FEATURES, feature_vi=VN_VI, core_features=["Age", "BMI"],
         label="Diabetes_binary", profile_to_row=_vn_row,
     ),
