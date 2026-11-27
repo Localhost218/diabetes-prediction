@@ -3,6 +3,13 @@ Tác tử Hội thoại (Conversation / Text Intake Agent)
 Bóc tách chỉ số lâm sàng từ tin nhắn tự do của người dùng thành PatientProfile.
 LLM (Ollama / Qwen structured output) là nhánh chính; regex luôn chạy song song và bù các trường LLM bỏ sót,
 nên cùng một tin nhắn luôn cho ít nhất cùng một tập chỉ số chuẩn xác.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: EXTRACT_FROM_TEXT từ Orchestrator (bước tiếp nhận, chạy song song với Clarification/Document)
+  Trả:  PATIENT_DATA_EXTRACTED {profile_delta, fields, method} → Orchestrator gộp vào hồ sơ
+  Chống LLM bịa số: ExtractedClinicalData.to_profile(source_text=…) chỉ nhận con số có trong tin nhắn.
+  _answer_to_question: hiểu câu trả lời cụt ("chắc khoảng 165 mg/dL") cho đúng chỉ số chatbot vừa hỏi.
+  Tác tử loại: phản xạ có mô hình (model-based reflex) — dùng câu hỏi trước đó làm ngữ cảnh.
 """
 
 import re
@@ -52,6 +59,7 @@ class ConversationAgent(BaseAgent):
     handles = {"EXTRACT_FROM_TEXT"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: MessageBus gọi khi Orchestrator gửi EXTRACT_FROM_TEXT
         text = msg.payload["text"]
         previous = msg.payload.get("previous_bot_message")
         # Kèm câu chatbot vừa hỏi để hiểu câu trả lời cụt (ví dụ bot hỏi tuổi, người dùng chỉ gõ "62")

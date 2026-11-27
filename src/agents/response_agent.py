@@ -2,6 +2,14 @@
 Tác tử Phản hồi (Response Agent)
 Viết câu trả lời tiếng Việt từ kết quả của các tác tử. Với LLM: chỉ được dùng dữ liệu trong JSON đầu vào
 (grounded generation). Không có LLM: dùng mẫu câu có cấu trúc.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: COMPOSE_ASSESSMENT | COMPOSE_KNOWLEDGE_ANSWER | COMPOSE_CONTEXTUAL_ANSWER | COMPOSE_FOLLOW_UP |
+        COMPOSE_CLARIFICATION | COMPOSE_SMALL_TALK — luôn là bước cuối của lượt, do Orchestrator gửi
+  Trả:  RESPONSE_TEXT {text} → routes_chat lưu tin nhắn và đẩy sự kiện "final" lên giao diện
+  Đánh giá nguy cơ (_assessment_sections): 1) khả năng mắc (%), 2) vì sao (lời thường), 3) nên làm gì;
+  LLM chỉ viết đoạn "Lời bác sĩ AI" ngắn, phần còn lại sinh từ mẫu để không bịa số liệu.
+  Tác tử loại: phản xạ (reflex) — ánh xạ kết quả các tác tử thành câu trả lời.
 """
 
 import re
@@ -30,6 +38,7 @@ class ResponseAgent(BaseAgent):
                "COMPOSE_CONTEXTUAL_ANSWER", "COMPOSE_CLARIFICATION"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: COMPOSE_* — bước cuối của mọi lượt
         p = msg.payload
         history = _history_block(p.get("history"))
         if msg.msg_type == "COMPOSE_ASSESSMENT":

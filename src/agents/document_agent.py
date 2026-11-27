@@ -2,6 +2,11 @@
 Tác tử Đọc Bệnh án (Document / Medical Record Intake Agent)
 Đọc file người dùng tải lên từ SeaweedFS (S3): PDF, PDF scan, ảnh chụp phiếu xét nghiệm, DOCX, CSV chuỗi glucose
 → trích chỉ số (kết hợp LLM Ollama/Qwen + Regex Rules bù khuyết) → chuẩn hóa đơn vị → PatientProfile có nguồn "file:<tên file>".
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: PARSE_DOCUMENT từ Orchestrator (một thông điệp cho mỗi file; file đã được routes_chat lưu lên S3)
+  Trả:  INFORM kèm profile_delta (chỉ số bóc từ file) + loại tài liệu, tóm tắt; file lỗi/không liên quan → FAILURE
+  Tác tử loại: phản xạ có mô hình (model-based reflex).
 """
 
 import asyncio
@@ -24,6 +29,7 @@ class DocumentAgent(BaseAgent):
     handles = {"PARSE_DOCUMENT"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: MessageBus gọi với PARSE_DOCUMENT (mỗi file một thông điệp)
         p = msg.payload
         filename, mime = p["filename"], p["mime_type"]
         source = f"file:{filename}"

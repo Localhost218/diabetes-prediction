@@ -6,6 +6,12 @@ Quyết định có cần hỏi lại người dùng trước/kèm kết luận 
   - Tầng LLM (SCOPE_CHECK): tìm tình huống mơ hồ / ngoài phạm vi mà luật chưa lường trước. Mỗi vấn đề phải kèm
     đoạn trích nguyên văn từ tin nhắn (không có thì loại), và LLM chỉ được chặn luồng với thai phụ / trẻ em.
 Các vấn đề nhóm OTHER được trả về trong `uncovered` (lưu ở audit trail) để bổ sung luật sau này.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: SCOPE_CHECK (bước tiếp nhận, song song) và PLAN_QUESTIONS (sau khi đã gộp hồ sơ) từ Orchestrator
+  Trả:  SCOPE_ISSUES / CLARIFICATION_PLAN {questions (tối đa 2/lượt, có cờ blocking), uncovered}
+  Câu hỏi blocking (thai phụ, trẻ em…) làm Orchestrator dừng trước khi chạy hội đồng.
+  Tác tử loại: hướng mục tiêu (goal-based) — hỏi đúng thứ còn thiếu để đi tới kết luận an toàn.
 """
 
 import re
@@ -29,6 +35,7 @@ class ClarificationAgent(BaseAgent):
     handles = {"SCOPE_CHECK", "PLAN_QUESTIONS"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: SCOPE_CHECK (tầng LLM) hoặc PLAN_QUESTIONS (tầng luật + gộp câu hỏi LLM)
         if msg.msg_type == "SCOPE_CHECK":
             return self.reply(msg, "SCOPE_ISSUES", await _scope_check(msg.payload["text"], msg.payload.get("history")))
 

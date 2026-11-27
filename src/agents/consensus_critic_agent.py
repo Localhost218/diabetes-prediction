@@ -6,6 +6,13 @@ Hiện thực hóa khối vòng tròn lớn có các ký hiệu (+ / -) trên s�
   - Tranh biện nhiều vòng: khi phát hiện mâu thuẫn, tác tử gửi CHALLENGE qua MessageBus tới tác tử liên quan,
     nhận RESPONSE và cập nhật kết luận; lặp đến khi không còn vấn đề mới hoặc hết MAX_DEBATE_ROUNDS.
   - Safety Guardrail: các ngưỡng nguy hiểm luôn được ưu tiên, bất kể kết quả mô hình.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: DELIBERATE từ Orchestrator {profile, prediction, knowledge}
+  Gửi:  CHALLENGE_* tới PredictionAgent / KnowledgeAgent qua MessageBus (_detect_issues chọn vấn đề) → nhận RESPONSE
+  Trả:  CONSENSUS_RESULT {risk_level, risk_label, điểm hội đồng, bằng chứng +/−, guardrails, debate, relative_note}
+  Nguyên tắc: xét nghiệm (ADA) ưu tiên hơn mô hình dân số; thiếu xét nghiệm → nhãn "ước tính tương đối".
+  Tác tử loại: hướng tiện ích (utility-based) — cân bằng chứng để chọn kết luận an toàn nhất.
 """
 
 import asyncio
@@ -53,6 +60,7 @@ class ConsensusCriticAgent(BaseAgent):
     handles = {"DELIBERATE"}
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: DELIBERATE — chạy tranh biện nhiều vòng, tự gửi CHALLENGE cho các tác tử khác
         profile = PatientProfile.model_validate(msg.payload["profile"])
         prediction, knowledge = msg.payload["prediction"], msg.payload["knowledge"]
         state = _initial_state(profile, prediction, knowledge)

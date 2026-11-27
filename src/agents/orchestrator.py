@@ -3,6 +3,19 @@ Tác tử Điều phối Trung tâm (Orchestrator)
 Mỗi lượt chat: phân loại ý định → lập kế hoạch → điều phối các tác tử qua MessageBus.
 Kế hoạch là động: câu hỏi kiến thức chỉ đi nhánh RAG; thiếu dữ liệu hoặc hồ sơ có thể nằm ngoài phạm vi sàng lọc
 thì hỏi lại; đủ dữ liệu thì chạy song song nhánh Prediction và Knowledge rồi đưa vào hội đồng tranh biện.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Được gọi từ: src/api/routes_chat.py _run_turn() → get_orchestrator().run_turn(...)   (UI → /api/chat/stream)
+  Khởi tạo 8 tác tử còn lại trong __init__ và đăng ký vào chung một MessageBus.
+  run_turn() — một lượt hội chẩn:
+    1. Song song: _classify (LLM phân loại ý định) ‖ ConversationAgent EXTRACT_FROM_TEXT ‖ ClarificationAgent
+       SCOPE_CHECK ‖ DocumentAgent PARSE_DOCUMENT (mỗi file)  → gộp vào PatientProfile
+    2. _decide_intent: SMALL_TALK | FOLLOW_UP (trả lời từ bộ nhớ) | KNOWLEDGE_QUESTION (chỉ RAG) | RISK_ASSESSMENT
+    3. ClarificationAgent PLAN_QUESTIONS → câu hỏi chặn luồng thì hỏi lại ngay; thiếu tuổi/BMI thì hỏi bổ sung
+    4. Song song (asyncio.gather): PredictionAgent PREDICT_RISK ‖ KnowledgeAgent RETRIEVE_EVIDENCE
+    5. ConsensusCriticAgent DELIBERATE (tranh biện +/−)  → 6. TreatmentRLAgent RECOMMEND_TREATMENT
+    7. ResponseAgent COMPOSE_* viết câu trả lời; _finish() trả kèm plan và transcript (toàn bộ thông điệp của lượt)
+  Tác tử loại: hướng mục tiêu (goal-based) — kế hoạch thay đổi theo ý định và dữ liệu đang có.
 """
 
 import asyncio

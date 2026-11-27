@@ -1,5 +1,20 @@
 """
 Tác tử Tri thức (nhánh PDF/Web → KB → RAG → Agent trên sơ đồ)
+
+LUỒNG TỪ GIAO DIỆN XUỐNG RAG + KB (vấn đáp câu 7, 8):
+  web/src/App.jsx              handleSendMessage → sendChatStream()
+  web/src/services/llmService.js  fetch('/api/chat/stream')
+  src/api/routes_chat.py       chat_stream → _stream → _run_turn → get_orchestrator().run_turn(...)
+  src/agents/orchestrator.py   run_turn():
+                                 - câu hỏi kiến thức → ask("KnowledgeAgent", "ANSWER_QUESTION")   → _answer_question()
+                                 - đánh giá nguy cơ  → ask("KnowledgeAgent", "RETRIEVE_EVIDENCE") → _evidence()
+                                   (chạy song song với PredictionAgent bằng asyncio.gather)
+  src/communication/message_bus.py  MessageBus.send() → KnowledgeAgent.handle()   ← điểm vào của file này
+  Trong file này:
+    _search()  = RAG văn bản: Qdrant (vector) + SQLite FTS5 (từ khóa), gộp bằng RRF
+    _graph()   = KB đồ thị: Neo4j (chính là nội dung data/output/kb/db_diabet.cypher), duyệt 1–2 bước
+    chunk_ids trên mỗi cạnh đồ thị = cầu nối KB → RAG (lấy lại đoạn văn gốc trong PDF/web làm bằng chứng)
+
   - Đối chiếu xét nghiệm với tiêu chuẩn ADA 2024 / QĐ 5481/QĐ-BYT
   - Vector RAG: hybrid search (Qdrant + full-text) (Chương 5)
   - GraphRAG: duyệt đồ thị tri thức Neo4j từ các yếu tố nguy cơ của bệnh nhân (Chương 5)
@@ -31,10 +46,13 @@ class KnowledgeAgent(BaseAgent):
         self.embedder = get_embedder()
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
-        if msg.msg_type == "RETRIEVE_EVIDENCE":
+        # ĐIỂM VÀO: MessageBus gọi hàm này với thư do Orchestrator / ConsensusCriticAgent gửi.
+        # Truy vấn DB là đồng bộ nên chạy trong thread (asyncio.to_thread) để không chặn các tác tử chạy song song.
+        if msg.msg_type == "RETRIEVE_EVIDENCE":  # lượt đánh giá nguy cơ: bằng chứng theo hồ sơ bệnh nhân
             return self.reply(msg, "CLINICAL_EVIDENCE", await asyncio.to_thread(self._evidence, msg.payload))
-        if msg.msg_type == "ANSWER_QUESTION":
+        if msg.msg_type == "ANSWER_QUESTION":  # câu hỏi kiến thức chung ("HbA1c bao nhiêu là tiền ĐTĐ?")
             return self.reply(msg, "KNOWLEDGE_PASSAGES", await asyncio.to_thread(self._answer_question, msg.payload["question"]))
+        # Hai loại còn lại là CHALLENGE của hội đồng tranh biện → trả RESPONSE
         if msg.msg_type == "CHALLENGE_SCREENING_PLAN":
             return self.reply(msg, "CHALLENGE_RESPONSE", await asyncio.to_thread(self._screening_plan, msg.payload),
                               "RESPONSE")
@@ -42,9 +60,11 @@ class KnowledgeAgent(BaseAgent):
                           "RESPONSE")
 
     def _answer_question(self, question: str) -> Dict[str, Any]:
-        passages = self._search(question, 5)
-        matched_entities = link_entities(question)
+        """Câu hỏi kiến thức: RAG văn bản + GraphRAG từ các thực thể nhắc tới trong câu hỏi."""
+        passages = self._search(question, 5)                 # 1) RAG: 5 đoạn văn liên quan nhất
+        matched_entities = link_entities(question)           # 2) "metformin", "béo phì"… → tên nút trong Neo4j
         graph = self._graph(matched_entities) if matched_entities else {"start_entities": [], "paths": [], "edges": [], "linked_chunks": []}
+        # 3) Bổ sung đoạn văn gốc mà các cạnh đồ thị trỏ tới (chunk_ids), bỏ trùng, tối đa 6 đoạn
         seen = {p["chunk_id"] for p in passages}
         for c in graph.get("linked_chunks", []):
             if c["chunk_id"] not in seen and len(passages) < 6:
@@ -58,18 +78,24 @@ class KnowledgeAgent(BaseAgent):
 
     # ------------------------------------------------------------------
     def _search(self, query: str, k: int) -> List[Dict[str, Any]]:
-        vec = self.embedder.embed([query])[0]
+        """RAG văn bản (hybrid search) trên 384 đoạn của 16 tài liệu KB (PDF QĐ 5481 + Vinmec + Long Châu + ADA…)."""
+        vec = self.embedder.embed([query])[0]                # nhúng câu truy vấn: paraphrase-multilingual-MiniLM-L12-v2
         with session_scope() as s:
+            # Qdrant (vector, cosine) + SQLite FTS5 (BM25 từ khóa) → gộp Reciprocal Rank Fusion (vector_store.py)
             rows = get_vector_store(s).hybrid_search(query, vec, k=k)
         return [{"chunk_id": r["id"], "document_id": r["document_id"], "title": r["title"], "heading": r["heading"],
                  "source": r["source"], "url": r["url"], "content": r["content"],
                  "score": round(float(r["score"]), 4)} for r in rows]
 
     def _graph(self, entities: List[str]) -> Dict[str, Any]:
+        """GraphRAG trên đồ thị tri thức Neo4j (43 nút, 55 cạnh — bản xuất là data/output/kb/db_diabet.cypher)."""
         with session_scope() as s:
+            # Cypher: MATCH p = (s)-[*1..2]-(t) WHERE s.name IN $names  (graph_store.py: neighborhood)
             edges = get_graph_store(s).neighborhood(entities, max_hops=2, limit=60)
+            # CẦU NỐI KB → RAG: mỗi cạnh lưu chunk_ids = đoạn văn gốc chứa trích dẫn của cạnh đó
             chunk_ids = sorted({c for e in edges if e["hops"] == 1 for c in e["chunk_ids"]})[:6]
             chunks = get_vector_store(s).chunks_by_ids(chunk_ids)
+        # Đọc khuyến nghị trực tiếp từ loại cạnh: tầm soát, can thiệp, thuốc, biến chứng, chống chỉ định
         recommendations = {
             "screenings": _tails(edges, "SCREENED_BY"),
             "interventions": _tails(edges, "TREATED_BY", {"Intervention"}) + _tails(edges, "PREVENTED_BY"),
@@ -89,11 +115,13 @@ class KnowledgeAgent(BaseAgent):
         }
 
     def _evidence(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Lượt đánh giá nguy cơ: đối chiếu ADA + GraphRAG từ yếu tố nguy cơ của bệnh nhân + RAG văn bản."""
         profile = PatientProfile.model_validate(payload["profile"])
-        glycemia = evaluate_glycemia(profile)
-        entities = graph_entities(profile, glycemia["status"])
-        graph = self._graph(entities)
+        glycemia = evaluate_glycemia(profile)                # 1) so xét nghiệm với ngưỡng ADA 2024 / QĐ 5481
+        entities = graph_entities(profile, glycemia["status"])  # 2) hồ sơ → nút xuất phát ("Thừa cân/béo phì", "Tuổi ≥ 35"…)
+        graph = self._graph(entities)                        # 3) duyệt đồ thị Neo4j từ các nút đó
 
+        # 4) RAG văn bản với truy vấn ghép từ tình trạng đường huyết + yếu tố nguy cơ
         query_terms = [glycemia["status_vi"]] + [f["test"] for f in glycemia["findings"]] + entities[:5]
         if glycemia["status"] in ("unknown", "normal"):
             query_terms.append("sàng lọc yếu tố nguy cơ")

@@ -3,6 +3,13 @@ Tác tử Gợi ý Can thiệp Học Tăng Cường (Treatment RL Agent)
 Q-Learning (Off-Policy TD Control) chọn bước can thiệp kết hợp hướng dẫn ADA 2024, Bộ Y tế,
 phác đồ cá thể hóa Vinmec và dữ liệu thuốc thực tế từ Nhà thuốc Long Châu.
 Kết quả được ràng buộc bởi kết luận hội đồng và tri thức chống chỉ định từ Knowledge Graph.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: RECOMMEND_TREATMENT từ Orchestrator {profile, consensus, knowledge}
+  Trả:  TREATMENT_SUGGESTION {recommended_action, intervention_details, reference_drugs_vn, monitoring_plan, notes}
+  Q-table: notebook/model/rl_qtable.npz (24 trạng thái × 4 hành động, γ = 0,9; src/models/qlearning_treatment.py)
+  Khóa an toàn: chưa đủ tiêu chí chẩn đoán thì không gợi ý thuốc kê đơn; chống chỉ định lấy từ đồ thị tri thức.
+  Tác tử loại: tác tử học (learning agent).
 """
 
 from typing import Any, Dict, List
@@ -21,6 +28,7 @@ class TreatmentRLAgent(BaseAgent):
         self.rl_engine = DiabetesQLearningEngine()
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: RECOMMEND_TREATMENT — tra Q-table theo trạng thái bệnh nhân rồi áp khóa an toàn
         profile = PatientProfile.model_validate(msg.payload["profile"])
         consensus, knowledge = msg.payload["consensus"], msg.payload["knowledge"]
 

@@ -28,6 +28,7 @@ docker compose exec backend python scripts/ingest_kb.py     # nạp KB: PDF + li
 - Giao diện: <http://localhost:8000> · API docs: <http://localhost:8000/docs> · Neo4j Browser: <http://localhost:7474>
 - GPU cho Ollama cần `nvidia-container-toolkit` trên máy host.
 - Phát triển giao diện: `cd web && npm install && npm run dev` (Vite :5173, proxy `/api` → :8000). `npm run build` ghi vào `web/dist` mà backend phục vụ.
+- Kiểm bản dịch KB với bản gốc (số liệu + độ tương đồng nghĩa): `.venv/bin/python scripts/verify_kb.py`
 - Kiểm thử: `.venv/bin/python -m pytest test -q` (64 test) · `cd web && npm test` (15 test).
 
 ## 2. Cấu trúc thư mục

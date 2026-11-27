@@ -16,6 +16,8 @@ data/
 │   ├── bo_y_te_vn/                  # Bộ Y tế Việt Nam (QĐ 5481/QĐ-BYT & Vietnam Diabetes Dataset)
 │   ├── nhanes/                      # CDC NHANES 2011–2018 (40 bảng xét nghiệm & khám lâm sàng .xpt)
 │   ├── brfss/                       # CDC BRFSS 2021–2023 (2 kỳ khảo sát gần nhất LLCP2021XPT, LLCP2023XPT)
+│   ├── retina/                      # RetinaMNIST 128×128 (MedMNIST v2) — ảnh đáy mắt 5 mức, train ResNet-18
+│   ├── shanghai/                    # ShanghaiT1DM + T2DM — chuỗi CGM 15 phút, 112 bệnh nhân, train LSTM
 │   ├── vinmec/                      # Hệ thống Y tế Vinmec (HTML gốc crawl từ vinmec.com + manifest.json)
 │   └── long_chau/                   # Nhà thuốc FPT Long Châu (HTML gốc crawl từ nhathuoclongchau.com.vn + manifest.json)
 └── output/                          # DỮ LIỆU SAU KHI XỬ LÝ (PROCESSED)

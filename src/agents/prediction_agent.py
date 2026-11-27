@@ -1,7 +1,7 @@
 """
 Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification)
-  - ML: HistGradientBoosting + Platt Scaling (`nhanes_gbdt.joblib`)
-  - DL: Mạng nơ-ron Residual/Deep MLP PyTorch (`nhanes_mlp.pt`)
+  - ML: HistGradientBoosting (`nhanes_gbdt.joblib`)
+  - DL: MLP PyTorch 3 lớp ẩn 128–64–32 (`nhanes_mlp.pt`)
   Cả hai huấn luyện trên cùng dữ liệu từ DB quan hệ (SQLite, mặc định NHANES 2011–2018); kết quả là trung bình của hai mô hình,
   độ lệch giữa chúng là căn cứ để hội đồng chất vấn.
   - Ý kiến thứ hai quy mô lớn: cặp GBDT + MLP huấn luyện trên BRFSS 2021–2023 (120.000 mẫu sạch gần đây, nhãn tự khai).
@@ -9,6 +9,15 @@ Tác tử Dự đoán (nhánh DB → ML/DL → Prediction / Classification)
   - RNN Temporal: chỉ số CGM khi có chuỗi đo glucose (≥ 5 lần), dự báo 15–60 phút bằng LSTM (`rnn_glucose_lstm.pt`) khi ≥ 12 lần.
   - CNN Vision: ResNet-18 phân độ bệnh võng mạc (`cnn_retinopathy_resnet18.pt`) kèm Grad-CAM khi có ảnh đáy mắt.
 Không tự sinh dữ liệu giả cho CNN/RNN khi người dùng không cung cấp.
+
+VẤN ĐÁP — VỊ TRÍ TRONG LUỒNG:
+  Nhận: PREDICT_RISK từ Orchestrator (song song với KnowledgeAgent) và các CHALLENGE_* từ ConsensusCriticAgent
+  Trả:  RISK_PREDICTION {risk_model: xác suất, nguy cơ tương đối, top yếu tố, độ lệch ML–DL, large_scale (BRFSS)}
+        hoặc RESPONSE giải trình khi bị chất vấn
+  Nạp mô hình trong __init__: GradientBoostingRisk.load + MLPRisk.load (thư mục notebook/model)
+  _ensemble(): trung bình xác suất GBDT và MLP (KHÔNG hiệu chỉnh Platt; MLP là MLP 3 lớp ẩn, không residual)
+  Mô hình không dùng glucose/HbA1c làm đặc trưng (nhãn tạo từ chúng → rò rỉ nhãn); xét nghiệm do KnowledgeAgent đối chiếu.
+  Tác tử loại: dùng mô hình đã học (learning-based).
 """
 
 import asyncio
@@ -51,6 +60,7 @@ class PredictionAgent(BaseAgent):
         self.rnn_temporal = RNNTemporalEngine()
 
     async def handle(self, msg: AgentMessage) -> AgentMessage:
+        # ĐIỂM VÀO: PREDICT_RISK từ Orchestrator, hoặc CHALLENGE_* từ hội đồng (trả RESPONSE giải trình)
         if msg.msg_type == "PREDICT_RISK":
             return self.reply(msg, "RISK_PREDICTION", await asyncio.to_thread(self._predict, msg.payload))
         handler = {"CHALLENGE_ML_VS_LABS": self._defend_ml_vs_labs, "CHALLENGE_DATA_QUALITY": self._defend_data_quality,
