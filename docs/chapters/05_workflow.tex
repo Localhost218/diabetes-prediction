@@ -10,13 +10,13 @@ Luồng tương tác giữa các tác tử trong một lượt hội chẩn (\em
   \item \textbf{Bước 1}: Người dùng gửi các chỉ số sức khỏe, tệp bệnh án đính kèm (nếu có) và câu hỏi tự nhiên qua giao diện Web.
   \item \textbf{Bước 2}: Tầng Cổng API (\texttt{routes\_chat.py}) tiếp nhận yêu cầu, tạo mã phiên và chuyển luồng điều khiển cho Tác tử Điều phối (\agent{Orchestrator}).
   \item \textbf{Bước 3}: Tác tử Dữ liệu Bệnh nhân (\agent{DocumentAgent} và \agent{ConversationAgent}) bóc tách chỉ số, chuẩn hóa đơn vị đo lường, kiểm tra tính hợp lệ của \texttt{PatientProfile} và phối hợp với \agent{ClarificationAgent} kiểm tra phạm vi sàng lọc.
-  \item \textbf{Bước 4}: Nếu dữ liệu không hợp lệ, thiếu chỉ số bắt buộc (chưa có cả đường huyết/HbA1c lẫn cặp tuổi + BMI) hoặc gặp điều kiện chặn luồng (\texttt{blocking=True} như đang mang thai, bệnh nhi), Tác tử Điều phối dừng sớm luồng suy diễn và trả về thông báo yêu cầu làm rõ / bổ sung dữ liệu.
+  \item \textbf{Bước 4}: \upd{Nếu thiếu tuổi hoặc BMI, hoặc gặp điều kiện chặn luồng (\texttt{blocking=True} như đang mang thai, bệnh nhi), Tác tử Điều phối dừng sớm và hỏi bổ sung. Khi chưa có xét nghiệm đường huyết/HbA1c, hệ thống vẫn chạy đủ hội đồng nhưng kết luận được gắn nhãn “ước tính từ yếu tố nguy cơ, chưa có xét nghiệm đường huyết” và hỏi kèm đường huyết lúc đói (không chặn kết quả).}
   \item \textbf{Bước 5}: Tác tử Dự đoán Học sâu (\agent{PredictionAgent}) thực thi song song cặp mô hình đã huấn luyện (\texttt{nhanes\_mlp.pt} + \texttt{nhanes\_gbdt.joblib}) cùng mô hình đối chứng quy mô lớn BRFSS (\texttt{brfss\_mlp.pt} + \texttt{brfss\_gbdt.joblib}).
   \item \textbf{Bước 6}: Tác tử Truy xuất Tri thức (\agent{KnowledgeAgent}) đối chiếu xét nghiệm với ngưỡng ADA 2024 / Bộ Y tế, đồng thời truy xuất đường đi trên Đồ thị Tri thức Neo4j và các đoạn hướng dẫn từ Qdrant/FTS5.
   \item \textbf{Bước 7}: Tác tử Luật và Phản biện (\agent{ConsensusCriticAgent}) đánh giá các luật lâm sàng tường minh; nếu phát hiện mâu thuẫn giữa dự báo Học sâu và xét nghiệm sinh hóa, tác tử này phát thông điệp chất vấn (\texttt{CHALLENGE}) để các tác tử liên quan giải trình.
   \item \textbf{Bước 8}: Tác tử Học tăng cường (\agent{TreatmentRLAgent}) ánh xạ trạng thái bệnh nhân vào bảng Q-table (\texttt{rl\_qtable.npz}) và áp dụng Cổng an toàn lâm sàng để chọn khuyến cáo can thiệp kèm danh mục thuốc tham chiếu.
   \item \textbf{Bước 9}: Tác tử Điều phối (\agent{Orchestrator}) thu thập và hợp nhất toàn bộ đầu ra từ các tác tử chuyên môn.
-  \item \textbf{Bước 10}: Tác tử Giải thích (\agent{ResponseAgent}) sinh báo cáo hỗ trợ quyết định lâm sàng có cấu trúc 5~phần, trong khi Tác tử Giám sát (\texttt{TraceCollector}) ghi nhận toàn bộ siêu dữ liệu thực thi (\emph{execution metadata}).
+  \item \textbf{Bước 10}: Tác tử Giải thích (\agent{ResponseAgent}) sinh báo cáo hỗ trợ quyết định lâm sàng có cấu trúc 5~phần, \upd{trong khi \texttt{MessageBus} ghi lại toàn bộ thông điệp của lượt (bảng \texttt{agent\_messages}) và đẩy từng thông điệp lên giao diện dưới dạng luồng NDJSON}.
   \item \textbf{Bước 11}: Báo cáo hoàn chỉnh kèm vết suy luận và trích dẫn nguồn được trả về cho người dùng.
 \end{enumerate}
 
@@ -133,3 +133,16 @@ resp = await self.request("ResponseAgent", "COMPOSE_ASSESSMENT", {
 }, trace)
 \end{minted}
 \end{code}
+
+\section{\upd{Các cập nhật của phiên bản v3 (27/11/2026)}}
+\label{sec:v3-updates}
+\upd{Phiên bản v3 sửa các số liệu chưa khớp với mã nguồn của bản v2 (xem Bảng~\ref{tab:model-leaderboard}) và bổ sung các thay đổi sau, tất cả đều có kiểm thử tự động (64 test Pytest, 15 test giao diện):}
+\begin{enumerate}
+  \item \upd{\textbf{Dự đoán khi chưa có xét nghiệm}: chỉ cần tuổi và BMI là hội đồng chạy đủ; kết luận gắn nhãn “ước tính từ yếu tố nguy cơ” và mọi kết quả đều kèm ghi chú: “Kết quả chỉ mang tính tương đối: mô hình ước tính nguy cơ so với quần thể có đặc điểm giống bạn, không phải chẩn đoán” (\texttt{RELATIVE\_NOTE}, \texttt{NO\_LABS\_NOTE} trong \texttt{consensus\_critic\_agent.py}).}
+  \item \upd{\textbf{Lối sống có trong dữ liệu huấn luyện}: rau xanh và trái cây (biến CDC \texttt{\_VEGLT1A}, \texttt{\_FRTLT1A}, mô hình BRFSS) và giờ ngủ (bảng SLQ, mô hình NHANES, quan hệ hình chữ U: ngủ dưới 6 giờ hoặc từ 10 giờ trở lên nguy cơ cao hơn). Các đặc trưng đã thử và loại bỏ: thói quen ăn uống của NHANES (đồ ăn nhanh, đường, tinh bột, chất xơ) học ngược chiều do nhân quả ngược (người đã được chẩn đoán đã kiêng ăn), che dữ liệu của họ thì lộ nhãn (AUC 0,94 giả tạo); giờ ngồi cũng ngược chiều.}
+  \item \upd{\textbf{Chống LLM bịa số liệu}: mọi con số do LLM bóc tách phải xuất hiện nguyên văn trong tin nhắn (\texttt{ExtractedClinicalData.to\_profile}); câu trả lời cụt (“chắc khoảng 165 mg/dL”) chỉ được gán cho chỉ số vừa hỏi khi ngắn và đúng đơn vị; câu hỏi làm rõ do LLM tự sinh bị lọc nếu không chỉ ra điểm mơ hồ cụ thể.}
+  \item \upd{\textbf{Giao diện một màn hình}: sổ tay hồ sơ (bên trái) được cập nhật ngay sau bước tiếp nhận, trước khi hội đồng chạy (sự kiện \texttt{profile} trong luồng NDJSON); khung chat kèm thanh kế hoạch 7 bước; sidebar phải vẽ thông điệp chạy qua 9 tác tử, Qdrant và Neo4j theo thời gian thực. Form hồ sơ mở sẵn khi vào trang, có nút “Hoàn thành” để lưu hồ sơ mà không cần xét nghiệm (\texttt{PUT /api/sessions/\{id\}/profile}).}
+  \item \upd{\textbf{Câu trả lời cho người không chuyên}: \texttt{ResponseAgent} trả lời ba phần — khả năng mắc bệnh (\%), vì sao (giải thích bằng lời thường), nên làm gì (bước tiếp theo, lối sống, điều trị và thuốc, dấu hiệu cần đi khám ngay). Chi tiết mô hình và đồ thị tri thức được thu gọn trong mục “Chi tiết hội chẩn”.}
+  \item \upd{\textbf{Hạ tầng}: Ollama (\texttt{qwen2.5:3b}) chạy trong container \texttt{ollama} trên GPU NVIDIA RTX 3050 (khoảng 19 token/giây); lời nhận định của LLM được giới hạn độ dài nên một lượt hội chẩn còn khoảng 10--40 giây thay vì 70 giây.}
+\end{enumerate}
+

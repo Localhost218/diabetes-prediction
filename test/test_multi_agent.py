@@ -37,7 +37,11 @@ def test_slot_filling_then_assessment(orchestrator):
     profile = PatientProfile()
     r1 = _turn(orchestrator, profile, "Tôi 52 tuổi, nam, cao 1m65 nặng 72kg")
     assert r1["data"]["intent"] == "RISK_ASSESSMENT"
-    assert r1["data"]["missing_required"] == ["glucose_fasting_mgdl"]
+    # Chưa có xét nghiệm: vẫn dự đoán nhưng ghi rõ là ước tính tương đối và hỏi kèm đường huyết
+    c1 = r1["data"]["consensus"]
+    assert c1["glycemic_status"] == "unknown" and "chưa có xét nghiệm" in c1["risk_label"]
+    assert "Chưa có xét nghiệm" in c1["relative_note"] and "ước tính tương đối" in r1["text"]
+    assert "glucose_fasting_mgdl" in [q["key"] for q in r1["data"]["clarification"]["questions"]]
 
     r2 = _turn(orchestrator, profile, "đường huyết lúc đói 7.2 mmol/L, HbA1c 6.9%")
     c = r2["data"]["consensus"]
@@ -53,7 +57,8 @@ def test_two_round_debate_when_ml_disagrees_with_labs(orchestrator):
     c = r["data"]["consensus"]
     assert c["glycemic_status"] == "normal" and c["ml_probability"] >= 0.30
     assert c["debate_rounds"] == 2
-    assert [d["issue"] for d in c["debate"]] == ["ml_high_labs_normal", "screening_plan"]
+    issues = [d["issue"] for d in c["debate"]]  # có thể kèm chất vấn ML–DL lệch nhau tùy mô hình đã train
+    assert "ml_high_labs_normal" in issues and issues[-1] == "screening_plan"
     # Xét nghiệm bình thường → RL bị hội đồng giới hạn ở can thiệp lối sống
     assert r["data"]["treatment"]["action_id"] == 0
 

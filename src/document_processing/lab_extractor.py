@@ -56,6 +56,7 @@ LDL_RE = re.compile(rf"(ldl(?:\s*-\s*c)?){GAP}{NUM}\s*(mmol\s*/\s*l|mg\s*/\s*dl)
 HDL_RE = re.compile(rf"(hdl(?:\s*-\s*c)?){GAP}{NUM}\s*(mmol\s*/\s*l|mg\s*/\s*dl)?", re.I)
 TG_RE = re.compile(rf"(triglycerid\w*|\btg\b){GAP}{NUM}\s*(mmol\s*/\s*l|mg\s*/\s*dl)?", re.I)
 CREAT_RE = re.compile(rf"(creatinin\w*){GAP}{NUM}\s*(u\s*mol\s*/\s*l|µ\s*mol\s*/\s*l|μ\s*mol\s*/\s*l|mg\s*/\s*dl)?", re.I)
+SLEEP_RE = re.compile(r"ngủ[^\d\n]{0,20}?(\d{1,2}(?:[.,]\d)?)\s*(?:tiếng|giờ|h\b|tieng|gio)", re.I)
 EGFR_RE = re.compile(rf"(egfr|mlcT|mức lọc cầu thận){GAP}{NUM}", re.I)
 
 
@@ -108,6 +109,10 @@ def extract_measurements(text: str, profile: PatientProfile, source: str) -> Non
     if m:
         profile.set("waist_cm", _num(m.group(1)), source, 1.0, _evidence(text, m.start(), m.end()))
 
+    m = SLEEP_RE.search(lower)
+    if m:
+        profile.set("sleep_hours", _num(m.group(1)), source, 0.9, _evidence(text, m.start(), m.end()))
+
     m = BP_RE.search(lower)
     if m:
         profile.set("systolic_bp", _num(m.group(1)), source, 1.0, _evidence(text, m.start(), m.end()))
@@ -152,6 +157,11 @@ BOOLEAN_PATTERNS: List[Tuple[str, str, Optional[str]]] = [
     ("heart_disease", r"bệnh tim|nhồi máu cơ tim|bệnh mạch vành|suy tim|thiếu máu cơ tim", None),
     ("stroke", r"đột quỵ|tai biến mạch máu não|tai biến", None),
     ("heavy_alcohol", r"uống nhiều rượu|nhậu nhiều|uống rượu bia nhiều|nghiện rượu", None),
+    # Ăn uống
+    ("vegetables_daily", r"(?:ăn|có)\s+(?:nhiều\s+)?rau(?:\s+xanh)?\s+(?:mỗi ngày|hằng ngày|hàng ngày|thường xuyên|các bữa)",
+     r"(?:ít|không|chẳng|hiếm khi)\s+(?:ăn\s+)?rau"),
+    ("fruits_daily", r"(?:ăn|có)\s+(?:nhiều\s+)?(?:trái cây|hoa quả)\s+(?:mỗi ngày|hằng ngày|hàng ngày|thường xuyên)",
+     r"(?:ít|không|chẳng|hiếm khi)\s+(?:ăn\s+)?(?:trái cây|hoa quả)"),
     # Bối cảnh lâm sàng (phạm vi áp dụng của sàng lọc)
     ("pregnant", r"mang thai|có thai|có bầu|đang bầu|thai \d+ tuần", None),
     ("diagnosed_diabetes",

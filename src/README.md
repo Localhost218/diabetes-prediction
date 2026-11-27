@@ -206,7 +206,7 @@ Sau khi có kết luận của Hội đồng:
 ### Giai đoạn 6: Tổng Hợp Phản Hồi Có Kiểm Chứng & Lưu Vết (`ResponseAgent` & `Audit Trail`)
 1. **Grounded Generation (`ResponseAgent`)**:
    - Đóng gói toàn bộ JSON kết quả hội đồng (`consensus`, `prediction`, `knowledge`, `treatment`, `citations`) gửi vào LLM (`Ollama` / `Qwen`) với ràng buộc nghiêm ngặt: **chỉ được diễn đạt các con số và bằng chứng có trong JSON đầu vào, tuyệt đối không tự bịa số liệu hay tên thuốc ngoài danh mục**.
-   - Nếu LLM tắt hoặc không khả dụng, hệ thống tự động kết xuất bằng mẫu báo cáo Markdown chuẩn hóa (`_assessment_template`).
+   - Nếu LLM tắt hoặc không khả dụng, hệ thống tự động kết xuất bằng mẫu báo cáo Markdown chuẩn hóa (`_assessment_sections`: tỷ lệ nguy cơ → vì sao → lời khuyên, viết cho người không có chuyên môn).
    - Các câu hỏi làm rõ còn lại (`questions`) được nối nguyên văn vào cuối câu trả lời để thu thập thêm thông tin cho lượt chat kế tiếp.
 2. **Streaming Thời gian thực & Lưu vết Kiểm toán (`Audit Trail`)**:
    - Qua endpoint `/api/chat/stream`, từng thông điệp giao tiếp giữa các tác tử trên `MessageBus` và phần đồ thị tri thức vừa duyệt được đẩy trực tiếp (NDJSON) lên giao diện **"Phòng hội chẩn"** ngay khi vừa xảy ra.

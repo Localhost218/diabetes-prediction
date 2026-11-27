@@ -33,13 +33,12 @@ class ResponseAgent(BaseAgent):
         p = msg.payload
         history = _history_block(p.get("history"))
         if msg.msg_type == "COMPOSE_ASSESSMENT":
-            base_report = _assessment_template(p)
-            reasoning = await llm.generate(RESPONSE_SYSTEM, [history + base_report])
-            if reasoning:
-                clean_reasoning = _strip_cjk(reasoning).strip()
-                text = f"{base_report}\n\n### 6. Nhận định Tổng hợp từ Mô hình Ngôn ngữ (LLM Synthesis)\n{clean_reasoning}"
-            else:
-                text = base_report
+            head, advice = _assessment_sections(p)
+            # GPU laptop ~19 token/s: lời bác sĩ ngắn (~300 token, ~15 s); phần còn lại đã có sẵn từ mẫu
+            # Chỉ đưa phần tỷ lệ + lý do để lời bác sĩ ngắn, không chép lại danh sách lời khuyên
+            note = await llm.generate(RESPONSE_SYSTEM, [history + head], max_tokens=220)
+            note = _whole_sentences(_strip_cjk(note)) if note else ""
+            text = head + (f"\n\n**👩‍⚕️ Lời bác sĩ AI:** {note}" if note else "") + "\n\n" + advice
         elif msg.msg_type == "COMPOSE_FOLLOW_UP":
             text = _follow_up_template(p)
         elif msg.msg_type == "COMPOSE_CLARIFICATION":
@@ -143,127 +142,155 @@ def _knowledge_brief(p: Dict[str, Any]) -> str:
     return f"Câu hỏi: {p['question']}\n\nTài liệu:\n{passages}{graph_block}"
 
 
+# Lời khuyên ngắn theo từng thói quen ăn uống (ADA 2024 Section 5, khuyến cáo dinh dưỡng của Bộ Y tế)
+DIET_ADVICE_VEG = "Ăn rau xanh trong mọi bữa (khoảng nửa đĩa ăn), chất xơ giúp đường huyết sau ăn tăng chậm hơn."
+DIET_ADVICE_FRUIT = "Ăn 1–2 phần trái cây nguyên quả mỗi ngày (ổi, táo, cam, bưởi), không thay bằng nước ép đóng chai."
+SLEEP_ADVICE = "Ngủ đều 7–8 giờ mỗi đêm, đi ngủ và thức dậy cùng giờ; thiếu ngủ lâu ngày làm cơ thể xử lý đường kém đi."
+
+
 # ------------------------------------------------------------------ mẫu câu dự phòng
-def _assessment_template(p: Dict[str, Any]) -> str:
+def _whole_sentences(text: str) -> str:
+    """Bỏ câu bị cắt dở khi LLM chạm giới hạn token."""
+    text = text.strip()
+    end = max(text.rfind(c) for c in ".!?")
+    return text[:end + 1] if end > 0 else text
+
+
+LEVEL_WORD = {"low": "thấp", "moderate": "trung bình", "high": "cao", "very_high": "rất cao"}
+GLYCEMIC_PLAIN = {"normal": "trong mức bình thường", "prediabetes_range": "cao hơn bình thường (mức tiền tiểu đường)",
+                  "diabetes_range": "đạt mức bác sĩ dùng để chẩn đoán tiểu đường"}
+WARNING_SIGNS = ("Đi khám ngay nếu bạn thấy: khát và đi tiểu nhiều bất thường, sụt cân không rõ lý do, mờ mắt, "
+                 "mệt lả, vết thương lâu lành, hoặc tê bì chân tay.")
+
+
+def _factor_plain(f: Dict[str, Any]) -> str:
+    """Một yếu tố làm TĂNG nguy cơ → câu dễ hiểu kèm lý do, cho người không có chuyên môn."""
+    v, name = f.get("value"), f["feature"]
+    plain = {
+        "bmi": lambda: f"**Cân nặng hơi cao so với chiều cao** (BMI {v:.1f}; người châu Á từ 23 trở lên là thừa cân) — "
+                       "mỡ thừa, nhất là mỡ bụng, khiến cơ thể khó đưa đường từ máu vào tế bào.",
+        "age_years": lambda: f"**Tuổi {v:.0f}** — từ khoảng 35–40 tuổi, cơ bắp giảm dần và cơ thể xử lý đường kém đi.",
+        "sex": lambda: "**Nam giới** — nam thường tích mỡ ở bụng nhiều hơn nữ nên nguy cơ cao hơn một chút.",
+        "waist_cm": lambda: f"**Vòng eo {v:.0f} cm** (nam từ 90 cm, nữ từ 80 cm là béo bụng) — mỡ bụng là loại mỡ ảnh hưởng mạnh nhất tới đường huyết.",
+        "high_bp": lambda: "**Tăng huyết áp** — huyết áp cao và tiểu đường thường đi cùng nhau vì chung nguyên nhân (cân nặng, ít vận động).",
+        "systolic_bp": lambda: f"**Huyết áp hơi cao** (số trên {v:.0f} mmHg) — thường đi kèm rối loạn đường huyết.",
+        "high_chol": lambda: "**Mỡ máu cao** — dấu hiệu cơ thể đang rối loạn chuyển hóa, hay đi cùng tiểu đường.",
+        "family_history": lambda: "**Có bố mẹ hoặc anh chị em ruột bị tiểu đường** — gen di truyền làm bạn dễ mắc hơn người khác 2–3 lần.",
+        "smoker": lambda: "**Hút thuốc** — khói thuốc làm cơ thể dùng đường kém hơn và hại mạch máu.",
+        "phys_activity": lambda: "**Ít vận động** — cơ bắp khi vận động sẽ \"đốt\" đường trong máu; ít vận động thì đường dễ tồn đọng.",
+        "heart_disease": lambda: "**Có bệnh tim mạch** — tim mạch và tiểu đường có chung nhiều yếu tố nguy cơ.",
+        "stroke": lambda: "**Từng bị đột quỵ** — cho thấy mạch máu đã bị ảnh hưởng, cần kiểm soát đường huyết chặt hơn.",
+        "sleep_hours": lambda: f"**Ngủ {v:g} giờ mỗi đêm** (nên 7–8 giờ) — ngủ quá ít hoặc quá nhiều làm rối loạn hormone điều hòa đường và cảm giác đói.",
+    }.get(name)
+    return plain() if plain else f["feature_vi"]
+
+
+# Nút yếu tố nguy cơ trên đồ thị tri thức → (đặc trưng mô hình tương ứng, câu dễ hiểu)
+ADA_FACTORS = {
+    "Thừa cân/béo phì": ("bmi", "**Thừa cân** (người châu Á có BMI từ 23 trở lên) — mỡ thừa khiến cơ thể khó đưa đường từ máu vào tế bào."),
+    "Béo bụng": ("waist_cm", "**Béo bụng** (vòng eo nam từ 90 cm, nữ từ 80 cm) — mỡ bụng là loại mỡ ảnh hưởng mạnh nhất tới đường huyết."),
+    "Tăng huyết áp": ("high_bp", "**Tăng huyết áp** — thường đi cùng tiểu đường vì chung nguyên nhân (cân nặng, ít vận động)."),
+    "Rối loạn lipid máu": ("high_chol", "**Mỡ máu cao** — dấu hiệu rối loạn chuyển hóa, hay đi cùng tiểu đường."),
+    "Tiền sử gia đình ĐTĐ": ("family_history", "**Có người thân ruột thịt bị tiểu đường** — gen di truyền làm bạn dễ mắc hơn 2–3 lần."),
+    "Ít vận động": ("phys_activity", "**Ít vận động** — cơ bắp khi vận động sẽ \"đốt\" đường trong máu; ít vận động thì đường dễ tồn đọng."),
+    "Hút thuốc lá": ("smoker", "**Hút thuốc** — khói thuốc làm cơ thể dùng đường kém hơn và hại mạch máu."),
+}
+
+GLYCEMIC_SCALE = {
+    "Glucose huyết tương lúc đói": "Mức tham khảo: dưới 5,6 mmol/L là bình thường, 5,6–6,9 là tiền tiểu đường, từ 7,0 là mức tiểu đường.",
+    "HbA1c": "HbA1c cho biết đường huyết trung bình 2–3 tháng qua: dưới 5,7% là bình thường, 5,7–6,4% là tiền tiểu đường, từ 6,5% là mức tiểu đường.",
+}
+
+
+def _assessment_sections(p: Dict[str, Any]):
+    """Câu trả lời cho người dùng phổ thông: (tỷ lệ + vì sao, lời khuyên). Chi tiết mô hình/đồ thị nằm ở mục thu gọn."""
     c, k, t = p["consensus"], p["knowledge"], p["treatment"]
     ml = p["prediction"]["risk_model"]
+    level, status = c["risk_level"], c["glycemic_status"]
     lines: List[str] = [
-        f"### 1. Tổng quan & Phân tầng nguy cơ: {c['risk_label']} (Điểm hội đồng: {c['consensus_risk_score'] * 100:.1f}%)",
-        "",
+        f"### 🩺 Khả năng mắc tiểu đường của bạn: khoảng {c['consensus_risk_score'] * 100:.0f}% — mức {LEVEL_WORD[level]}",
+        f"> ℹ️ {c.get('relative_note') or 'Kết quả chỉ mang tính tương đối, không thay thế chẩn đoán của bác sĩ.'}",
     ]
-    for a in c["safety_guardrails"]:
-        lines.append(f"> ⚠️ **{a['message']}**")
-    if c["safety_guardrails"]:
-        lines.append("")
-    if k["glycemia"]["findings"]:
-        lines.append("**Đối chiếu tiêu chuẩn lâm sàng (ADA 2024 & QĐ 5481/QĐ-BYT):**")
-        lines += [f"- **{f['test']}**: {f['value']:g} {f['unit']} → **{f['status_vi']}** (Ngưỡng chuẩn: {f['threshold']})"
-                  for f in k["glycemia"]["findings"]]
-        lines.append("")
-    models = ml.get("models", {})
-    detail = (f" (GBDT: {models['ml']['risk_probability'] * 100:.1f}%, Deep MLP: {models['dl']['risk_probability'] * 100:.1f}%)"
-              if models else "")
-    lines += [
-        "### 2. Suy luận từ Mô hình Học máy / Học sâu & Hội đồng Phản biện",
-        f"- **Xác suất nguy cơ dự báo (NHANES + BRFSS):** **{ml['risk_probability'] * 100:.1f}%**{detail} — cao gấp **{ml['relative_risk']} lần** mức nền của quần thể.",
-    ]
-    for x in c["positive_evidence_plus"]:
-        lines.append(f"- **[+] Bằng chứng tăng nguy cơ:** {x}")
-    for x in c["negative_contradictions_minus"]:
-        lines.append(f"- **[-] Điểm cần lưu ý / đối chứng:** {x}")
+    lines += [f"> ⚠️ **{a['message']}**" for a in c["safety_guardrails"]]
 
-    rec = k["graph_rag"]["recommendations"]
-    paths = k["graph_rag"].get("paths", [])
-    lines += ["", "### 3. Suy luận Đồ thị Tri thức (Neo4j GraphRAG) & Tầm soát biến chứng"]
-    if paths:
-        lines.append("- **Chuỗi liên kết bệnh sinh – điều trị trên Đồ thị Tri thức:**")
-        for path_str in paths[:6]:
-            lines.append(f"  - `{path_str}`")
-    if rec.get("complications"):
-        lines.append(f"- **Các biến chứng đích cần cảnh giác:** {', '.join(rec['complications'])}.")
-    if rec.get("screenings"):
-        lines.append(f"- **Xét nghiệm tầm soát khuyến cáo:** {', '.join(rec['screenings'])}.")
-
-    lines += [
-        "",
-        "### 4. Định hướng Can thiệp Lối sống & Phác đồ Tham chiếu (RL + ADA / Vinmec / Long Châu)",
-        f"- **Chiến lược ưu tiên (Q-Learning RL):** **{t['recommended_action']}** — {t['intervention_details']}",
-    ]
-    if t.get("reference_drugs_vn"):
-        lines.append("- **Nhóm thuốc & biệt dược tham chiếu để trao đổi với bác sĩ:**")
-        for drug_info in t["reference_drugs_vn"]:
-            lines.append(f"  - {drug_info}")
-    if rec.get("contraindications"):
-        lines.append(f"- **Lưu ý chống chỉ định trên đồ thị:** {'; '.join(rec['contraindications'])}.")
-    if t.get("monitoring_plan"):
-        lines.append(f"- **Kế hoạch theo dõi định kỳ:** {t['monitoring_plan']}")
-    lines += [f"- {n}" for n in t["notes"][1:]]
-    missing = [FIELD_SPECS[f].label_vi for f in p.get("missing_recommended", [])]
-    if missing:
-        lines += ["", f"**Gợi ý bổ sung thông tin:** Để tăng độ chính xác cho lần đánh giá sau, bạn nên cung cấp thêm: **{', '.join(missing)}**."]
-
-    lines += ["", "### 5. Biện luận Cơ chế Bệnh sinh & Lời khuyên Lâm sàng Chuyên sâu", _pathophysiology_reasoning(p)]
-
-    if k["citations"]:
-        lines += ["", "**Nguồn tài liệu y khoa đối chiếu:** " + "; ".join(f"[{x['title']} — {x['section']}]" for x in k["citations"][:5])]
-    return "\n".join(lines)
-
-
-def _pathophysiology_reasoning(p: Dict[str, Any]) -> str:
-    """Biện luận cơ chế bệnh sinh cá thể hóa dựa trên tổ hợp yếu tố nguy cơ, xét nghiệm và phác đồ của bệnh nhân."""
-    c, k, t = p["consensus"], p["knowledge"], p["treatment"]
-    ml = p["prediction"]["risk_model"]
+    reasons: List[str] = []
+    for f in k["glycemia"]["findings"]:
+        value = f"{f['value']:g} {f['unit']}"
+        if f["unit"] == "mg/dL" and "lucose" in f["test"]:
+            value = f"{f['value'] / 18.016:.1f} mmol/L ({f['value']:g} mg/dL)"
+        scale = GLYCEMIC_SCALE.get(f["test"], "")
+        reasons.append(f"{f['test']} của bạn là **{value}**, {GLYCEMIC_PLAIN.get(f['status'], f['status_vi'].lower())}. {scale}".strip())
+    if status == "unknown":
+        reasons.append("Bạn **chưa có kết quả xét nghiệm đường huyết**, nên con số trên chỉ được ước tính từ tuổi, "
+                       "cân nặng, tiền sử và thói quen sống.")
+    if c["confirmation_required"]:
+        reasons.append("Một lần xét nghiệm chưa đủ để kết luận chắc chắn — cần đo lại lần nữa.")
+    up = [f for f in ml["top_risk_factors"] if f["direction"] == "RISK_UP"][:5]
+    reasons += [_factor_plain(f) for f in up]
+    # Yếu tố nguy cơ theo ADA mà đồ thị tri thức nhận ra nhưng mô hình không xếp vào top (ví dụ BMI, vòng eo)
+    shown = {f["feature"] for f in up}
     entities = set(k["graph_rag"].get("start_entities") or [])
-    findings = k["glycemia"]["findings"]
-    bullets: List[str] = []
+    reasons += [text for ent, (feat, text) in ADA_FACTORS.items() if ent in entities and feat not in shown]
+    risks = c.get("diet_risks") or []
+    LIFE_WHY = {"Ít ăn rau xanh": "**Ít ăn rau xanh** — thiếu chất xơ làm đường vào máu nhanh sau mỗi bữa ăn.",
+                "Ít ăn trái cây": "**Ít ăn trái cây** — thiếu chất xơ và vitamin giúp kiểm soát đường huyết."}
+    reasons += [LIFE_WHY.get(x, f"**{x}** — ngủ không đủ hoặc quá nhiều làm cơ thể xử lý đường kém đi.") for x in risks
+                if not x.startswith("Ngủ") or not any(f["feature"] == "sleep_hours" for f in ml["top_risk_factors"])]
+    lines += ["", "### 💡 Vì sao có kết quả này?"] + [f"- {x}" for x in reasons]
 
-    if findings:
-        f_strs = [f"{f['test']} đạt **{f['value']:g} {f['unit']}** ({f['status_vi']})" for f in findings]
-        if c["glycemic_status"] == "diabetes_range":
-            bullets.append(
-                f"- **Ý nghĩa sinh lý bệnh của xét nghiệm đường huyết ({', '.join(f_strs)}):** "
-                "Mức đường huyết vượt ngưỡng chẩn đoán phản ánh sự suy giảm chức năng tiết insulin pha sớm của tế bào beta đảo tụy "
-                "kết hợp với tình trạng đề kháng insulin tại gan (tăng tân tạo glucose ban đêm và sáng sớm) và tại mô cơ xương. "
-                + ("Theo ADA 2024 và Bộ Y tế (QĐ 5481/QĐ-BYT), nếu chưa có triệu chứng tăng đường huyết kinh điển (uống nhiều, tiểu nhiều, sụt cân nhanh), "
-                   "cần làm lại **xét nghiệm lần 2** (ưu tiên kết hợp cả FPG và HbA1c) để phân biệt tăng đường huyết mạn tính thực sự với tăng đường huyết nhất thời."
-                   if c["confirmation_required"] else
-                   "Khi đã có từ 2 chỉ số vượt ngưỡng trở lên, chẩn đoán đái tháo đường có độ đặc hiệu rất cao, cần khám chuyên khoa Nội tiết sớm để khởi trị.")
-            )
-        elif c["glycemic_status"] == "prediabetes":
-            bullets.append(
-                f"- **Giai đoạn cửa sổ vàng của Tiền đái tháo đường ({', '.join(f_strs)}):** "
-                "Ở giai đoạn tiền đái tháo đường, tình trạng đề kháng insulin đã xuất hiện làm tăng gánh nặng tiết bù cho tế bào beta tụy, "
-                "nhưng khoảng 50–70% chức năng đảo tụy vẫn có thể bảo tồn và phục hồi hoàn toàn nếu can thiệp giảm cân và tập luyện đúng phác đồ DPP (giảm tới 58% nguy cơ tiến triển thành ĐTĐ típ 2)."
-            )
-
-    mech_parts = []
-    if "Thừa cân/béo phì" in entities or "Béo bụng" in entities:
-        mech_parts.append(
-            "**thừa cân/béo phì theo ngưỡng châu Á (BMI ≥ 23 kg/m²)** làm tăng mô mỡ nội tạng, giải phóng acid béo tự do (FFA) "
-            "và các cytokine tiền viêm (TNF-α, IL-6) gây ức chế tín hiệu thụ thể insulin (IRS-1/PI3K) tại cơ và gan"
-        )
-    if "Tiền sử gia đình ĐTĐ" in entities:
-        mech_parts.append(
-            "**tiền sử gia đình thế hệ thứ nhất mắc đái tháo đường** mang yếu tố nhạy cảm di truyền làm giảm dự trữ tiết insulin của tế bào beta khi gặp gánh nặng chuyển hóa"
-        )
-    if "Tăng huyết áp" in entities or "Rối loạn lipid máu" in entities:
-        mech_parts.append(
-            "**tăng huyết áp / rối loạn lipid máu đồng mắc** tạo thành hội chứng chuyển hóa, thúc đẩy tổn thương nội mô mạch máu sớm"
-        )
-    if "Tuổi ≥ 35" in entities:
-        mech_parts.append("**yếu tố tuổi tác (≥ 35 tuổi)** gắn liền với sự suy giảm tự nhiên khối lượng cơ xương và độ nhạy insulin")
-    if mech_parts:
-        bullets.append("- **Cơ chế tương tác cộng hưởng trên ca bệnh này:** Sự kết hợp giữa " + "; cùng với ".join(mech_parts) + f" giải thích vì sao mô hình học máy/học sâu đánh giá nguy cơ cao gấp **{ml['relative_risk']} lần** mức nền quần thể.")
-
-    bullets.append(
-        f"- **Cơ sở khoa học của phác đồ can thiệp ({t['recommended_action']}):** "
-        "Vận động thể lực cường độ trung bình ≥ 150 phút/tuần kích hoạt trực tiếp kênh vận chuyển **GLUT4** đưa glucose vào tế bào cơ độc lập với insulin; "
-        "đồng thời giảm 5–7% cân nặng giúp giảm mỡ gan và phục hồi độ nhạy insulin ngoại vi. "
-        "Khi trao đổi với bác sĩ Nội tiết về các thuốc tham chiếu (như **Metformin / Glucophage** làm giảm sản xuất glucose tại gan, "
-        "hoặc **ức chế SGLT2 — Forxiga / Jardiance** thải đường qua thận và bảo vệ tim – thận, hoặc **DPP-4i — Januvia / Trajenta** an toàn khi suy thận), "
-        "người bệnh nên thông báo rõ chức năng thận (**eGFR, Creatinin**) và các thuốc đang dùng để bác sĩ cá thể hóa liều lượng an toàn nhất."
-    )
-    return "\n".join(bullets)
+    advice: List[str] = ["### ✅ Bạn nên làm gì?"]
+    step = {
+        "diabetes_range": (["Đi khám **bác sĩ Nội tiết** trong 1–2 tuần và **làm lại xét nghiệm** để xác nhận: đường huyết lúc đói và HbA1c.",
+                            "Nhịn ăn ít nhất 8 giờ trước khi lấy máu (chỉ uống nước lọc); mang theo kết quả xét nghiệm cũ.",
+                            "Nên làm thêm mỡ máu, chức năng thận và nước tiểu để bác sĩ đánh giá toàn diện."]
+                           if c["confirmation_required"] else
+                           ["Đi khám **bác sĩ Nội tiết** sớm để được tư vấn điều trị và đặt mục tiêu đường huyết.",
+                            "Nên kiểm tra thêm mỡ máu, chức năng thận, khám mắt và bàn chân để phát hiện sớm biến chứng."]),
+        "prediabetes_range": ["Đây là giai đoạn **còn đảo ngược được**: thay đổi lối sống ngay từ bây giờ.",
+                              "Kiểm tra lại đường huyết lúc đói hoặc HbA1c sau 6–12 tháng để xem tiến triển."],
+        "unknown": ["**Đi xét nghiệm đường huyết lúc đói hoặc HbA1c** — có ở hầu hết bệnh viện, phòng khám, chi phí thấp.",
+                    "Nhịn ăn ít nhất 8 giờ trước khi lấy máu (chỉ uống nước lọc), nên đi vào buổi sáng.",
+                    "Có kết quả, bạn nhập vào đây để hội đồng đánh giá chính xác hơn."],
+        "normal": ["Đường huyết hiện ổn: duy trì lối sống lành mạnh và kiểm tra lại mỗi 1–3 năm (sớm hơn nếu có triệu chứng)."],
+    }.get(status, [])
+    if step:
+        advice += ["**1. Bước tiếp theo**"] + [f"- {x}" for x in step]
+    advice += ["", "**2. Thay đổi lối sống** (quan trọng nhất, nên làm ngay)"]
+    if entities & {"Thừa cân/béo phì", "Béo bụng"} or any(f["feature"] in ("bmi", "waist_cm") for f in up):
+        advice.append("- **Cân nặng:** giảm 5–7% cân nặng trong 6 tháng (ví dụ 70 kg → giảm 4–5 kg, khoảng 0,5 kg mỗi tuần). "
+                      "Giảm chừng đó đã đủ để nguy cơ giảm rõ rệt.")
+    advice += [
+        "- **Ăn uống:**",
+        "  - Chia đĩa ăn: một nửa rau, một phần tư thịt cá/trứng/đậu, một phần tư cơm hoặc tinh bột.",
+        "  - Ăn rau trước, cơm sau; đổi một phần cơm trắng sang gạo lứt, khoai, yến mạch.",
+        "  - Uống nước lọc, trà không đường thay cho nước ngọt, trà sữa, nước ép đóng chai.",
+        "  - Hạn chế bánh kẹo, chè, đồ chiên rán; ưu tiên luộc, hấp, nướng.",
+        "- **Vận động:**",
+        "  - Ít nhất 150 phút mỗi tuần, ví dụ đi bộ nhanh 30 phút × 5 ngày (nhanh đến mức hơi khó nói chuyện).",
+        "  - Thêm 2 buổi tập sức mạnh mỗi tuần (squat, chống đẩy, dây kháng lực) để tăng cơ.",
+        "  - Đi bộ 10–15 phút sau bữa ăn giúp đường huyết sau ăn không tăng vọt.",
+    ]
+    extra = [DIET_ADVICE_VEG] if "Ít ăn rau xanh" in risks else []
+    extra += [DIET_ADVICE_FRUIT] if "Ít ăn trái cây" in risks else []
+    extra += [SLEEP_ADVICE] if any(x.startswith("Ngủ") for x in risks) else []
+    if "Hút thuốc lá" in entities or any(f["feature"] == "smoker" for f in up):
+        extra.append("Bỏ thuốc lá: hút thuốc làm tăng cả nguy cơ tiểu đường lẫn biến chứng tim mạch.")
+    if extra:
+        advice += ["- **Riêng với thói quen của bạn:**"] + [f"  - {x}" for x in extra]
+    advice += ["", "**3. Hướng điều trị & thuốc**",
+               f"- Hướng gợi ý: **{re.sub(r'\s*\(.*?\)\s*$', '', t['recommended_action'])}**."]
+    if t.get("reference_drugs_vn"):
+        advice.append("- Thuốc bác sĩ có thể cân nhắc (**chỉ dùng khi được bác sĩ khám và kê đơn**, không tự mua, không tự ngừng):")
+        advice += [f"  - {d}" for d in t["reference_drugs_vn"]]
+        advice.append("- Khi đi khám, hãy nói với bác sĩ các thuốc bạn đang dùng và bệnh thận, gan (nếu có) để chọn thuốc an toàn.")
+    else:
+        advice.append("- Hiện **chưa cần dùng thuốc**. Nghiên cứu lớn cho thấy thay đổi lối sống đúng cách giảm khoảng một nửa "
+                      "nguy cơ tiến triển thành tiểu đường — hiệu quả hơn cả dùng thuốc ở giai đoạn này.")
+    if t.get("monitoring_plan"):
+        advice.append(f"- **Theo dõi:** {t['monitoring_plan']}")
+    advice.append("- Tự theo dõi tại nhà: cân nặng và vòng eo mỗi tuần, ghi lại để mang theo khi đi khám.")
+    advice += ["", f"🚑 {WARNING_SIGNS}"]
+    return "\n".join(lines), "\n".join(advice)
 
 
 def _follow_up_template(p: Dict[str, Any]) -> str:

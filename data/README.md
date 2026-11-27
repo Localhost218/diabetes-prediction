@@ -25,7 +25,7 @@ data/
     │   └── vietnam_diabetes_dataset.csv # 150.000 mẫu đặc trưng nhân trắc người Việt
     ├── kb/                          # Dữ liệu Knowledge Base & Knowledge Graph đã chuẩn hóa
     │   ├── kb_sources/                  # 12 tài liệu Markdown chuẩn hóa + curated_triples.json (47 bộ ba)
-    │   ├── diabetes_kb.cypher           # Script khởi tạo Neo4j Knowledge Graph
+    │   ├── db_diabet.cypher             # Đồ thị tri thức xuất từ Neo4j (scripts/export_cypher.py): 43 nút, 55 cạnh
     │   └── kb_export_full.zip           # Gói xuất toàn bộ chunks & đồ thị tri thức
     └── storage/                     # Cơ sở dữ liệu vận hành hệ thống
         ├── multiagent.db                # SQLite (bảng phiên chat, FTS5 full-text, nhanes/brfss samples)
@@ -90,4 +90,5 @@ Toàn bộ các đường dẫn dưới đây đã được kiểm chứng hoạ
   - Section 9 (Pharmacologic Approaches to Glycemic Treatment — PubMed): <https://pubmed.ncbi.nlm.nih.gov/38078590/>
 - **Bộ Y tế Việt Nam — Quyết định 5481/QĐ-BYT (30/12/2020)**:
   - Cổng thông tin Cục Quản lý Khám, chữa bệnh (Bộ Y tế): <https://kcb.vn/>
-  - Toàn văn Hướng dẫn chẩn đoán và điều trị đái tháo đường típ 2 (QĐ 5481/QĐ-BYT): <https://thuvienphapluat.vn/van-ban/The-thao-Y-te/Quyet-dinh-5481-QD-BYT-2020-tai-lieu-chuyen-mon-Huong-dan-chan-doan-va-dieu-tri-dai-thao-duong-tip-2-460179.aspx>
+  - Toàn văn QĐ 5481/QĐ-BYT kèm file PDF (Sở Y tế Thừa Thiên Huế): <https://syt.hue.gov.vn/gia-dich-vu-ky-thuat/quyet-dinh-so-5481-qd-byt-ngay-30-12-2020-cua-bo-y-te-ve-huong-dan-chan-doan-dieu-tri-dai-thao-duong-tip-2.html>
+  - Bản trên Thư viện Pháp luật: <https://thuvienphapluat.vn/van-ban/The-thao-Y-te/Quyet-dinh-5481-QD-BYT-2020-tai-lieu-chuyen-mon-Huong-dan-chan-doan-dieu-tri-dai-thao-duong-tip-2-460925.aspx>

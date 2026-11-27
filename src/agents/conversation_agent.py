@@ -9,8 +9,42 @@ import re
 
 from src.communication.message_bus import AgentMessage, BaseAgent
 from src.document_processing.lab_extractor import extract_profile
+from src.document_processing.unit_normalizer import normalize, unit_flags
+from src.schemas.patient_profile import FIELD_SPECS
 from src.llm.client import llm
 from src.llm.prompts import EXTRACTION_SYSTEM, ExtractedClinicalData
+
+
+# Câu trả lời cụt cho câu chatbot vừa hỏi: "chắc khoảng 165mg/dL", "62", "6,8 %"
+BARE_NUMBER = re.compile(r"(\d+(?:[.,]\d+)?)\s*(mmol/?l|mg/?dl|%|cm|kg|tuổi|tiếng|giờ)?", re.I)
+ASKABLE = {"bao nhiêu tuổi": "age_years", "đường huyết lúc đói": "glucose_fasting_mgdl", "hba1c": "hba1c_percent",
+           "vòng eo": "waist_cm", "cholesterol": "total_cholesterol_mgdl", "egfr": "egfr", "ngủ khoảng mấy": "sleep_hours"}
+
+
+ANSWER_UNITS = {"age_years": {"", "tuổi"}, "glucose_fasting_mgdl": {"", "mmol/l", "mmoll", "mg/dl", "mgdl"},
+                "hba1c_percent": {"", "%"}, "waist_cm": {"", "cm"}, "total_cholesterol_mgdl": {"", "mmol/l", "mmoll", "mg/dl", "mgdl"},
+                "egfr": {""}, "sleep_hours": {"", "tiếng", "giờ"}}
+
+
+def _answer_to_question(previous, text: str, profile, asked_before=()) -> None:
+    """Gán con số duy nhất trong tin nhắn cho trường mà chatbot vừa hỏi, nếu luật thường chưa bắt được trường đó.
+    asked_before: các trường đã hỏi ở lượt trước — "165 mg/dL" gõ muộn vẫn hiểu là đường huyết đã được hỏi."""
+    numbers = BARE_NUMBER.findall(text)
+    questions = " ".join(line for line in (previous or "").lower().splitlines() if "?" in line)  # bỏ phần "đã ghi nhận"
+    asked = [f for key, f in ASKABLE.items() if key in questions and not profile.has(f)]
+    if not asked and len(numbers) == 1 and re.fullmatch(r"mmol/?l|mg/?dl", numbers[0][1] or "", re.I) \
+            and "glucose_fasting_mgdl" in asked_before and not profile.has("glucose_fasting_mgdl"):
+        asked = ["glucose_fasting_mgdl"]
+    if len(asked) != 1 or len(numbers) != 1:
+        return  # mơ hồ (hỏi nhiều chỉ số hoặc trả lời nhiều số) → để LLM / người dùng nói rõ
+    field, (raw, unit) = asked[0], numbers[0]
+    # Chỉ nhận câu trả lời ngắn ("chắc khoảng 165 mg/dL") và đơn vị hợp với chỉ số được hỏi —
+    # "ít ăn rau, ngủ khoảng 5 tiếng" không phải câu trả lời cho câu hỏi đường huyết
+    if len(text.split()) > 6 or (unit or "").lower() not in ANSWER_UNITS.get(field, {""}):
+        return
+    value, conf = normalize(field, float(raw.replace(",", ".")), unit or None)
+    profile.set(field, value, "text", 0.85 * conf, f"Trả lời câu hỏi {FIELD_SPECS[field].label_vi}: {text.strip()}",
+                unit_flags(field, unit or None))
 
 
 class ConversationAgent(BaseAgent):
@@ -24,13 +58,11 @@ class ConversationAgent(BaseAgent):
         prompt = (f"Câu chatbot vừa hỏi người dùng:\n{previous}\n\n" if previous else "") + f"Tin nhắn của người dùng:\n{text}"
         extracted = await llm.parse(EXTRACTION_SYSTEM, [prompt], ExtractedClinicalData)
         rules = extract_profile(text, "text")
-        # Câu trả lời chỉ là một con số cho câu hỏi tuổi vừa rồi
-        if previous and "bao nhiêu tuổi" in previous.lower() and re.fullmatch(r"\s*(\d{1,3})\s*", text):
-            rules.set("age_years", int(text), "text", 0.9, f"Trả lời câu hỏi tuổi: {text}")
+        _answer_to_question(previous, text, rules, msg.payload.get("asked_fields", []))
         if extracted is None:
             profile, method = rules, "rules"
         else:
-            profile, method = extracted.to_profile("text"), "llm"
+            profile, method = extracted.to_profile("text", source_text=text), "llm"
             filled = [n for n in rules.fields if n not in profile.fields]
             for name in filled:  # LLM ưu tiên; regex chỉ bù trường LLM bỏ sót
                 profile.fields[name] = rules.fields[name]

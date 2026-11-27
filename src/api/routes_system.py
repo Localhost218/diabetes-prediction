@@ -27,6 +27,44 @@ def health():
     return {"status": "ok"}
 
 
+# Mọi artifact trong notebook/model: tác tử nào dùng (None = chỉ thử nghiệm ở notebook, không chạy trong hệ tác tử)
+MODEL_REGISTRY = [
+    ("nhanes_gbdt.joblib", "HistGradientBoosting", "ML", "NHANES", "PredictionAgent · ensemble chính"),
+    ("nhanes_mlp.pt", "PyTorch MLP 128-64-32", "DL", "NHANES", "PredictionAgent · ensemble chính"),
+    ("brfss_gbdt.joblib", "HistGradientBoosting", "ML", "BRFSS 2021–2023", "PredictionAgent · ý kiến thứ hai"),
+    ("brfss_mlp.pt", "PyTorch MLP", "DL", "BRFSS 2021–2023", "PredictionAgent · ý kiến thứ hai"),
+    ("rnn_glucose_lstm.pt", "LSTM dự báo glucose", "DL · RNN", "Chuỗi CGM", "PredictionAgent · khi có ≥ 12 lần đo"),
+    ("cnn_retinopathy_resnet18.pt", "ResNet-18 + Grad-CAM", "DL · CNN", "Ảnh đáy mắt", "PredictionAgent · khi có ảnh đáy mắt"),
+    ("rl_qtable.npz", "Q-learning (24 trạng thái, γ = 0,9)", "RL", "Mô phỏng lâm sàng", "TreatmentRLAgent"),
+    ("logistic_regression.joblib", "Logistic Regression", "ML", "NHANES", None),
+    ("random_forest.joblib", "Random Forest", "ML", "NHANES", None),
+    ("extra_trees.joblib", "Extra Trees", "ML", "NHANES", None),
+    ("tabnet_attention.pt", "TabNet (attention)", "DL", "NHANES", None),
+]
+
+
+def _model_registry() -> List[Dict[str, Any]]:
+    import csv
+
+    board = {}
+    path = settings.model_dir / "evaluation_leaderboard.csv"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if " + " not in row["Artifact (/notebook/model)"]:
+                    board[row["Artifact (/notebook/model)"]] = row
+    pred = get_orchestrator().bus.agents["PredictionAgent"]
+    live = {"brfss_gbdt.joblib": pred.large and pred.large[1].metrics, "brfss_mlp.pt": pred.large and pred.large[2].metrics}
+    out = []
+    for file, name, kind, data, used_by in MODEL_REGISTRY:
+        row, m = board.get(file), live.get(file) or {}
+        num = lambda k, c: float(row[c]) if row and row.get(c) else m.get(k)  # noqa: E731
+        out.append({"file": file, "name": name, "kind": kind, "dataset": data, "used_by": used_by,
+                    "exists": (settings.model_dir / file).exists(),
+                    "roc_auc": num("roc_auc", "ROC-AUC"), "pr_auc": num("pr_auc", "PR-AUC"), "brier": num("brier", "Brier Score")})
+    return out
+
+
 @router.get("/api/system")
 def system_info():
     orc = get_orchestrator()
@@ -40,6 +78,7 @@ def system_info():
         "embedding": orc.bus.agents["KnowledgeAgent"].embedder.name,
         "prediction_dataset": pred.spec.title,
         "risk_models": {"ml": pred.gbdt.metrics, "dl": pred.mlp.metrics},
+        "model_registry": _model_registry(),
     }
 
 
@@ -54,6 +93,15 @@ def kb_stats():
             "graph": get_graph_store(s).stats(),
             "graph_backend": settings.kg_backend,
         }
+
+
+@router.get("/api/kb/graph")
+def kb_graph(center: str = "Đái tháo đường típ 2", hops: int = 2, limit: int = 60):
+    """Vùng lân cận của một nút trong đồ thị tri thức để giao diện vẽ (tab Tri thức KB)."""
+    with session_scope() as s:
+        edges = get_graph_store(s).neighborhood([center], max_hops=max(1, min(hops, 3)), limit=max(1, min(limit, 200)))
+    keys = ("head", "head_label", "relation", "tail", "tail_label", "hops")
+    return {"entities": [center], "edges": [{k: e.get(k) for k in keys} for e in edges]}
 
 
 class KbQuery(BaseModel):

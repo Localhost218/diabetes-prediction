@@ -52,6 +52,13 @@ FIELD_SPECS: Dict[str, FieldSpec] = {
     "stroke": FieldSpec("Tiền sử đột quỵ", "bool"),
     "heavy_alcohol": FieldSpec("Uống nhiều rượu bia", "bool"),
     "gen_hlth": FieldSpec("Tự đánh giá sức khỏe (1 rất tốt – 5 kém)", "int", (1, 5)),
+    # Lối sống có trong dữ liệu huấn luyện: rau/trái cây (BRFSS), giờ ngủ (NHANES)
+    "vegetables_daily": FieldSpec("Ăn rau xanh mỗi ngày", "bool", None, "",
+                                  "Hầu hết các bữa trong ngày bạn có ăn rau xanh không?"),
+    "fruits_daily": FieldSpec("Ăn trái cây mỗi ngày", "bool", None, "",
+                              "Bạn có ăn trái cây hầu hết các ngày không?"),
+    "sleep_hours": FieldSpec("Giờ ngủ mỗi đêm", "number", (2, 14), "giờ",
+                             "Bình thường mỗi đêm bạn ngủ khoảng mấy tiếng?"),
     # Bối cảnh lâm sàng: không phải đặc trưng của mô hình, nhưng quyết định kết quả sàng lọc có áp dụng được không
     "pregnant": FieldSpec("Đang mang thai", "bool", None, "",
                           "Hiện bạn (hoặc người được đánh giá) có đang mang thai không?"),
@@ -69,10 +76,13 @@ FIELD_SPECS: Dict[str, FieldSpec] = {
                                    "Lần đo đường huyết đó bạn đã nhịn ăn ít nhất 8 giờ chưa?"),
 }
 
+DIET_FIELDS = ["vegetables_daily", "fruits_daily"]  # trả lời "Có" là tốt
+LIFESTYLE_FIELDS = DIET_FIELDS + ["sleep_hours"]
+
 CONTEXT_FIELDS = ["pregnant", "diagnosed_diabetes", "glucose_lowering_meds", "steroid_use", "acute_illness",
                   "hba1c_interference", "fasting_confirmed"]
 
-# Tối thiểu để chạy dự đoán: tuổi, BMI và ít nhất một xét nghiệm đường huyết
+# Tối thiểu để chạy dự đoán: tuổi và BMI. Thiếu xét nghiệm đường huyết vẫn dự đoán, nhưng chỉ là ước tính tương đối
 REQUIRED_FIELDS = ["age_years", "bmi"]
 GLYCEMIC_FIELDS = ["glucose_fasting_mgdl", "hba1c_percent", "ogtt_2h_mgdl", "glucose_random_mgdl"]
 # Hỏi thêm (không chặn dự đoán) để mô hình chính xác hơn
@@ -132,6 +142,12 @@ class PatientProfile(BaseModel):
         self.fields[name] = incoming
         return True
 
+    def apply_form(self, values: Dict[str, Any]) -> List[str]:
+        """Ghi các trường nhập từ form (bỏ qua ô trống); trả về tên các trường bị loại vì sai miền giá trị."""
+        rejected = [name for name, v in values.items() if v not in (None, "") and not self.set(name, v, "form")]
+        self.derive()
+        return rejected
+
     def merge(self, other: "PatientProfile") -> List[str]:
         """Gộp dữ liệu mới vào hồ sơ; trả về danh sách trường đã cập nhật."""
         updated = []
@@ -176,14 +192,15 @@ class PatientProfile(BaseModel):
                          [f for f in glucose.flags if f != "fasting_unclear"])
 
     # ---------- đánh giá đủ dữ liệu ----------
+    def has_glycemic(self) -> bool:
+        return any(self.has(f) for f in GLYCEMIC_FIELDS) or bool(self.glucose_history)
+
     def missing_required(self) -> List[str]:
-        missing = [f for f in REQUIRED_FIELDS if not self.has(f)]
-        if not any(self.has(f) for f in GLYCEMIC_FIELDS) and not self.glucose_history:
-            missing.append("glucose_fasting_mgdl")
-        return missing
+        return [f for f in REQUIRED_FIELDS if not self.has(f)]
 
     def missing_recommended(self) -> List[str]:
-        return [f for f in RECOMMENDED_FIELDS if not self.has(f)]
+        labs = [] if self.has_glycemic() else ["glucose_fasting_mgdl"]
+        return labs + [f for f in RECOMMENDED_FIELDS if not self.has(f)]
 
     def is_ready(self) -> bool:
         return not self.missing_required()

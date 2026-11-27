@@ -47,16 +47,15 @@ function layout(graph, w, h) {
   return { nodes: [...nodes.values()], cx, cy }
 }
 
-export function KnowledgeGraphView({ graph }) {
-  const W = 520, H = 280
-  const { nodes } = useMemo(() => layout(graph, W, H), [graph])
+export function KnowledgeGraphView({ graph, width: W = 520, height: H = 280, title = 'Đồ thị tri thức (Neo4j) mà agent Tri thức vừa duyệt' }) {
+  const { nodes } = useMemo(() => layout(graph, W, H), [graph, W, H])
   const pos = useMemo(() => Object.fromEntries(nodes.map(n => [n.name, n])), [nodes])
   const labels = [...new Set(nodes.map(n => n.label).filter(Boolean))]
   return (
     <div className="kg-view">
-      <div className="kg-title"><Network size={13} /> Đồ thị tri thức (Neo4j) mà agent Tri thức vừa duyệt
+      <div className="kg-title"><Network size={13} /> {title}
         <span className="kg-count">{nodes.length} nút · {graph.edges.length} cạnh</span></div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="kg-svg" role="img" aria-label="Đồ thị tri thức đã duyệt">
+      <svg viewBox={`0 0 ${W} ${H}`} className="kg-svg" style={{ aspectRatio: `${W} / ${H}` }} role="img" aria-label="Đồ thị tri thức đã duyệt">
         {graph.edges.map((e, i) => {
           const a = pos[e.head], b = pos[e.tail]
           if (!a || !b) return null

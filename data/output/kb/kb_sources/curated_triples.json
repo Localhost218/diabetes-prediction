@@ -1,0 +1,688 @@
+[
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Thừa cân/béo phì",
+  "tail_label": "RiskFactor",
+  "evidence": "Người trưởng thành có BMI ≥ 23 kg/m² (người châu Á) kèm yếu tố nguy cơ cần được sàng lọc.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "thừa cân hoặc béo phì (BMI ≥ 23 kg/m2)"
+   },
+   {
+    "doc": "ada-2024-sec02-diagnosis",
+    "text": "≥23 kg/m 2 in Asian American individuals"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền sử gia đình ĐTĐ",
+  "tail_label": "RiskFactor",
+  "evidence": "Có bố mẹ, anh chị em ruột mắc đái tháo đường.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "Có người thân đời thứ nhất"
+   },
+   {
+    "doc": "ada-2024-sec02-diagnosis",
+    "text": "First-degree relative with diabetes"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tăng huyết áp",
+  "tail_label": "RiskFactor",
+  "evidence": "Tăng huyết áp ≥ 130/80 mmHg hoặc đang điều trị thuốc hạ áp.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Rối loạn lipid máu",
+  "tail_label": "RiskFactor",
+  "evidence": "HDL-C < 35 mg/dL và/hoặc triglycerid > 250 mg/dL.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Ít vận động",
+  "tail_label": "RiskFactor",
+  "evidence": "Ít hoạt động thể lực.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền sử bệnh tim mạch",
+  "tail_label": "RiskFactor",
+  "evidence": "Tiền sử bệnh tim mạch.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Các yếu tố nguy cơ"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Béo bụng",
+  "tail_label": "RiskFactor",
+  "evidence": "Béo bụng khi vòng eo ≥ 90 cm ở nam và ≥ 80 cm ở nữ (IDF, người châu Á).",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Ngưỡng BMI và vòng eo cho người châu Á",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "béo phì vùng bụng với vòng eo to"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tuổi ≥ 35",
+  "tail_label": "RiskFactor",
+  "evidence": "Mọi người từ 35 tuổi trở lên cần được sàng lọc.",
+  "source_doc": "sang-loc-nguoi-viet",
+  "section": "Ai cần được sàng lọc"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Hút thuốc lá",
+  "tail_label": "RiskFactor",
+  "evidence": "Khuyên mọi người bệnh ngừng hút thuốc lá.",
+  "source_doc": "loi-song-dinh-duong",
+  "section": "Thuốc lá và rượu bia"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Tiền đái tháo đường",
+  "tail_label": "RiskFactor",
+  "evidence": "Tiền đái tháo đường làm tăng nguy cơ tiến triển thành đái tháo đường típ 2.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "HAS_RISK_FACTOR",
+  "tail": "Thừa cân/béo phì",
+  "tail_label": "RiskFactor",
+  "evidence": "Mục tiêu giảm ít nhất 7% cân nặng ban đầu.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose huyết tương lúc đói",
+  "tail_label": "Test",
+  "evidence": "FPG ≥ 126 mg/dL (7,0 mmol/L).",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "Glucose huyết tương lúc đói ≥ 126 mg/dL (hay 7 mmol/L)"
+   },
+   {
+    "doc": "ada-2024-sec02-diagnosis",
+    "text": "FPG ≥126 mg/dL (≥7.0 mmol/L)"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "HbA1c",
+  "tail_label": "Test",
+  "evidence": "HbA1c ≥ 6,5% (48 mmol/mol).",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "HbA1c ≥ 6,5% (48 mmol/mol)"
+   },
+   {
+    "doc": "ada-2024-sec02-diagnosis",
+    "text": "A1C ≥6.5% (≥48 mmol/mol)"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Nghiệm pháp dung nạp glucose (OGTT)",
+  "tail_label": "Test",
+  "evidence": "Glucose 2 giờ sau OGTT 75 g ≥ 200 mg/dL.",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "≥ 200 mg/dL (hay 11,1 mmol/L)"
+   },
+   {
+    "doc": "ada-2024-sec02-diagnosis",
+    "text": "2-h PG ≥200 mg/dL (≥11.1 mmol/L) during OGTT"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose bất kỳ",
+  "tail_label": "Test",
+  "evidence": "Glucose bất kỳ ≥ 200 mg/dL kèm triệu chứng tăng đường huyết.",
+  "source_doc": "ada-2024-chan-doan",
+  "section": "Bốn tiêu chí chẩn đoán đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Glucose huyết tương lúc đói",
+  "tail_label": "Test",
+  "evidence": "FPG 100–125 mg/dL (5,6–6,9 mmol/L).",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "HbA1c",
+  "tail_label": "Test",
+  "evidence": "HbA1c 5,7–6,4%.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "DIAGNOSED_BY",
+  "tail": "Nghiệm pháp dung nạp glucose (OGTT)",
+  "tail_label": "Test",
+  "evidence": "Glucose 2 giờ sau OGTT 140–199 mg/dL.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Tiêu chuẩn tiền đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh võng mạc ĐTĐ",
+  "tail_label": "Complication",
+  "evidence": "Khám mắt giãn đồng tử hoặc chụp ảnh võng mạc ngay khi chẩn đoán.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh võng mạc đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh thận ĐTĐ",
+  "tail_label": "Complication",
+  "evidence": "Đánh giá uACR và eGFR ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thận đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh thần kinh ngoại biên",
+  "tail_label": "Complication",
+  "evidence": "Tầm soát bệnh thần kinh ngoại biên khi chẩn đoán và hằng năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thần kinh và bàn chân đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "CAUSES",
+  "tail": "Bệnh tim mạch xơ vữa",
+  "tail_label": "Complication",
+  "evidence": "Bệnh tim mạch là nguyên nhân tử vong hàng đầu ở người đái tháo đường.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh tim mạch xơ vữa"
+ },
+ {
+  "head": "Bệnh võng mạc ĐTĐ",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Soi đáy mắt / chụp võng mạc",
+  "tail_label": "Test",
+  "evidence": "Khám lại mỗi 1–2 năm nếu chưa có tổn thương; ít nhất mỗi năm nếu đã có.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh võng mạc đái tháo đường"
+ },
+ {
+  "head": "Bệnh thận ĐTĐ",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "uACR và eGFR",
+  "tail_label": "Test",
+  "evidence": "Đánh giá tỷ số albumin/creatinin niệu và eGFR ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thận đái tháo đường"
+ },
+ {
+  "head": "Bệnh thần kinh ngoại biên",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Khám bàn chân (monofilament 10 g)",
+  "tail_label": "Test",
+  "evidence": "Khám bàn chân toàn diện ít nhất mỗi năm, gồm thử cảm giác bằng monofilament 10 g.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh thần kinh và bàn chân đái tháo đường",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "cảm giác áp lực bằng sợi đơn (monofilament)"
+   }
+  ]
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "SCREENED_BY",
+  "tail": "Bộ mỡ máu và huyết áp",
+  "tail_label": "Test",
+  "evidence": "Đánh giá yếu tố nguy cơ tim mạch ít nhất mỗi năm.",
+  "source_doc": "bien-chung-tam-soat",
+  "section": "Bệnh tim mạch xơ vữa"
+ },
+ {
+  "head": "Tăng huyết áp",
+  "head_label": "RiskFactor",
+  "relation": "CAUSES",
+  "tail": "Bệnh tim mạch xơ vữa",
+  "tail_label": "Complication",
+  "evidence": "Huyết áp mục tiêu < 130/80 mmHg ở người đái tháo đường.",
+  "source_doc": "ada-2024-muc-tieu",
+  "section": "Mục tiêu huyết áp"
+ },
+ {
+  "head": "Rối loạn lipid máu",
+  "head_label": "RiskFactor",
+  "relation": "TREATED_BY",
+  "tail": "Statin",
+  "tail_label": "Drug",
+  "evidence": "Người 40–75 tuổi không có bệnh tim mạch xơ vữa: statin cường độ trung bình.",
+  "source_doc": "ada-2024-muc-tieu",
+  "section": "Lipid máu và statin",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "cần được điều trị statin cường độ trung bình"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Thay đổi lối sống",
+  "tail_label": "Intervention",
+  "evidence": "Ít nhất 150 phút mỗi tuần hoạt động thể lực; giảm ≥ 5% cân nặng.",
+  "source_doc": "loi-song-dinh-duong",
+  "section": "Vận động thể lực"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Metformin",
+  "tail_label": "Drug",
+  "evidence": "Metformin là thuốc nền tảng khi khởi trị.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Metformin",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "Metformin là thuốc lựa chọn đầu tay"
+   },
+   {
+    "doc": "vinmec-phac-do-dtd-tip-2",
+    "text": "Metformin (Dimethylbiguanide) Đây là nhóm thuốc được sử dụng rộng rãi nhất hiện nay"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Insulin",
+  "tail_label": "Drug",
+  "evidence": "Cân nhắc insulin khi HbA1c > 10%, glucose ≥ 300 mg/dL hoặc có dị hóa.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Insulin",
+  "quotes": [
+   {
+    "doc": "vinmec-phac-do-dtd-tip-2",
+    "text": "Có thể chỉ định insulin ngay từ lần khám đầu tiên nếu HbA1C > 9.0%"
+   }
+  ]
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Đồng vận GLP-1",
+  "tail_label": "Drug",
+  "evidence": "Dùng GLP-1 RA có lợi ích tim mạch, độc lập với HbA1c.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận"
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Ức chế SGLT2",
+  "tail_label": "Drug",
+  "evidence": "Dùng ức chế SGLT2 có lợi ích tim mạch đã chứng minh.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận"
+ },
+ {
+  "head": "Bệnh thận ĐTĐ",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Ức chế SGLT2",
+  "tail_label": "Drug",
+  "evidence": "Ức chế SGLT2 giảm tiến triển bệnh thận mạn (eGFR 20–60 hoặc có albumin niệu).",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Thuốc bảo vệ tim mạch và thận",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "Ức chế SGLT-2 được chỉ định là thuốc hàng thứ nhì khi có tỷ số A/C > 30 mg/g"
+   }
+  ]
+ },
+ {
+  "head": "Metformin",
+  "head_label": "Drug",
+  "relation": "CONTRAINDICATED_IN",
+  "tail": "Suy thận nặng (eGFR < 30)",
+  "tail_label": "Disease",
+  "evidence": "Chống chỉ định khi eGFR < 30; không khởi trị khi eGFR 30–45.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Metformin",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "Metformin là thuốc lựa chọn đầu tay trừ khi có chống chỉ định (eGFR < 30mL/ph/1,73m2 da)"
+   }
+  ]
+ },
+ {
+  "head": "Insulin",
+  "head_label": "Drug",
+  "relation": "CAUSES",
+  "tail": "Hạ đường huyết",
+  "tail_label": "Complication",
+  "evidence": "Insulin có nguy cơ hạ đường huyết, cần tự theo dõi đường huyết.",
+  "source_doc": "dieu-tri-thuoc",
+  "section": "Insulin"
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Thay đổi lối sống",
+  "tail_label": "Intervention",
+  "evidence": "Chương trình DPP: giảm ≥ 7% cân nặng, vận động 150 phút/tuần.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "PREVENTED_BY",
+  "tail": "Giảm ≥ 7% cân nặng",
+  "tail_label": "Intervention",
+  "evidence": "Can thiệp lối sống trong DPP giảm khoảng 58% tỷ lệ mới mắc sau 3 năm.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "PREVENTED_BY",
+  "tail": "Vận động 150 phút/tuần",
+  "tail_label": "Intervention",
+  "evidence": "Hoạt động thể lực cường độ trung bình tối thiểu 150 phút mỗi tuần.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Can thiệp lối sống để dự phòng",
+  "quotes": [
+   {
+    "doc": "qd-5481-byt-2020",
+    "text": "đi bộ tổng cộng 150 phút mỗi tuần"
+   }
+  ]
+ },
+ {
+  "head": "Tiền đái tháo đường",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Metformin",
+  "tail_label": "Drug",
+  "evidence": "Cân nhắc metformin ở người 25–59 tuổi có BMI ≥ 35, FPG ≥ 110 hoặc HbA1c ≥ 6,0%.",
+  "source_doc": "ada-2024-tien-dtd",
+  "section": "Metformin trong tiền đái tháo đường"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Metformin (Glucophage 500mg/850mg)",
+  "tail_label": "Drug",
+  "evidence": "Metformin (Glucophage 500mg/850mg, Glucophage XR) là thuốc nền tảng đầu tay, uống trong hoặc ngay sau bữa ăn để giảm tác dụng phụ tiêu hóa.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "1. Nhóm Biguanide — Metformin (Glucophage 500mg/850mg, Glucophage XR)",
+  "quotes": [
+   {
+    "doc": "vinmec-phac-do-dtd-tip-2",
+    "text": "Hàm lượng thuốc viên có các loại bao gồm: 500mg, 850mg, 1000mg"
+   },
+   {
+    "doc": "longchau-cac-nhom-thuoc-tieu-duong",
+    "text": "Thuốc tăng độ nhạy cảm với insulin bao gồm 2 nhóm chính, Metformin"
+   }
+  ]
+ },
+ {
+  "head": "Metformin (Glucophage 500mg/850mg)",
+  "head_label": "Drug",
+  "relation": "CONTRAINDICATED_IN",
+  "tail": "Suy thận nặng (eGFR < 30)",
+  "tail_label": "Disease",
+  "evidence": "Glucophage chống chỉ định tuyệt đối khi suy thận nặng (eGFR < 30 mL/phút/1,73 m²); cần kiểm tra Vitamin B12 định kỳ khi dùng kéo dài.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "1. Nhóm Biguanide — Metformin (Glucophage 500mg/850mg, Glucophage XR)"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Dapagliflozin (Forxiga 10mg)",
+  "tail_label": "Drug",
+  "evidence": "Ức chế SGLT2 (Forxiga 10mg) giúp thải glucose qua nước tiểu, hạ đường huyết, giảm cân nhẹ (2–3 kg) và hạ huyết áp tâm thu.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "2. Nhóm Ức chế SGLT2 — Dapagliflozin (Forxiga 10mg) & Empagliflozin (Jardiance 25mg)",
+  "quotes": [
+   {
+    "doc": "longchau-cac-nhom-thuoc-tieu-duong",
+    "text": "Nhóm thuốc ức chế SGLT2 làm giảm khả năng ống thận tái hấp thu glucose"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Empagliflozin (Jardiance 25mg)",
+  "tail_label": "Drug",
+  "evidence": "Jardiance (10mg/25mg) kiểm soát đường huyết kèm bảo vệ tim mạch và thận vượt trội.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "2. Nhóm Ức chế SGLT2 — Dapagliflozin (Forxiga 10mg) & Empagliflozin (Jardiance 25mg)",
+  "quotes": [
+   {
+    "doc": "longchau-cac-nhom-thuoc-tieu-duong",
+    "text": "Nhóm thuốc ức chế SGLT2 làm giảm khả năng ống thận tái hấp thu glucose"
+   }
+  ]
+ },
+ {
+  "head": "Bệnh tim mạch xơ vữa",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Dapagliflozin (Forxiga 10mg)",
+  "tail_label": "Drug",
+  "evidence": "Chỉ định ưu tiên cho bệnh nhân ĐTĐ típ 2 kèm bệnh tim mạch xơ vữa (ASCVD) hoặc suy tim.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "2. Nhóm Ức chế SGLT2 — Dapagliflozin (Forxiga 10mg) & Empagliflozin (Jardiance 25mg)"
+ },
+ {
+  "head": "Bệnh thận ĐTĐ",
+  "head_label": "Complication",
+  "relation": "TREATED_BY",
+  "tail": "Empagliflozin (Jardiance 25mg)",
+  "tail_label": "Drug",
+  "evidence": "Ưu tiên cho bệnh nhân bệnh thận mạn (CKD có albumin niệu hoặc eGFR 20–60).",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "2. Nhóm Ức chế SGLT2 — Dapagliflozin (Forxiga 10mg) & Empagliflozin (Jardiance 25mg)"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Sitagliptin (Januvia 100mg)",
+  "tail_label": "Drug",
+  "evidence": "Ức chế DPP-4 (Januvia 100mg) dung nạp rất tốt, trung tính với cân nặng và nguy cơ hạ đường huyết thấp.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "3. Nhóm Ức chế DPP-4 — Sitagliptin (Januvia 100mg), Linagliptin (Trajenta 5mg)",
+  "quotes": [
+   {
+    "doc": "longchau-cac-nhom-thuoc-tieu-duong",
+    "text": "Bao gồm Sitagliptin, Saxagliptin, Vildagliptin và Linagliptin"
+   }
+  ]
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Linagliptin (Trajenta 5mg)",
+  "tail_label": "Drug",
+  "evidence": "Trajenta 5mg kiểm soát đường huyết an toàn, không gây tăng cân hay hạ đường huyết.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "3. Nhóm Ức chế DPP-4 — Sitagliptin (Januvia 100mg), Linagliptin (Trajenta 5mg)",
+  "quotes": [
+   {
+    "doc": "longchau-cac-nhom-thuoc-tieu-duong",
+    "text": "Bao gồm Sitagliptin, Saxagliptin, Vildagliptin và Linagliptin"
+   }
+  ]
+ },
+ {
+  "head": "Suy thận nặng (eGFR < 30)",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Linagliptin (Trajenta 5mg)",
+  "tail_label": "Drug",
+  "evidence": "Linagliptin (Trajenta 5mg) thải trừ qua đường mật – ruột nên không cần chỉnh liều ở mọi mức độ suy thận (kể cả eGFR < 30).",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "3. Nhóm Ức chế DPP-4 — Sitagliptin (Januvia 100mg), Linagliptin (Trajenta 5mg)"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Insulin Glargine (Lantus SoloStar)",
+  "tail_label": "Drug",
+  "evidence": "Bút tiêm Lantus SoloStar 100IU/ml là insulin nền tác dụng kéo dài suốt 24 giờ, ít tạo đỉnh, kiểm soát đường huyết lúc đói.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "4. Nhóm Đồng vận thụ thể GLP-1 (GLP-1 RA) & Insulin nền (Lantus SoloStar)"
+ },
+ {
+  "head": "Đái tháo đường típ 2",
+  "head_label": "Disease",
+  "relation": "TREATED_BY",
+  "tail": "Gliclazide MR (Diamicron MR 60mg)",
+  "tail_label": "Drug",
+  "evidence": "Diamicron MR 30mg/60mg kích thích tế bào beta tụy tiết insulin, hạ HbA1c nhanh, uống ngay trước hoặc trong bữa ăn sáng.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "5. Nhóm Sulfonylurea thế hệ mới — Gliclazide MR (Diamicron MR 30mg/60mg)"
+ },
+ {
+  "head": "Gliclazide MR (Diamicron MR 60mg)",
+  "head_label": "Drug",
+  "relation": "CAUSES",
+  "tail": "Hạ đường huyết",
+  "tail_label": "Complication",
+  "evidence": "Sulfonylurea (Diamicron MR 60mg) có nguy cơ gây hạ đường huyết (vã mồ hôi, run tay, đói cồn cào) nếu nhịn ăn sau khi uống thuốc.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "5. Nhóm Sulfonylurea thế hệ mới — Gliclazide MR (Diamicron MR 30mg/60mg)"
+ },
+ {
+  "head": "Gliclazide MR (Diamicron MR 60mg)",
+  "head_label": "Drug",
+  "relation": "CONTRAINDICATED_IN",
+  "tail": "Suy thận nặng (eGFR < 30)",
+  "tail_label": "Disease",
+  "evidence": "Cần tránh hoặc chống chỉ định Sulfonylurea ở bệnh nhân suy thận nặng do nguy cơ tích lũy thuốc gây hạ đường huyết kéo dài.",
+  "source_doc": "longchau-thuoc-dai-thao-duong",
+  "section": "5. Nhóm Sulfonylurea thế hệ mới — Gliclazide MR (Diamicron MR 30mg/60mg)"
+ },
+ {
+  "head": "Thừa cân/béo phì",
+  "head_label": "RiskFactor",
+  "relation": "TREATED_BY",
+  "tail": "Phối hợp Metformin + SGLT2i/GLP-1 RA",
+  "tail_label": "Intervention",
+  "evidence": "Ở người đái tháo đường thừa cân/béo phì (BMI ≥ 23), ưu tiên phác đồ GLP-1 RA hoặc SGLT2i phối hợp Metformin để vừa kiểm soát đường huyết vừa giảm cân.",
+  "source_doc": "vinmec-phac-do-dieu-tri-ket-hop-ada",
+  "section": "1. Phân tầng phác đồ theo 4 trục lâm sàng (Cardiorenal & Weight-Centric Approach)"
+ },
+ {
+  "head": "Tăng huyết áp",
+  "head_label": "RiskFactor",
+  "relation": "TREATED_BY",
+  "tail": "Phối hợp Metformin + SGLT2i (Forxiga/Jardiance)",
+  "tail_label": "Intervention",
+  "evidence": "Phác đồ Metformin + SGLT2i tối ưu cho bệnh nhân ĐTĐ kèm tăng huyết áp hoặc bệnh tim mạch.",
+  "source_doc": "vinmec-phac-do-dieu-tri-ket-hop-ada",
+  "section": "2. Lộ trình bậc thang điều trị chuẩn hóa (Stepwise Regimen)"
+ }
+]

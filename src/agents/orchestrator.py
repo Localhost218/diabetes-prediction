@@ -26,7 +26,9 @@ from src.schemas.patient_profile import PatientProfile
 
 GREETING = re.compile(r"^\s*(xin chào|chào|hello|hi|alo|cảm ơn|cám ơn|thanks|ok|oke|bạn là ai)\b", re.I)
 QUESTION = re.compile(r"\?|là gì|thế nào|như thế nào|bao nhiêu|có nên|tại sao|vì sao|cách nào|làm sao|nên ăn|có phải", re.I)
-ASSESS = re.compile(r"nguy cơ|dự đoán|đánh giá|có bị (tiểu đường|đái tháo đường)|kiểm tra giúp|phân tích", re.I)
+ASSESS = re.compile(r"nguy cơ|dự đoán|đánh giá|kiểm tra giúp|phân tích"
+                    r"|có (bị|mắc|dấu hiệu|triệu chứng)( của)?( bệnh)? (tiểu đường|đái tháo đường|ĐTĐ)"
+                    r"|(dấu hiệu|triệu chứng)( của)?( bệnh)? (tiểu đường|đái tháo đường|ĐTĐ)", re.I)
 # Câu hỏi về chính hồ sơ / kết quả trước đó của người dùng
 SELF_REFERENCE = re.compile(r"\b(tôi|của tôi|mình|em|con)\b.*(bao nhiêu|là gì|thế nào|không|chưa|ra sao|nào)"
                             r"|kết quả|vừa rồi|lúc nãy|ở trên|tại sao|vì sao|giải thích|nghĩa là|vậy thì|thế thì", re.I)
@@ -59,7 +61,8 @@ class OrchestratorAgent(BaseAgent):
         # 1. Tiếp nhận song song: phân loại ý định + trích xuất từ text + kiểm tra phạm vi + đọc từng file
         intent_task = self._classify(text, history, profile) if text else _none()
         text_task = self.ask("ConversationAgent", "EXTRACT_FROM_TEXT",
-                             {"text": text, "previous_bot_message": last_bot[-600:]}, conv) if text else _none()
+                             {"text": text, "previous_bot_message": last_bot[-600:],
+                              "asked_fields": profile.asked_questions}, conv) if text else _none()
         scope_task = self.ask("ClarificationAgent", "SCOPE_CHECK", {"text": text, "history": history}, conv) \
             if text else _none()
         doc_tasks = [self.ask("DocumentAgent", "PARSE_DOCUMENT", d, conv) for d in documents]
@@ -176,6 +179,9 @@ class OrchestratorAgent(BaseAgent):
                        profile: PatientProfile, last_assessment: Optional[Dict[str, Any]]) -> str:
         # Có dữ liệu mới của bệnh nhân (từ text hoặc file) thì luôn chạy lại hội đồng
         if documents or updated:
+            return "RISK_ASSESSMENT"
+        # Hỏi "tôi có bị / có dấu hiệu tiểu đường không" khi chưa có kết quả hội chẩn → phải đánh giá, không chỉ đọc lại hồ sơ
+        if ASSESS.search(text) and not last_assessment and (profile.fields or SELF_REFERENCE.search(text)):
             return "RISK_ASSESSMENT"
         if llm_intent:
             # Không có dữ liệu mới mà hội đồng đã kết luận rồi → chạy lại cũng ra cùng kết quả, trả lời từ bộ nhớ

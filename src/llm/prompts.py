@@ -13,13 +13,14 @@ NumericField = Literal[
     "bmi", "height_cm", "weight_kg", "waist_cm",
     "glucose_fasting", "glucose_random", "ogtt_2h", "hba1c",
     "systolic_bp", "diastolic_bp",
-    "total_cholesterol", "ldl", "hdl", "triglycerides", "creatinine", "egfr",
+    "total_cholesterol", "ldl", "hdl", "triglycerides", "creatinine", "egfr", "sleep_hours",
 ]
 BooleanField = Literal[
     "high_bp", "high_chol", "family_history", "smoker", "phys_activity",
     "heart_disease", "stroke", "heavy_alcohol",
     "pregnant", "diagnosed_diabetes", "glucose_lowering_meds", "steroid_use", "acute_illness",
     "hba1c_interference", "fasting_confirmed",
+    "vegetables_daily", "fruits_daily",
 ]
 
 NUMERIC_FIELD_MAP = {
@@ -55,10 +56,16 @@ class ExtractedClinicalData(BaseModel):
     is_medical_document: bool = Field(True, description="False nếu tài liệu/ảnh không liên quan đến y tế")
     summary: Optional[str] = Field(None, description="Tóm tắt 1-2 câu nội dung tài liệu (chỉ với tài liệu)")
 
-    def to_profile(self, source: str, base_confidence: float = 0.95) -> PatientProfile:
+    def to_profile(self, source: str, base_confidence: float = 0.95, source_text: Optional[str] = None) -> PatientProfile:
+        """source_text: văn bản gốc (tin nhắn). Có thì chỉ giữ con số xuất hiện trong văn bản — LLM nhỏ hay bịa số."""
         from datetime import date
+        import re
         profile = PatientProfile()
+        seen = None if source_text is None else {float(x.replace(",", ".")) for x in re.findall(r"\d+(?:[.,]\d+)?", source_text)}
+        in_text = lambda v: seen is None or any(abs(v - s) < 1e-6 for s in seen)  # noqa: E731
         for m in self.measurements:
+            if not in_text(m.value):
+                continue
             field = NUMERIC_FIELD_MAP.get(m.field, m.field)
             value, conf = normalize(field, m.value, m.unit)
             flags = unit_flags(field, m.unit) + (["fasting_unclear"] if m.timing_unclear and field == "glucose_fasting_mgdl" else [])
@@ -71,7 +78,7 @@ class ExtractedClinicalData(BaseModel):
             profile.set("age_years", date.today().year - self.birth_year, source, base_confidence * 0.95)
         if self.sex:
             profile.set("sex", self.sex, source, base_confidence)
-        if len(self.glucose_series) >= 5:
+        if len(self.glucose_series) >= 5 and all(in_text(v) for v in self.glucose_series):
             profile.glucose_history = [normalize("glucose_fasting_mgdl", v, self.glucose_series_unit)[0]
                                        for v in self.glucose_series]
             profile.glucose_history_source = source
@@ -155,17 +162,16 @@ def format_history(history: List[dict], max_chars: int = 500) -> str:
     return "\n".join(lines)
 
 
-RESPONSE_SYSTEM = """Bạn là Bác sĩ Nội tiết & Hội đồng AI Chuyên gia của hệ thống Diabetes Prediction, trả lời bằng tiếng Việt.
-Bạn được cung cấp Bản báo cáo hội chẩn 4 phần đã được xác thực từ 8 tác tử chuyên môn.
-Nhiệm vụ của bạn là viết tiếp phần **Biện luận lâm sàng chuyên sâu (khoảng 180–280 từ)** cho bệnh nhân này:
-- Giải thích cơ chế bệnh sinh liên kết các yếu tố của chính người bệnh (ví dụ: vì sao thừa cân/béo phì theo chuẩn châu Á BMI ≥ 23 kg/m² gây đề kháng insulin tại mô cơ và gan; vì sao tiền sử gia đình kết hợp tuổi tác làm suy giảm chức năng tế bào beta đảo tụy; ý nghĩa của chỉ số đường huyết lúc đói / HbA1c hiện tại).
-- Giải thích vì sao phác đồ can thiệp lối sống (giảm 5–7% cân nặng, vận động ≥ 150 phút/tuần) và nhóm thuốc tham chiếu trong báo cáo lại tác động trúng đích vào cơ chế bệnh sinh đó.
-- Dặn dò cụ thể những câu hỏi người bệnh nên trao đổi trực tiếp với bác sĩ chuyên khoa Nội tiết khi đi khám và các dấu hiệu cảnh báo cần đi khám sớm.
-
+RESPONSE_SYSTEM = """Bạn là bác sĩ gia đình đang nói chuyện với một người bình thường, KHÔNG có chuyên môn y tế hay kỹ thuật, bằng tiếng Việt.
+Bạn được cung cấp bản kết quả đánh giá nguy cơ tiểu đường của họ (tỷ lệ, lý do, lời khuyên).
+Hãy viết 3–5 câu ngắn, giọng ấm áp, dễ hiểu:
+- Nói lại kết quả bằng lời thường (nguy cơ cao/thấp, có đáng lo không).
+- Giải thích lý do chính bằng ví dụ đời thường, liên hệ đúng các yếu tố của họ có trong bản kết quả.
+- Động viên và nhắc 1–2 việc quan trọng nhất nên làm.
 Quy tắc bắt buộc:
-- CHỈ phân tích dựa trên đúng các chỉ số có trong báo cáo được cung cấp. Tuyệt đối KHÔNG bịa thêm chỉ số xét nghiệm mà bệnh nhân chưa làm (như HbA1c, huyết áp nếu trong báo cáo không ghi).
-- Viết thành các đoạn văn hoặc gạch đầu dòng mạch lạc, sâu sắc, dễ hiểu với người bệnh; KHÔNG lặp lại nguyên văn các tiêu đề mục 1, 2, 3, 4 đã có ở trên.
-- Không dùng cú pháp LaTeX hay ký hiệu `$`; viết trực tiếp `≥, ≤, ×, →, %`."""
+- CHỈ dùng thông tin có trong bản kết quả; không bịa thêm chỉ số, không đổi con số.
+- KHÔNG dùng thuật ngữ kỹ thuật (mô hình, thuật toán, đồ thị, RAG, NHANES, BRFSS, GBDT, MLP, đề kháng insulin, tế bào beta...).
+- Không lặp lại tiêu đề, không dùng gạch đầu dòng, không dùng LaTeX hay ký hiệu `$`."""
 
 
 KNOWLEDGE_SYSTEM = """Bạn là Diabetes Prediction — Chuyên gia Tri thức Y khoa về Đái tháo đường (ADA 2024, Bộ Y tế QĐ 5481/QĐ-BYT, Vinmec, Dược điển FPT Long Châu), trả lời bằng tiếng Việt.

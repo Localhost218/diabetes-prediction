@@ -59,7 +59,7 @@ Trong mã nguồn \texttt{src/communication/message\_bus.py}, cấu trúc này �
 \end{minted}
 \end{code}
 
-Các con số xác suất trong \coderef{code:example-message} được hiệu chỉnh xác suất thực nghiệm (Platt Scaling và Temperature Calibration), phản ánh nguy cơ thống kê dựa trên yếu tố nhân trắc -- tiền sử và luôn được chuyển tiếp cho \agent{ConsensusCriticAgent} để đối chiếu chéo với xét nghiệm sinh hóa.
+Các con số xác suất trong \coderef{code:example-message} \upd{là xác suất trực tiếp của mô hình (không có bước hiệu chỉnh Platt hay Temperature)}, phản ánh nguy cơ thống kê dựa trên yếu tố nhân trắc -- tiền sử \upd{-- lối sống} và luôn được chuyển tiếp cho \agent{ConsensusCriticAgent} để đối chiếu chéo với xét nghiệm sinh hóa.
 
 \section{Thiết kế giao diện tác tử (Agent Interface Design)}
 \label{sec:agent-interfaces}

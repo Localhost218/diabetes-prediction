@@ -78,7 +78,7 @@ function ConsultationDetails({ data }) {
           {data.ml && (
             <Section icon={<Activity size={14} />} title="Nhánh DB → ML/DL: dự đoán">
               <div className="kv">
-                Xác suất theo yếu tố nguy cơ: <strong>{(data.ml.risk_probability * 100).toFixed(1)}%</strong>
+                Xác suất theo yếu tố nguy cơ (không dùng xét nghiệm): <strong>{(data.ml.risk_probability * 100).toFixed(1)}%</strong>
                 {' '}(gấp {data.ml.relative_risk} lần trung bình) · dữ liệu đầy đủ {(data.ml.data_completeness * 100).toFixed(0)}%
               </div>
               {data.ml.models && (

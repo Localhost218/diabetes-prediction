@@ -94,7 +94,9 @@ def test_llm_issues_cannot_block_except_pregnancy_and_are_logged_when_uncovered(
     p = extract_profile("tôi 45 tuổi BMI 24", "text")
     out = _plan(p, [{"reason": "OTHER", "evidence": "đang nằm viện", "question": "Bạn nằm viện vì bệnh gì?",
                      "blocking": True}])
-    assert out["questions"][0]["source"] == "llm" and not out["questions"][0]["blocking"]
+    llm_qs = [q for q in out["questions"] if q["source"] == "llm"]
+    assert not any(q["blocking"] for q in llm_qs)
+    assert out["questions"][0]["key"] == "glucose_fasting_mgdl"  # câu theo luật được ưu tiên hơn câu LLM tự nghĩ
     assert out["uncovered"][0]["evidence"] == "đang nằm viện"
 
 
@@ -102,4 +104,4 @@ def test_llm_issue_skipped_when_fact_already_known():
     p = extract_profile("tôi là nữ, 30 tuổi, không mang thai, BMI 24", "text")
     out = _plan(p, [{"reason": "PREGNANCY", "evidence": "mang thai", "question": "Bạn có mang thai không?",
                      "blocking": True}])
-    assert out["questions"] == []
+    assert "pregnant" not in [q["key"] for q in out["questions"]]

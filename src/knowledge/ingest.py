@@ -144,15 +144,27 @@ def load_url(url: str) -> SourceDoc:
 
 
 def discover_sources(directory: Path) -> List[SourceDoc]:
+    # PDF/HTML/TXT không có front-matter như .md → khai id, tiêu đề, nguồn, link gốc trong sources.json
+    manifest_path = directory / "sources.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     docs = []
     for path in sorted(directory.iterdir()):
         suffix = path.suffix.lower()
         if suffix in (".md", ".txt"):
-            docs.append(load_markdown(path))
+            doc = load_markdown(path)
         elif suffix == ".pdf":
-            docs.append(load_pdf(path, path.name))
+            doc = load_pdf(path, path.name)
         elif suffix in (".html", ".htm"):
-            docs.append(load_html(path.read_bytes(), path.name))
+            doc = load_html(path.read_bytes(), path.name)
+        else:
+            continue
+        meta = manifest.get(path.name)
+        if meta:
+            doc.id, doc.source, doc.url = meta.get("id", doc.id), meta.get("source", doc.source), meta.get("url", doc.url)
+            if meta.get("title"):
+                doc.sections = [(h.replace(doc.title, meta["title"], 1), c) for h, c in doc.sections]
+                doc.title = meta["title"]
+        docs.append(doc)
     return docs
 
 
@@ -171,6 +183,8 @@ def ingest_documents(docs: List[SourceDoc], force: bool = False) -> Dict[str, in
             same_model = existing is not None and s.scalar(
                 select(KbChunk.embedding_model).where(KbChunk.document_id == doc.id).limit(1)) == embedder.name
             if existing and existing.sha256 == doc.sha256 and same_model and vstore.has_document(doc.id) and not force:
+                # nội dung không đổi → không embed lại, nhưng vẫn cập nhật tiêu đề/nguồn/link (vd. sửa link chết)
+                existing.title, existing.source, existing.url = doc.title, doc.source, doc.url
                 stats["skipped"] += 1
                 continue
 
@@ -213,10 +227,24 @@ def load_curated_triples() -> List[dict]:
         return []
     lookup = _chunk_lookup()
     triples = json.loads(CURATED_TRIPLES.read_text(encoding="utf-8"))
+    with session_scope() as s:
+        contents = [(cid, d, _norm(c)) for cid, d, c in s.execute(select(KbChunk.id, KbChunk.document_id, KbChunk.content))]
     for t in triples:
         chunk_id = lookup.get((t["source_doc"], t.pop("section", None)))
-        t["chunk_ids"] = [chunk_id] if chunk_id else []
+        ids = [chunk_id] if chunk_id else []
+        # "quotes": đoạn trích nguyên văn trong tài liệu gốc (PDF/web) → nối cạnh đồ thị tới đúng chunk chứa đoạn đó
+        for q in t.pop("quotes", []):
+            hit = next((cid for cid, d, c in contents if d == q["doc"] and _norm(q["text"]) in c), None)
+            if hit is None:
+                log.warning("Không tìm thấy trích dẫn trong %s: %s", q["doc"], q["text"][:60])
+            else:
+                ids.append(hit)
+        t["chunk_ids"] = list(dict.fromkeys(ids))
     return triples
+
+
+def _norm(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
 
 
 async def extract_llm_triples() -> List[dict]:

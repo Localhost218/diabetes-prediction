@@ -24,7 +24,11 @@ import pandas as pd  # noqa: E402
 from src.config import BASE_DIR  # noqa: E402
 
 CYCLES = {"G": 2011, "H": 2013, "I": 2015, "J": 2017}
-FILES = ["DEMO", "BMX", "BPX", "BPQ", "DIQ", "MCQ", "SMQ", "PAQ", "GHB", "GLU"]
+FILES = ["DEMO", "BMX", "BPX", "BPQ", "DIQ", "MCQ", "SMQ", "PAQ", "GHB", "GLU", "SLQ"]
+# Đã thử thêm DBQ + DR1TOT (đồ ăn nhanh, đường, tinh bột, chất xơ) ngày 27/11/2026 và bỏ: trong NHANES, người đã được
+# chẩn đoán kiêng đường/tinh bột nên "ăn uống xấu" lại đi kèm nguy cơ THẤP hơn (nhân quả ngược); che dữ liệu ăn uống
+# của họ thì sự thiếu dữ liệu lại tiết lộ nhãn (AUC 0,94 giả tạo). Giờ ngồi (PAD680) cũng thử và bỏ vì ngược chiều; giờ ngủ
+# (SLQ) giữ lại: đúng hình chữ U như y văn (ngủ < 6 h hoặc ≥ 10 h nguy cơ cao hơn).
 URL = "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/{year}/DataFiles/{name}_{suffix}.xpt"
 RAW_DIR = BASE_DIR / "data" / "download" / "nhanes"
 OUT_CSV = BASE_DIR / "data" / "output" / "datasets" / "nhanes_diabetes.csv"
@@ -54,6 +58,7 @@ def build_cycle(suffix: str, year: int) -> pd.DataFrame:
     for name in FILES[1:]:
         df = df.merge(tables[name], on="SEQN", how="left", suffixes=("", f"_{name}"))
 
+    sleep = df["SLD012"] if "SLD012" in df else df["SLD010H"]  # 2015 đổi tên biến giờ ngủ
     bp_sys = df[[c for c in ("BPXSY1", "BPXSY2", "BPXSY3") if c in df]].mean(axis=1)
     bp_dia = df[[c for c in ("BPXDI1", "BPXDI2", "BPXDI3") if c in df]].replace(0, np.nan).mean(axis=1)
     out = pd.DataFrame({
@@ -73,6 +78,7 @@ def build_cycle(suffix: str, year: int) -> pd.DataFrame:
         "heart_disease": ((df.MCQ160B == 1) | (df.MCQ160C == 1) | (df.MCQ160E == 1)).astype(float)
                          .where(df.MCQ160C.isin([1, 2])),
         "stroke": yes(df.MCQ160F),
+        "sleep_hours": sleep.where(sleep.between(2, 14)),
         "asian": (df.RIDRETH3 == 6).astype(int),
         "hba1c": df.LBXGH,
         "fasting_glucose": df.LBXGLU,

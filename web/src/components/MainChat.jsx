@@ -1,20 +1,29 @@
-import { useState, useRef, useEffect } from 'react'
-import { Plus, Mic, Send, Paperclip, Settings, ThumbsUp, ThumbsDown, Copy, Circle, Hourglass, Lightbulb, Camera, Menu, FileText, X, RotateCcw, Cpu } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Plus, Mic, Send, Paperclip, Settings, ThumbsUp, ThumbsDown, Copy, Circle, Hourglass, Camera, FileText, X, RotateCcw, Cpu, Moon, Sun, HelpCircle, ClipboardList, Gauge, Database, Bot } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { transcribeAudio } from '../services/llmService'
+import { transcribeAudio, saveProfile } from '../services/llmService'
 import CameraModal from './CameraModal'
 import ConsultationDetails from './ConsultationDetails'
 import ThinkingPanel from './ThinkingPanel'
+import PredictionPanel from './PredictionPanel'
+import AgentFlow from './AgentFlow'
+import NbModal from './NbModal'
+import ProfileNotebook from './ProfileNotebook'
+import PlanTrack from './PlanTrack'
+import KnowledgeView from './KnowledgeView'
+import AgentsView from './AgentsView'
+import './ConsultationWorkspace.css'
+import '../theme-notebook.css'
 
 const MAX_FILES = 5
 const ACCEPT = '.pdf,.docx,.csv,.txt,image/jpeg,image/png,image/webp'
 
 const SUGGESTIONS = [
-  'Tôi 52 tuổi, nam, cao 1m65 nặng 72kg, đường huyết lúc đói 7.2 mmol/L, bố bị tiểu đường. Nguy cơ của tôi thế nào?',
-  'HbA1c bao nhiêu thì được coi là tiền đái tháo đường?',
-  'Mẹ tôi 61 tuổi, BMI 29, có uống thuốc huyết áp, HbA1c 6.1%. Bà có cần đi khám không?',
-  'Người tiền đái tháo đường nên vận động và ăn uống như thế nào?',
+  { label: 'HbA1c bao nhiêu là tiền đái tháo đường?', text: 'HbA1c bao nhiêu thì được coi là tiền đái tháo đường?' },
+  { label: 'Dấu hiệu sớm của bệnh tiểu đường', text: 'Những dấu hiệu sớm của bệnh tiểu đường là gì?' },
+  { label: 'Tiền đái tháo đường nên ăn gì?', text: 'Người tiền đái tháo đường nên vận động và ăn uống như thế nào?' },
+  { label: 'Ví dụ: tự mô tả chỉ số', text: 'Tôi 52 tuổi, nam, cao 1m65 nặng 72kg, đường huyết lúc đói 7.2 mmol/L, bố bị tiểu đường. Nguy cơ của tôi thế nào?' },
 ]
 
 function Attachment({ a }) {
@@ -29,13 +38,15 @@ function Attachment({ a }) {
   )
 }
 
-function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile, onToggleSidebar, systemInfo }) {
+function MainChat({ onProfileSaved, onOpenSettings, onOpenHelp, activeSession, onSendMessage, onRestart, isDarkMode, onToggleTheme, systemInfo, isSending }) {
+  // Mới vào: mở sẵn form nhập hồ sơ (có thể bỏ qua). 'form' | 'result' | 'kb' | 'agents' | null
+  const [modal, setModal] = useState('form')
+  const closeModal = useCallback(() => setModal(null), [])
   const [showPlusMenu, setShowPlusMenu] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [isListening, setIsListening] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
-  const [isSending, setIsSending] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -46,11 +57,18 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
 
   const menuRef = useRef(null)
   const fileInputRef = useRef(null)
-  const chatEndRef = useRef(null)
+  const chatAreaRef = useRef(null)
 
-  // Auto-scroll to bottom on new messages
+  // Tự cuộn xuống cuối chỉ khi người dùng đang ở cuối: khối suy luận cập nhật mỗi 140 ms,
+  // cuộn cưỡng bức sẽ giật ngược mỗi lần người dùng lăn chuột lên đọc
+  const stickRef = useRef(true)
+  const onChatScroll = (e) => {
+    const a = e.currentTarget
+    stickRef.current = a.scrollHeight - a.scrollTop - a.clientHeight < 80
+  }
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const area = chatAreaRef.current
+    if (area && stickRef.current) area.scrollTop = area.scrollHeight
   }, [activeSession?.messages])
 
   // Persist feedback to backend
@@ -162,16 +180,13 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
   }, [])
 
   const sendText = async (text, files = []) => {
-    if (isSending) return
-    setIsSending(true)
-    try {
-      await onSendMessage(text, files)
-    } finally {
-      setIsSending(false)
-    }
+    if (isSending || !activeSession) return null
+    stickRef.current = true  // gửi tin mới thì luôn theo dõi câu trả lời
+    return onSendMessage(text, files)
   }
 
   const handleSend = async () => {
+    if (isSending || !activeSession) return
     if (!inputValue.trim() && selectedFiles.length === 0) return;
     const text = inputValue;
     const files = selectedFiles;
@@ -183,69 +198,77 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
   const llmLabel = systemInfo
     ? (systemInfo.llm.enabled ? `${systemInfo.llm.provider} · ${systemInfo.llm.model}` : 'Chế độ luật (không LLM)')
     : null
+  const messages = activeSession?.messages || []
+  const assessmentMessages = activeSession?.profile_summary?.length === 0 ? [] : messages.slice(activeSession?._assessmentStart || 0)
+  const assessmentMessage = [...assessmentMessages].reverse().find(msg => msg.sender === 'bot' && msg.data?.consensus && !msg.is_error)
+  const latestReply = [...messages.slice(activeSession?._assessmentStart || 0)].reverse().find(msg => msg.sender === 'bot' && !msg._loading)
+
+  const liveMsg = messages.find(m => m._loading)
+  const lastBot = [...messages].reverse().find(m => m.sender === 'bot' && !m._loading && m.data?.transcript)
+  const running = !!liveMsg
+  const flowSteps = liveMsg ? liveMsg._steps : lastBot?.data?.transcript || []
+  const flowGraph = liveMsg ? liveMsg._graph : lastBot?.data?.graph
+  const turns = messages.filter(m => m.sender === 'user').length
+  const debateRounds = lastBot?.data?.consensus?.debate_rounds
+  const ask = (q) => { setModal(null); sendText(q) }
+  const completeProfile = async (fields) => {
+    const { profile_summary: summary, rejected } = await saveProfile(activeSession.id, fields)
+    onProfileSaved(summary)
+    setModal(null)
+    showToast(rejected.length ? `Đã lưu hồ sơ (bỏ ${rejected.length} giá trị không hợp lệ).` : 'Đã lưu hồ sơ. Bạn có thể hỏi trợ lý về hồ sơ này.')
+  }
 
   return (
-    <div className="main-content">
-      <div className="header" style={{ position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button className="mobile-menu-btn icon-btn" onClick={onToggleSidebar} title="Mở menu" aria-label="Mở sidebar">
-            <Menu size={20} />
-          </button>
-          <div className="brand">
-            <img src="/logo.png" alt="" />
-            <span>Diabetes Prediction</span>
-          </div>
-        </div>
-        {activeSession?.title && (
-          <div className="session-title-header" style={{
-            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-            fontWeight: 600, fontSize: '1rem',
-            color: 'var(--text-primary)',
-            maxWidth: '40%', overflow: 'hidden',
-            whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-            pointerEvents: 'none'
-          }}>
-            {activeSession.title}
-          </div>
-        )}
-        <div className="header-actions">
-          {llmLabel && (
-            <span className="system-badge" title={`${systemInfo.agents.length} tác tử · KG: ${systemInfo.knowledge_graph} · Embedding: ${systemInfo.embedding}`}>
-              <Cpu size={14} /> {llmLabel}
-            </span>
-          )}
-          <button className="icon-btn" onClick={onResetProfile} title="Xóa dữ liệu sức khỏe đã ghi nhận trong cuộc trò chuyện">
-            <RotateCcw size={18} />
-          </button>
-        </div>
-      </div>
+    <main className="main-content consultation-workspace">
+      {toastMsg && <div className="nb-toast" role="status">{toastMsg}</div>}
 
-      {/* Toast notification */}
-      {toastMsg && (
-        <div style={{
-          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(30,30,30,0.92)', color: '#fff',
-          padding: '10px 20px', borderRadius: 24,
-          fontSize: '0.85rem', zIndex: 9999,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          {toastMsg}
-        </div>
-      )}
+      <div className="nb-view nb-consult">
+        <ProfileNotebook profileSummary={activeSession?.profile_summary} disabled={isSending || !activeSession}
+          onEdit={() => setModal('form')} onShowResult={assessmentMessage ? () => setModal('result') : null} onRestart={onRestart} />
 
-      <div className="chat-area">
+        <div className="nb-center">
+        <section className="chat-panel" aria-labelledby="assistant-heading">
+          <div className="chat-panel-heading nb-chat-head">
+            <div className="nb-head-top">
+              <div className="nb-brand"><img src="/logo.png" alt="" /><h1>Diabetes <mark>MultiAgent</mark></h1></div>
+              <span className="nb-crumb">/ Phiên #{activeSession?.id ? String(activeSession.id).slice(0, 6) : '…'} · lượt {turns}</span>
+              <div className="nb-head-actions">
+                {llmLabel && <span className="system-badge" title={`${systemInfo.agents.length} tác tử · KG: ${systemInfo.knowledge_graph} · Embedding: ${systemInfo.embedding}`}><Cpu size={14} /> {llmLabel}</span>}
+                <button className="icon-btn" onClick={() => setModal('form')} disabled={!activeSession} aria-label="Nhập hồ sơ" title="Nhập hồ sơ"><ClipboardList size={18} /></button>
+                <button className="icon-btn" onClick={onRestart} disabled={isSending || !activeSession} aria-label="Bắt đầu lại" title="Xóa dữ liệu và bắt đầu lượt tư vấn mới"><RotateCcw size={18} /></button>
+                <button className="icon-btn" onClick={onToggleTheme} aria-label={isDarkMode ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối'} title={isDarkMode ? 'Giao diện sáng' : 'Giao diện tối'}>
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+                <button className="icon-btn" onClick={onOpenHelp} aria-label="Giới thiệu" title="Giới thiệu"><HelpCircle size={18} /></button>
+              </div>
+            </div>
+            <div className="nb-title-row">
+              <h2 id="assistant-heading">{lastBot?.data?.consensus ? 'Đánh giá nguy cơ đái tháo đường' : lastBot?.data?.intent === 'KNOWLEDGE_QUESTION' ? 'Hỏi đáp kiến thức' : 'Hỏi trợ lý sức khỏe'}</h2>
+              <div className="nb-chips">
+                {lastBot?._thinkSeconds != null && <span className="nb-chip c-orange">{lastBot._thinkSeconds} s</span>}
+                {systemInfo && <span className="nb-chip c-green">{systemInfo.agents.length} tác tử</span>}
+                {debateRounds != null && <span className="nb-chip c-violet">{debateRounds} vòng tranh biện</span>}
+              </div>
+            </div>
+            <p><span className="online-dot" aria-hidden="true" />Dữ liệu → ML/DL ‖ KB → RAG, sau đó hội đồng phản biện trước khi kết luận.</p>
+          </div>
+
+      <div className="chat-area" ref={chatAreaRef} onScroll={onChatScroll} role="log" aria-label="Cuộc trò chuyện với trợ lý AI" aria-live="polite">
         <div className="chat-container">
           {(!activeSession || !activeSession.messages || activeSession.messages.length === 0) ? (
             <div className="welcome-screen">
-              <img src="/logo.png" alt="Diabetes Prediction" className="welcome-logo" />
-              <h1 className="welcome-heading">Sàng lọc nguy cơ đái tháo đường cùng hội đồng AI.</h1>
-              <p className="welcome-sub">Nhập chỉ số sức khỏe, hỏi kiến thức, hoặc đính kèm phiếu xét nghiệm / bệnh án<br/>(PDF, ảnh, DOCX, CSV) để các tác tử phân tích.</p>
-              <div className="suggestions-grid">
-                {SUGGESTIONS.map((prompt, i) => (
-                  <button key={i} className="suggestion-card" onClick={() => sendText(prompt)}>
-                    <Lightbulb size={18} className="suggestion-icon" />
-                    <span>{prompt}</span>
+              <div className="welcome-bubble">
+                <img src="/logo.png" alt="" className="welcome-logo" />
+                <div>
+                  <h3 className="welcome-heading">Xin chào! Tôi có thể giúp gì cho bạn?</h3>
+                  <p className="welcome-sub">Hãy hỏi tôi bất cứ điều gì về đái tháo đường, hoặc gửi ảnh phiếu xét nghiệm để tôi đọc giúp. Bạn cũng có thể bấm “Nhập hồ sơ” để điền chỉ số theo từng bước.</p>
+                </div>
+              </div>
+              <p className="suggestions-title">Câu hỏi thường gặp</p>
+              <div className="chip-row">
+                {SUGGESTIONS.map(s => (
+                  <button key={s.label} className="chip" disabled={isSending || !activeSession} onClick={() => sendText(s.text)} title={s.text}>
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -296,7 +319,7 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                               className={`action-btn${isLiked ? ' liked' : ''}`}
                               onClick={() => handleFeedback(msg, 'liked')}
                               disabled={!!feedbackLoading[msg.id]}
-                              title="Hữu ích"
+                              title="Hữu ích" aria-label="Đánh dấu hữu ích"
                             >
                               <ThumbsUp size={16} fill={isLiked ? 'currentColor' : 'none'} />
                             </button>
@@ -304,7 +327,7 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                               className={`action-btn${isDisliked ? ' disliked' : ''}`}
                               onClick={() => handleFeedback(msg, 'disliked')}
                               disabled={!!feedbackLoading[msg.id]}
-                              title="Không hữu ích"
+                              title="Không hữu ích" aria-label="Đánh dấu không hữu ích"
                             >
                               <ThumbsDown size={16} fill={isDisliked ? 'currentColor' : 'none'} />
                             </button>
@@ -317,7 +340,7 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                           navigator.clipboard.writeText(msg.text)
                           showToast('Đã copy tin nhắn!')
                         }}
-                        title="Copy"
+                        title="Copy" aria-label="Sao chép tin nhắn"
                       >
                         <Copy size={16} />
                       </button>
@@ -328,7 +351,6 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
             ))
           )}
 
-          <div ref={chatEndRef} />
         </div>
       </div>
 
@@ -362,7 +384,7 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                   {file.type.startsWith('image/')
                     ? <img src={URL.createObjectURL(file)} alt="preview" />
                     : <span className="selected-file-name"><FileText size={14} /> {file.name}</span>}
-                  <button onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))} title="Bỏ file">
+                  <button onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))} title="Bỏ file" aria-label={`Bỏ file ${file.name}`}>
                     <X size={12} />
                   </button>
                 </div>
@@ -370,25 +392,25 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
             </div>
           )}
           {showPlusMenu && (
-            <div className="plus-menu" ref={menuRef}>
-              <div className="menu-item" onClick={() => fileInputRef.current.click()}>
+            <div className="plus-menu" id="chat-attachments-menu" ref={menuRef}>
+              <button className="menu-item" onClick={() => fileInputRef.current.click()}>
                 <Paperclip size={18} />
                 <span>Tải bệnh án / phiếu xét nghiệm (PDF, ảnh, DOCX, CSV)</span>
-              </div>
-              <div className="menu-item" onClick={() => {
+              </button>
+              <button className="menu-item" onClick={() => {
                 setShowCamera(true);
                 setShowPlusMenu(false);
               }}>
                 <Camera size={18} />
                 <span>Chụp ảnh phiếu xét nghiệm</span>
-              </div>
-              <div className="menu-item" onClick={() => {
+              </button>
+              <button className="menu-item" onClick={() => {
                 setShowPlusMenu(false)
                 onOpenSettings()
               }}>
                 <Settings size={18} />
                 <span>Cài đặt</span>
-              </div>
+              </button>
             </div>
           )}
 
@@ -396,23 +418,27 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
             <button
               className="icon-btn"
               onClick={() => setShowPlusMenu(!showPlusMenu)}
-              title="Đính kèm bệnh án"
+              title="Đính kèm bệnh án" aria-label="Đính kèm bệnh án" aria-expanded={showPlusMenu} aria-controls="chat-attachments-menu"
+              disabled={isSending || !activeSession}
             >
               <Plus size={20} />
             </button>
             <input
               type="text"
-              placeholder="Nhập chỉ số sức khỏe hoặc câu hỏi cho Diabetes Prediction..."
+              placeholder="Nhập câu hỏi của bạn…"
+              aria-label="Tin nhắn cho trợ lý AI"
+              disabled={!activeSession}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !isSending && (inputValue.trim() || selectedFiles.length > 0)) {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing && !isSending && (inputValue.trim() || selectedFiles.length > 0)) {
                   handleSend();
                 }
               }}
             />
             <button className={`icon-btn ${isListening ? 'recording' : ''}`} onClick={toggleListening}
-              disabled={isTranscribing}
+              disabled={isTranscribing || isSending || !activeSession}
+              aria-label={isListening ? 'Dừng ghi âm' : 'Ghi âm giọng nói'}
               title={isListening ? 'Dừng ghi âm' : isTranscribing ? 'Đang xử lý...' : 'Ghi âm giọng nói'}
             >
               {isTranscribing
@@ -422,8 +448,9 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
                 : <Mic size={20} />}
             </button>
             <button
-              className="icon-btn"
-              disabled={isSending || (!inputValue.trim() && selectedFiles.length === 0)}
+              className="icon-btn chat-send-button"
+              disabled={isSending || !activeSession || (!inputValue.trim() && selectedFiles.length === 0)}
+              aria-label="Gửi tin nhắn" title="Gửi tin nhắn"
               onClick={handleSend}
             >
               <Send size={20} />
@@ -431,11 +458,30 @@ function MainChat({ onOpenSettings, activeSession, onSendMessage, onResetProfile
           </div>
 
           <div className="disclaimer">
-            Diabetes Prediction chỉ hỗ trợ sàng lọc, không thay thế chẩn đoán của bác sĩ.
+            Chỉ hỗ trợ sàng lọc, không thay thế chẩn đoán của bác sĩ. Trường hợp khẩn cấp, gọi 115.
           </div>
         </div>
       </div>
-    </div>
+        </section>
+        <PlanTrack steps={flowSteps} live={running} />
+        </div>
+
+        <AgentFlow steps={flowSteps} live={running} graph={flowGraph} onOpenKb={() => setModal('kb')} onOpenAgents={() => setModal('agents')} />
+      </div>
+
+      {(modal === 'form' || modal === 'result') && activeSession && (
+        <NbModal title={modal === 'form' ? 'Hồ sơ bệnh nhân' : 'Kết quả đánh giá'} icon={modal === 'form' ? ClipboardList : Gauge}
+          subtitle={modal === 'form' ? 'Khoảng 2 phút · 3 bước · bấm Hoàn thành để lưu, không bắt buộc có xét nghiệm' : 'Kết luận của hội đồng tác tử cho hồ sơ hiện tại'} onClose={closeModal}
+          actions={modal === 'form' && <button className="btn-secondary nb-skip" onClick={closeModal}>Bỏ qua</button>}>
+          <PredictionPanel key={modal} initialView={modal}
+            profileSummary={activeSession.profile_summary} isSending={isSending} disabled={!activeSession}
+            onPredict={text => { setModal(null); return sendText(text) }} onAsk={ask} onComplete={completeProfile}
+            assessmentMessage={assessmentMessage} latestReply={latestReply} />
+        </NbModal>
+      )}
+      {modal === 'kb' && <NbModal wide title="Tri thức KB" icon={Database} subtitle="PDF QĐ 5481/QĐ-BYT + Vinmec + Long Châu + ADA 2024 → Qdrant + Neo4j" onClose={closeModal}><KnowledgeView /></NbModal>}
+      {modal === 'agents' && <NbModal wide title="Hệ tác tử" icon={Bot} subtitle={`${systemInfo?.agents.length ?? 9} tác tử trao đổi qua MessageBus (FIPA-ACL)`} onClose={closeModal}><AgentsView systemInfo={systemInfo} /></NbModal>}
+    </main>
   )
 }
 

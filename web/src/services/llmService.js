@@ -86,6 +86,11 @@ export const fetchSystemInfo = async () => {
     return response.json();
 };
 
+/** Lưu hồ sơ từ form (không chạy hội chẩn). Trả về { profile_summary, rejected }. */
+export const saveProfile = (sessionId, fields) => getJSON(`/api/sessions/${sessionId}/profile`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+});
+
 export const resetProfile = async (sessionId) => {
     const response = await fetch(`/api/sessions/${sessionId}/profile`, { method: 'DELETE' });
     if (!response.ok) throw new Error(await parseError(response));
@@ -102,3 +107,10 @@ export const transcribeAudio = async (audioBlob) => {
     const data = await response.json();
     return data.text || "";
 };
+
+/** GET/POST JSON, ném lỗi kèm URL và mã trạng thái khi máy chủ trả lỗi. */
+export const getJSON = async (url, init) => {
+    const res = await fetch(url, init)
+    if (!res.ok) throw new Error(`${url} → ${res.status}`)
+    return res.json()
+}

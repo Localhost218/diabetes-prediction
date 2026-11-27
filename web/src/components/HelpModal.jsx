@@ -22,7 +22,7 @@ function HelpModal({ onClose }) {
 
           <div className="help-title">Trợ lý chatbot của Diabetes Prediction</div>
           <div className="help-author">
-            Develop by <strong>Nguyễn Tuấn Anh</strong> — A* Squad Member
+            Develop by <strong>Nguyễn Tự Kiên</strong> - Team 07
           </div>
         </div>
       </div>

@@ -24,7 +24,8 @@ def test_negations_and_no_defaults():
     assert p.get("family_history") is False
     # Không tự điền giá trị mặc định cho trường lâm sàng
     assert not p.has("glucose_fasting_mgdl") and not p.has("bmi")
-    assert set(p.missing_required()) == {"age_years", "bmi", "glucose_fasting_mgdl"}
+    assert set(p.missing_required()) == {"age_years", "bmi"}  # thiếu xét nghiệm vẫn dự đoán (ước tính tương đối)
+    assert not p.has_glycemic() and p.missing_recommended()[0] == "glucose_fasting_mgdl"
 
 
 def test_question_is_not_patient_data():

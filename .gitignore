@@ -15,7 +15,12 @@ data/multiagent.db*
 data/qdrant/
 data/models/hf/
 data/download/
-data/output/
+data/output/*
+# KB nhỏ (nguồn + file Cypher) được giữ trong Git để chấm/vấn đáp
+!data/output/kb/
+data/output/kb/*
+!data/output/kb/db_diabet.cypher
+!data/output/kb/kb_sources/
 
 # Notebook & lab raw data and models
 notebook/lab/data/
@@ -35,6 +40,8 @@ notebook/model/
 web/node_modules/
 web/dist/
 web/.vite/
+web/.playwright-cli/
+.playwright-cli/
 
 # Docs / LaTeX build artifacts
 docs/**/*.aux

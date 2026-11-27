@@ -66,8 +66,8 @@ with open(chunks_dir / "embedded_36_chunks_all.md", "w", encoding="utf-8") as f:
 # 3. 03_knowledge_graph
 kg_dir = DOWNLOADS_DIR / "03_knowledge_graph"
 kg_dir.mkdir(exist_ok=True)
-if (KB_OUT_DIR / "diabetes_kb.cypher").exists():
-    shutil.copy2(KB_OUT_DIR / "diabetes_kb.cypher", kg_dir / "diabetes_kb.cypher")
+if (KB_OUT_DIR / "db_diabet.cypher").exists():
+    shutil.copy2(KB_OUT_DIR / "db_diabet.cypher", kg_dir / "db_diabet.cypher")
 shutil.copy2(kb_sources_dir / "curated_triples.json", kg_dir / "triples.json")
 
 # 4. 04_official_guidelines_summary
@@ -122,7 +122,7 @@ Thư mục này chứa đầy đủ toàn bộ tài liệu gốc, văn bản đ�
    - `embedded_36_chunks.csv`: Bảng CSV các chunks kèm document_id, tiêu đề, nguồn và model embedding.
    - `embedded_36_chunks_all.md`: Tài liệu văn bản tổng hợp đọc trực tiếp toàn bộ đoạn đã embed.
 3. `03_knowledge_graph/`:
-   - `diabetes_kb.cypher`: Script Neo4j Cypher khởi tạo đồ thị tri thức.
+   - `db_diabet.cypher`: Script Cypher xuất trực tiếp từ Neo4j (43 nút, 55 cạnh).
    - `triples.json`: Danh sách các bộ ba thực thể (head, relation, tail, evidence, chunk_ids).
 4. `04_official_guidelines_summary/`:
    - `Quyet_Dinh_5481_Bo_Y_Te_Chi_Tiet.md`: Tóm lược chi tiết Quyết định 5481/QĐ-BYT.

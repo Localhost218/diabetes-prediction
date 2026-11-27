@@ -9,6 +9,7 @@ from fastapi import APIRouter, Body, HTTPException
 from sqlalchemy import select
 
 from src.api.deps import session_dict
+from src.schemas.patient_profile import PatientProfile
 from src.storage.db import session_scope
 from src.storage.models import ChatMessage, ChatSession, Document
 from src.storage.object_storage import get_storage
@@ -64,6 +65,19 @@ def reset_profile(session_id: str):
             raise HTTPException(404, "Không tìm thấy phiên chat")
         session.profile = {}
     return {"status": "reset"}
+
+
+@router.put("/{session_id}/profile")
+def save_profile(session_id: str, payload: Dict[str, Any] = Body(...)):
+    """Lưu hồ sơ nhập từ form mà không chạy hội chẩn (chưa có xét nghiệm vẫn trò chuyện tiếp được với hồ sơ này)."""
+    with session_scope() as s:
+        session = s.get(ChatSession, session_id)
+        if session is None:
+            raise HTTPException(404, "Không tìm thấy phiên chat")
+        profile = PatientProfile.model_validate(session.profile or {})
+        rejected = profile.apply_form(payload)
+        session.profile = profile.model_dump()
+        return {"profile_summary": profile.summary_vi(), "rejected": rejected}
 
 
 @router.patch("/{session_id}/messages/{message_id}/feedback")

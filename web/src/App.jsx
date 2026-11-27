@@ -1,109 +1,90 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import MainChat from './components/MainChat'
+import HelpModal from './components/HelpModal'
+import VoiceSettingsModal from './components/VoiceSettingsModal'
+import { sendChatStream, fetchSystemInfo } from './services/llmService'
 
 // Nhịp hiện từng bước suy luận: luồng không LLM xong trong ~1 giây, nên giãn ra cho người xem kịp đọc
 const STEP_MS = 140
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
-import Sidebar from './components/Sidebar'
-import MainChat from './components/MainChat'
-import HelpModal from './components/HelpModal'
-import VoiceSettingsModal from './components/VoiceSettingsModal'
-import { sendChatStream, fetchSystemInfo, resetProfile } from './services/llmService'
+
+// Phiên chỉ sống trong một lần mở trang: không có lịch sử, đóng/tải lại trang hoặc "Bắt đầu lại" là xóa phiên cũ.
+const createSession = async () => {
+  const res = await fetch('/api/sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: 'Tư vấn mới' })
+  })
+  if (!res.ok) throw new Error(`Không thể kết nối máy chủ (${res.status})`)
+  return res.json()
+}
+const discardSession = (id) => {
+  if (id) fetch(`/api/sessions/${id}`, { method: 'DELETE', keepalive: true }).catch(() => {})
+}
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)  // mặc định giao diện sáng; người dùng tự bật tối nếu muốn
   const [showHelp, setShowHelp] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [apiError, setApiError] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
   const [systemInfo, setSystemInfo] = useState(null)
-
-  // State management for sessions
-  const [sessions, setSessions] = useState([])
-  const [activeSessionId, setActiveSessionId] = useState(null)
   const [activeSession, setActiveSession] = useState(null)
+  const [isSending, setIsSending] = useState(false)
+  const sendingRef = useRef(false)
+  const sessionIdRef = useRef(null)
+  const startedRef = useRef(false)
 
-  const loadSessions = () => {
+  const startSession = useCallback(async () => {
     setIsConnecting(true)
     setApiError(null)
-    fetch('/api/sessions')
-      .then(res => {
-        if (!res.ok) throw new Error(`Server lỗi ${res.status} - vui lòng thử lại sau`)
-        return res.json()
-      })
-      .then(data => {
-        setIsConnecting(false)
-        setSessions(data)
-        if (data.length > 0) setActiveSessionId(data[0].id)
-        else handleNewConsultation()
-      })
-      .catch(err => {
-        setIsConnecting(false)
-        setApiError(err.message || 'Không thể kết nối đến máy chủ')
-      })
-  }
-
-  useEffect(() => {
-    loadSessions()
-    fetchSystemInfo().then(setSystemInfo).catch(() => setSystemInfo(null))
+    discardSession(sessionIdRef.current)
+    sessionIdRef.current = null
+    setActiveSession(null)
+    try {
+      const session = await createSession()
+      sessionIdRef.current = session.id
+      setActiveSession({ ...session, messages: [], profile_summary: [] })
+    } catch (err) {
+      setApiError(err.message || 'Không thể kết nối đến máy chủ')
+    } finally {
+      setIsConnecting(false)
+    }
   }, [])
 
   useEffect(() => {
-    if (activeSessionId) {
-      fetch(`/api/sessions/${activeSessionId}`)
-        .then(res => res.json())
-        .then(data => setActiveSession(data))
-        .catch(err => console.error("Error fetching session:", err))
-    }
-  }, [activeSessionId])
+    if (startedRef.current) return   // StrictMode gọi effect 2 lần ở dev: chỉ tạo một phiên
+    startedRef.current = true
+    startSession()
+    fetchSystemInfo().then(setSystemInfo).catch(() => setSystemInfo(null))
+    const onLeave = () => discardSession(sessionIdRef.current)
+    window.addEventListener('pagehide', onLeave)
+    return () => window.removeEventListener('pagehide', onLeave)
+  }, [startSession])
+
+  // Esc đóng hộp thoại đang mở
+  useEffect(() => {
+    if (!showHelp && !showSettings) return
+    const onKey = (e) => { if (e.key === 'Escape') { setShowHelp(false); setShowSettings(false) } }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [showHelp, showSettings])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
   }, [isDarkMode])
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
-
-  const handleNewConsultation = async () => {
-    try {
-      const res = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Cuộc trò chuyện mới' })
-      })
-      const newSession = await res.json()
-      setSessions(prev => [newSession, ...prev])
-      setActiveSessionId(newSession.id)
-      setActiveSession(newSession)
-    } catch (err) {
-      console.error("Error creating session:", err)
-    }
-  }
-
-  const handleDeleteSession = async (sessionId) => {
-    try {
-      await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' })
-      const remaining = sessions.filter(s => s.id !== sessionId)
-      setSessions(remaining)
-      if (activeSessionId === sessionId) {
-        if (remaining.length > 0) setActiveSessionId(remaining[0].id)
-        else handleNewConsultation()
-      }
-    } catch (err) {
-      console.error("Error deleting session:", err)
-    }
-  }
-
-  const handleResetProfile = async () => {
-    if (!activeSessionId) return
-    if (!window.confirm('Xóa toàn bộ chỉ số sức khỏe đã ghi nhận trong cuộc trò chuyện này?')) return
-    await resetProfile(activeSessionId)
-    setActiveSession(prev => ({ ...prev, profile_summary: [] }))
+  const handleRestart = () => {
+    if (sendingRef.current) return
+    if (activeSession?.messages?.length && !window.confirm('Bắt đầu lại sẽ xóa toàn bộ chỉ số và cuộc trò chuyện hiện tại. Tiếp tục?')) return
+    startSession()
   }
 
   const handleSendMessage = async (text, files = []) => {
-    if (!activeSessionId) return;
+    const sessionId = activeSession?.id
+    if (!sessionId || sendingRef.current) return null
+    sendingRef.current = true
+    setIsSending(true)
 
     // 1. Hiện ngay tin nhắn người dùng + trạng thái đang xử lý
     const tempUserMsg = {
@@ -113,15 +94,12 @@ function App() {
     const tempId = `pending-${Date.now()}`
     const tempBotMsg = { sender: 'bot', text: '', _loading: true, _hasFiles: files.length > 0, _tempId: tempId,
                          _steps: [], _graph: null }
-    setActiveSession(prev => ({
-      ...prev,
-      messages: [...(prev?.messages || []), tempUserMsg, tempBotMsg]
-    }))
+    setActiveSession(prev => ({ ...prev, messages: [...(prev?.messages || []), tempUserMsg, tempBotMsg] }))
 
     // Bước suy luận tới dồn vào hàng đợi, nhả ra đều tay để khối "đang suy luận" chạy mượt
     const queue = []
     let shown = 0
-    const patchTemp = (fn) => setActiveSession(prev => ({
+    const patchTemp = (fn) => setActiveSession(prev => prev?.id !== sessionId ? prev : ({
       ...prev, messages: (prev?.messages || []).map(m => (m._tempId === tempId ? fn(m) : m))
     }))
     const ticker = setInterval(() => {
@@ -133,98 +111,68 @@ function App() {
 
     try {
       // 2. Backend chạy một lượt hội chẩn đa tác tử, vừa chạy vừa gửi từng thông điệp giữa các tác tử
-      const result = await sendChatStream(activeSessionId, text, files, ev => queue.push(ev))
+      const result = await sendChatStream(sessionId, text, files, ev => {
+        // Hồ sơ cập nhật ngay khi tiếp nhận xong, không chờ hội đồng
+        if (ev.type === 'profile') setActiveSession(prev => prev?.id !== sessionId ? prev : ({ ...prev, profile_summary: ev.summary }))
+        else queue.push(ev)
+      })
       while (shown < queue.length) await sleep(STEP_MS)   // cho khối suy luận hiện hết rồi mới hiện câu trả lời
       clearInterval(ticker)
       const seconds = Math.round((performance.now() - started) / 100) / 10
-      setActiveSession(prev => ({
+      setActiveSession(prev => prev?.id !== sessionId ? prev : ({
         ...prev,
         title: result.session.title,
+        profile_summary: result.bot_message.data?.profile_summary || prev.profile_summary,
         messages: [...(prev?.messages || []).filter(m => m !== tempUserMsg && m._tempId !== tempId),
                    result.user_message, { ...result.bot_message, _thinkSeconds: seconds }]
       }))
-      setSessions(prev => [
-        { ...result.session },
-        ...prev.filter(s => s.id !== result.session.id)
-      ])
+      return result
     } catch (err) {
       clearInterval(ticker)
-      console.error("Error sending message:", err)
-      setActiveSession(prev => ({
+      console.error('Error sending message:', err)
+      setActiveSession(prev => prev?.id !== sessionId ? prev : ({
         ...prev,
         messages: (prev?.messages || []).filter(m => m._tempId !== tempId)
           .concat([{ sender: 'bot', text: `Gửi tin nhắn thất bại: ${err.message}`, is_error: true }])
       }))
+      return null
+    } finally {
+      sendingRef.current = false
+      setIsSending(false)
     }
   }
 
   return (
     <div className="app-container">
-      {/* Connection status banners */}
       {isConnecting && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'linear-gradient(90deg, #1e3a5f, #2563eb)',
-          color: '#fff', padding: '10px 20px',
-          display: 'flex', alignItems: 'center', gap: '10px',
-          fontSize: '0.88rem', fontWeight: 500, boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-        }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #fff',
-            borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          Đang kết nối đến máy chủ…
+        <div className="connection-banner" role="status">
+          <span className="connection-spinner" aria-hidden="true" />
+          Đang chuẩn bị phiên tư vấn…
         </div>
       )}
       {apiError && !isConnecting && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-          background: '#dc2626', color: '#fff', padding: '10px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          fontSize: '0.88rem', fontWeight: 500, boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-        }}>
+        <div className="connection-banner is-error" role="alert">
           <span>⚠️ {apiError}</span>
-          <button
-            onClick={loadSessions}
-            style={{
-              background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.5)',
-              color: '#fff', padding: '4px 14px', borderRadius: 6, cursor: 'pointer',
-              fontSize: '0.82rem', fontWeight: 600
-            }}
-          >Thử lại</button>
+          <button onClick={startSession}>Thử lại</button>
         </div>
       )}
 
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div className="mobile-overlay" onClick={() => setSidebarOpen(false)}></div>
-      )}
-
-      <Sidebar
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
-        onOpenHelp={() => setShowHelp(true)}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onToggleSidebar={toggleSidebar}
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={setActiveSessionId}
-        onNewConsultation={handleNewConsultation}
-        onDeleteSession={handleDeleteSession}
-      />
       <MainChat
-        key={activeSessionId}
-        onOpenSettings={() => setShowSettings(true)}
-        onToggleSidebar={toggleSidebar}
+        key={activeSession?.id || 'loading'}
         activeSession={activeSession}
+        isSending={isSending}
         onSendMessage={handleSendMessage}
-        onResetProfile={handleResetProfile}
+        onProfileSaved={summary => setActiveSession(prev => ({ ...prev, profile_summary: summary }))}
+        onRestart={handleRestart}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenHelp={() => setShowHelp(true)}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(d => !d)}
         systemInfo={systemInfo}
       />
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       {showSettings && <VoiceSettingsModal onClose={() => setShowSettings(false)} />}
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

@@ -77,7 +77,7 @@ class LLMClient:
             log.warning("LLM parse thất bại (%s): %s", type(exc).__name__, exc)
             return None
 
-    async def generate(self, system: str, parts: List[Part]) -> Optional[str]:
+    async def generate(self, system: str, parts: List[Part], max_tokens: int = 1024) -> Optional[str]:
         """Sinh văn bản tự do. Trả về None nếu không dùng được LLM."""
         if not self.enabled:
             return None
@@ -88,7 +88,7 @@ class LLMClient:
                     settings.llm_timeout_s,
                 )
             else:
-                text = await self._generate_ollama_with_fallback(system, parts)
+                text = await self._generate_ollama_with_fallback(system, parts, max_tokens)
             return text.strip() if text else None
         except Exception as exc:  # noqa: BLE001
             log.warning("LLM generate thất bại (%s): %s", type(exc).__name__, exc)
@@ -109,7 +109,7 @@ class LLMClient:
             msg["images"] = images
         return msg
 
-    async def _ollama_chat(self, model: str, system: str, parts: List[Part], fmt=None) -> str:
+    async def _ollama_chat(self, model: str, system: str, parts: List[Part], fmt=None, max_tokens: int = 1024) -> str:
         payload = {
             "model": model,
             "messages": [
@@ -117,7 +117,7 @@ class LLMClient:
                 self._ollama_user_message(parts),
             ],
             "stream": False,
-            "options": {"temperature": 0.2, "num_predict": 1024},
+            "options": {"temperature": 0.2, "num_predict": max_tokens},
         }
         if fmt is not None:
             payload["format"] = fmt
@@ -149,13 +149,13 @@ class LLMClient:
                 return await asyncio.to_thread(self._parse_qwen_local, system, parts, schema)
         return None
 
-    async def _generate_ollama_with_fallback(self, system: str, parts: List[Part]) -> Optional[str]:
+    async def _generate_ollama_with_fallback(self, system: str, parts: List[Part], max_tokens: int = 1024) -> Optional[str]:
         if any(isinstance(p, Blob) and not p.mime_type.startswith("image/") for p in parts):
             return None
         models = [self.model] + [m for m in settings.llm_fallback_models if m != self.model]
         for model in models:
             try:
-                text = await self._ollama_chat(model, system, parts)
+                text = await self._ollama_chat(model, system, parts, max_tokens=max_tokens)
                 if text:
                     return text
             except Exception as exc:  # noqa: BLE001

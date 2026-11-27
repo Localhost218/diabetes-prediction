@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Tuple
 from src.communication.message_bus import AgentMessage, BaseAgent
 from src.config import settings
 from src.knowledge.scope import scope_notes
-from src.schemas.patient_profile import FIELD_SPECS, PatientProfile, format_value, source_vi
+from src.schemas.patient_profile import DIET_FIELDS, FIELD_SPECS, PatientProfile, format_value, source_vi
 
 ML_HIGH, ML_LOW = 0.30, 0.15
 ML_DL_DISAGREEMENT = 0.15  # lệch xác suất giữa ML và DL đủ lớn để hội đồng chất vấn
@@ -27,6 +27,25 @@ LEVELS = {
     "moderate": "Trung bình — cần theo dõi và tầm soát định kỳ",
     "low": "Thấp — duy trì lối sống lành mạnh",
 }
+# Mọi kết quả sàng lọc đều là ước tính tương đối, không thay thế chẩn đoán
+RELATIVE_NOTE = ("Kết quả chỉ mang tính tương đối: mô hình ước tính nguy cơ so với quần thể có đặc điểm giống bạn, "
+                 "không phải chẩn đoán. Chẩn đoán đái tháo đường cần xét nghiệm và bác sĩ xác nhận.")
+NO_LABS_NOTE = ("Chưa có xét nghiệm đường huyết: đây là ước tính tương đối chỉ dựa trên tuổi, cân nặng, tiền sử và "
+                "lối sống. Hãy đo đường huyết lúc đói hoặc HbA1c để biết chính xác.")
+
+
+def diet_findings(profile: PatientProfile) -> Tuple[List[str], List[str]]:
+    """(thói quen làm tăng nguy cơ, thói quen bảo vệ): rau/trái cây và giờ ngủ (ngắn < 6 hoặc dài ≥ 9 giờ)."""
+    bad = [{"vegetables_daily": "Ít ăn rau xanh", "fruits_daily": "Ít ăn trái cây"}[f] for f in DIET_FIELDS
+           if profile.get(f) is False]
+    good = [FIELD_SPECS[f].label_vi for f in DIET_FIELDS if profile.get(f) is True]
+    sleep = profile.get("sleep_hours")
+    if sleep is not None:
+        if sleep < 6 or sleep >= 9:
+            bad.append(f"Ngủ {'ít' if sleep < 6 else 'nhiều'} ({sleep:g} giờ/đêm)")
+        else:
+            good.append(f"Ngủ đủ ({sleep:g} giờ/đêm)")
+    return bad, good
 
 
 class ConsensusCriticAgent(BaseAgent):
@@ -169,6 +188,12 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
     up = [f["feature_vi"] for f in ml["top_risk_factors"] if f["direction"] == "RISK_UP"][:3]
     if up and prob >= ML_LOW:
         plus.append(f"[+] Yếu tố làm tăng nguy cơ nhiều nhất theo mô hình: {', '.join(up)}.")
+    bad_diet, good_diet = diet_findings(profile)
+    if bad_diet:
+        plus.append(f"[+] Lối sống làm tăng nguy cơ: {', '.join(bad_diet).lower()} (ít chất xơ làm đường huyết sau ăn tăng "
+                    "nhanh; ngủ quá ít hoặc quá nhiều đi kèm đề kháng insulin).")
+    if good_diet:
+        minus.append(f"[-] Yếu tố bảo vệ: {', '.join(good_diet).lower()}.")
     entities = knowledge["graph_rag"]["start_entities"]
     risk_nodes = [e for e in entities if e not in ("Đái tháo đường típ 2", "Tiền đái tháo đường")]
     if len(risk_nodes) >= 2:
@@ -189,6 +214,9 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
     rnn = state["prediction"].get("rnn_temporal", {})
     if not rnn.get("skipped") and rnn.get("tbr_percentage", 0) > 4:
         minus.append(f"[-] Chuỗi đo có {rnn['tbr_percentage']}% thời gian dưới 70 mg/dL (mục tiêu < 4%) — nguy cơ hạ đường huyết.")
+
+    if status == "unknown":
+        minus.insert(0, f"[-] {NO_LABS_NOTE}")
 
     # Phân tầng: xét nghiệm là căn cứ chính, ML bổ sung nguy cơ dài hạn
     if status == "diabetes_range":
@@ -212,6 +240,8 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
         level = "high"
 
     label = LEVELS[level]
+    if status == "unknown":
+        label = f"{label.split(' — ')[0]} — ước tính từ yếu tố nguy cơ, chưa có xét nghiệm đường huyết"
     if status == "diabetes_range":
         label = ("Rất cao — nghi ngờ đái tháo đường, cần xét nghiệm lại để xác nhận" if state["confirmation_required"]
                  else "Rất cao — đủ tiêu chí chẩn đoán đái tháo đường theo xét nghiệm")
@@ -227,6 +257,8 @@ def _conclude(state: Dict[str, Any], profile: PatientProfile, debate: List[Dict[
         "negative_contradictions_minus": minus,
         "safety_guardrails": guardrails + scope_alerts,
         "screening_plan": state.get("screening_plan"),
+        "relative_note": NO_LABS_NOTE if status == "unknown" else RELATIVE_NOTE,
+        "diet_risks": bad_diet,
         "debate_rounds": max((d["round"] for d in debate), default=0),
         "debate": debate,
         "summary": f"Hội đồng ghi nhận {len(plus)} bằng chứng (+) và {len(minus)} điểm cần lưu ý (-) sau "

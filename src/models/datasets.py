@@ -47,13 +47,15 @@ def _num(profile: PatientProfile, name: str) -> Optional[float]:
 
 # ---------------------------------------------------------------- NHANES
 NHANES_FEATURES = ["age_years", "sex", "bmi", "waist_cm", "systolic_bp", "diastolic_bp", "high_bp", "high_chol",
-                   "family_history", "smoker", "phys_activity", "heart_disease", "stroke"]
+                   "family_history", "smoker", "phys_activity", "heart_disease", "stroke", "sleep_hours"]
 NHANES_VI = {
     "age_years": "Tuổi", "sex": "Giới tính nam", "bmi": "Chỉ số khối cơ thể (BMI)", "waist_cm": "Vòng eo (cm)",
     "systolic_bp": "Huyết áp tâm thu", "diastolic_bp": "Huyết áp tâm trương", "high_bp": "Tăng huyết áp",
     "high_chol": "Rối loạn mỡ máu", "family_history": "Tiền sử gia đình mắc ĐTĐ", "smoker": "Hút thuốc lá",
     "phys_activity": "Vận động thể lực", "heart_disease": "Bệnh tim mạch", "stroke": "Tiền sử đột quỵ",
+    "sleep_hours": "Giờ ngủ mỗi đêm",
 }
+
 
 
 def _nhanes_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
@@ -64,14 +66,16 @@ def _nhanes_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
         "high_chol": _b(profile, "high_chol"), "family_history": _b(profile, "family_history"),
         "smoker": _b(profile, "smoker"), "phys_activity": _b(profile, "phys_activity"),
         "heart_disease": _b(profile, "heart_disease"), "stroke": _b(profile, "stroke"),
+        "sleep_hours": _num(profile, "sleep_hours"),
     }
 
 
 # ---------------------------------------------------------------- BRFSS 2011–2023
 BRFSS_FEATURES = ["age_years", "sex", "bmi", "high_bp", "high_chol", "smoker", "phys_activity", "heart_disease",
-                  "stroke", "heavy_alcohol", "gen_hlth"]
+                  "stroke", "heavy_alcohol", "gen_hlth", "fruits_daily", "vegetables_daily"]
 BRFSS_VI = {f: NHANES_VI[f] for f in BRFSS_FEATURES if f in NHANES_VI} | {
-    "heavy_alcohol": "Uống nhiều rượu bia", "gen_hlth": "Sức khỏe chung tự đánh giá"}
+    "heavy_alcohol": "Uống nhiều rượu bia", "gen_hlth": "Sức khỏe chung tự đánh giá",
+    "fruits_daily": "Thói quen ăn trái cây", "vegetables_daily": "Thói quen ăn rau xanh"}
 
 
 def _brfss_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
@@ -81,6 +85,7 @@ def _brfss_row(profile: PatientProfile) -> Dict[str, Optional[float]]:
         "phys_activity": _b(profile, "phys_activity"), "heart_disease": _b(profile, "heart_disease"),
         "stroke": _b(profile, "stroke"), "heavy_alcohol": _b(profile, "heavy_alcohol"),
         "gen_hlth": _num(profile, "gen_hlth"),
+        "fruits_daily": _b(profile, "fruits_daily"), "vegetables_daily": _b(profile, "vegetables_daily"),
     }
 
 

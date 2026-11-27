@@ -50,10 +50,10 @@ Cụ thể, các ánh xạ thành phần chính trong hệ thống được xác
 Nhận vector đặc trưng bệnh nhân $x \in X_{\text{patient}} \subset (\mathbb{R} \cup \{\text{NaN}\})^d$ và trả về cấu trúc dự báo $y_{\text{DL}} \in Y_{\text{prediction}}$:
 \begin{equation}
   A_{\text{DL}} : X_{\text{patient}} \longrightarrow Y_{\text{prediction}}, \qquad
-  p_{\text{ens}}(x) = \frac{1}{2}\Big(\sigma\big(a \cdot f_{\text{GBDT}}(x) + b\big) + f_{\text{MLP}}(x)\Big),
+  p_{\text{ens}}(x) = \frac{1}{2}\Big(f_{\text{GBDT}}(x) + f_{\text{MLP}}(x)\Big),
   \label{eq:dl-agent}
 \end{equation}
-trong đó $\sigma(a \cdot f_{\text{GBDT}}(x) + b)$ là xác suất của mô hình cây tăng cường gradient sau hiệu chỉnh Platt~\cite{platt1999}, $f_{\text{MLP}}(x)$ là xác suất đầu ra của mạng nơ-ron sâu có kết nối tắt (\emph{Residual MLP}), đi kèm tỷ số nguy cơ tương đối $\text{RR}(x) = p_{\text{ens}}(x) / \bar{p}_{\text{pop}}$ và độ lệch bất đồng giữa hai mô hình $\Delta_{\text{model}}(x) = |p_{\text{GBDT}}(x) - p_{\text{MLP}}(x)|$.
+trong đó \upd{$f_{\text{GBDT}}(x)$ là xác suất trực tiếp của mô hình cây tăng cường gradient (không hiệu chỉnh Platt), $f_{\text{MLP}}(x)$ là xác suất đầu ra của mạng MLP 3 lớp ẩn (128--64--32, BatchNorm, ReLU, Dropout 0,2)}, đi kèm tỷ số nguy cơ tương đối $\text{RR}(x) = p_{\text{ens}}(x) / \bar{p}_{\text{pop}}$ và độ lệch bất đồng giữa hai mô hình $\Delta_{\text{model}}(x) = |p_{\text{GBDT}}(x) - p_{\text{MLP}}(x)|$.
 
 \paragraph{2. Tác tử Truy xuất Đồ thị Tri thức và RAG ($A_{\text{KG}}$):}
 Biểu diễn ánh xạ từ không gian truy vấn và thực thể lâm sàng $Q$ sang không gian bằng chứng y khoa có nguồn gốc $E$:

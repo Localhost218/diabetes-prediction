@@ -76,7 +76,8 @@ def _stream(session_id: Optional[str], text: str, uploads: List[tuple]) -> Strea
 
     async def turn():
         try:
-            result = await _run_turn(session_id, text, uploads, sink=on_message)
+            result = await _run_turn(session_id, text, uploads, sink=on_message,
+                                     on_profile=lambda summary: queue.put_nowait({"type": "profile", "summary": summary}))
             queue.put_nowait({"type": "final", **result})
         except HTTPException as exc:
             queue.put_nowait({"type": "error", "detail": exc.detail})
@@ -132,7 +133,11 @@ async def document_content(document_id: str):
 
 
 # ---------------------------------------------------------------------------
-async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple], sink=None) -> Dict[str, Any]:
+INTAKE_TYPES = {"EXTRACT_FROM_TEXT", "SCOPE_CHECK", "PARSE_DOCUMENT"}
+
+
+async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple], sink=None,
+                    on_profile=None) -> Dict[str, Any]:
     with session_scope() as s:
         session = s.get(ChatSession, session_id) if session_id else None
         if session is None:
@@ -152,10 +157,22 @@ async def _run_turn(session_id: Optional[str], text: str, uploads: List[tuple], 
         s.flush()
         user_msg_id = user_msg.id
 
+    if sink is not None and on_profile is not None:
+        stream_msg, sent = sink, []
+
+        def sink(msg: AgentMessage) -> None:
+            stream_msg(msg)
+            # Orchestrator rời bước tiếp nhận = hồ sơ đã gộp xong → đẩy hồ sơ lên giao diện trước khi hội đồng chạy
+            if not sent and msg.sender == "Orchestrator" and msg.performative == "REQUEST" \
+                    and msg.msg_type not in INTAKE_TYPES:
+                sent.append(True)
+                on_profile(profile.summary_vi())
+
     token = stream_sink.set(sink)
     try:
         result = await get_orchestrator().run_turn(profile, text, documents, history, last_assessment)
         bot_text, data, error = result["text"], _compact(result), None
+        data["profile_summary"] = profile.summary_vi()  # mọi lượt, để giao diện cập nhật hồ sơ ngay cả khi còn thiếu dữ liệu
     except Exception as exc:  # noqa: BLE001
         log.exception("Lượt hội chẩn thất bại")
         result, error = None, f"{type(exc).__name__}: {exc}"
@@ -194,12 +211,13 @@ def _memory(s, session_id: str):
         if m.attachments:
             text = f"[Đính kèm: {', '.join(a['filename'] for a in m.attachments)}] {text}"
         history.append({"sender": m.sender, "text": text})
-    last = s.scalar(select(ChatMessage).where(ChatMessage.session_id == session_id, ChatMessage.sender == "bot",
-                                              ChatMessage.data["consensus"].isnot(None))
-                    .order_by(ChatMessage.created_at.desc()).limit(1))
+    # Lọc trong Python: so sánh JSON `data["consensus"].isnot(None)` vẫn khớp tin nhắn thiếu khóa này
+    # (JSON null ≠ SQL NULL), làm lượt chat sau một câu trả lời không có hội chẩn bị KeyError.
+    bot_rows = s.scalars(select(ChatMessage).where(ChatMessage.session_id == session_id, ChatMessage.sender == "bot")
+                         .order_by(ChatMessage.created_at.desc())).all()
+    d = next((m.data for m in bot_rows if isinstance(m.data, dict) and m.data.get("consensus")), None)
     last_assessment = None
-    if last is not None:
-        d = last.data
+    if d is not None:
         last_assessment = {**d["consensus"], "treatment": d.get("treatment"), "citations": d.get("citations")}
     return history, last_assessment
 
@@ -264,7 +282,8 @@ def _compact(result: Dict[str, Any]) -> Dict[str, Any]:
         c, ml = d["consensus"], d["prediction"]["risk_model"]
         out["consensus"] = {k: c[k] for k in ("risk_level", "risk_label", "consensus_risk_score", "glycemic_status",
                                               "confirmation_required", "positive_evidence_plus",
-                                              "negative_contradictions_minus", "safety_guardrails", "debate_rounds")}
+                                              "negative_contradictions_minus", "safety_guardrails", "debate_rounds",
+                                              "relative_note", "diet_risks")}
         out["consensus"]["debate"] = [{k: x[k] for k in ("round", "issue", "challenged", "challenge")}
                                       | {"statement": x["response"].get("statement")} for x in c["debate"]]
         out["ml"] = {k: ml[k] for k in ("risk_probability", "relative_risk", "top_risk_factors", "data_completeness",

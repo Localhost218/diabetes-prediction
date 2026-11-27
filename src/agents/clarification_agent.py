@@ -15,7 +15,7 @@ from src.communication.message_bus import AgentMessage, BaseAgent
 from src.knowledge.scope import rule_questions, select_questions
 from src.llm.client import llm
 from src.llm.prompts import SCOPE_SYSTEM, ScopeCheck, format_history
-from src.schemas.patient_profile import PatientProfile
+from src.schemas.patient_profile import FIELD_SPECS, PatientProfile
 
 REASON_FIELD = {
     "PREGNANCY": "pregnant", "ALREADY_DIAGNOSED": "diagnosed_diabetes", "ON_DIABETES_MEDS": "glucose_lowering_meds",
@@ -43,16 +43,26 @@ class ClarificationAgent(BaseAgent):
                 continue
             if issue["reason"] == "OTHER":
                 uncovered.append(issue)
+                if _repeats_rule_question(issue["question"], candidates + [{"field": f} for f in profile.missing_required()]):
+                    continue
             candidates.append({
                 "key": field or f"{issue['reason'].lower()}:{_norm(issue['evidence'])[:40]}",
                 "field": field, "question": issue["question"], "reason": f"\"{issue['evidence']}\"",
-                "priority": 2, "blocking": issue["blocking"] and issue["reason"] in LLM_MAY_BLOCK, "source": "llm",
+                # câu "khác" do LLM tự nghĩ ra xếp sau mọi câu hỏi theo luật (đường huyết, ăn uống...)
+                "priority": 5 if issue["reason"] == "OTHER" else 2,
+                "blocking": issue["blocking"] and issue["reason"] in LLM_MAY_BLOCK, "source": "llm",
             })
         return self.reply(msg, "CLARIFICATION_PLAN", {
             "questions": select_questions(profile, candidates),
             "candidates": len(candidates),
             "uncovered": uncovered,
         })
+
+
+def _repeats_rule_question(question: str, candidates) -> bool:
+    """Câu LLM hỏi lại đúng chỉ số mà luật đã định hỏi (ví dụ lại hỏi đường huyết lúc đói)."""
+    q = _norm(question)
+    return any(c.get("field") and _norm(FIELD_SPECS[c["field"]].label_vi) in q for c in candidates)
 
 
 async def _scope_check(text: str, history) -> Dict[str, Any]:
@@ -64,7 +74,9 @@ async def _scope_check(text: str, history) -> Dict[str, Any]:
     if result is None:
         return {"issues": [], "method": "failed"}
     # Chống bịa: bằng chứng phải xuất hiện nguyên văn trong tin nhắn
-    grounded = [i.model_dump() for i in result.issues if _norm(i.evidence) and _norm(i.evidence) in _norm(text)]
+    # "OTHER" mà trích nguyên cả tin nhắn = LLM không chỉ ra được điểm mơ hồ cụ thể nào → bỏ
+    grounded = [i.model_dump() for i in result.issues if _norm(i.evidence) and _norm(i.evidence) in _norm(text)
+                and not (i.reason == "OTHER" and len(_norm(i.evidence)) >= 0.8 * len(_norm(text)))]
     return {"issues": grounded[:2], "rejected": len(result.issues) - len(grounded), "method": "llm"}
 
 

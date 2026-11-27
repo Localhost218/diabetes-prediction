@@ -11,7 +11,8 @@ LLM không quyết định khi nào hỏi ở tầng này; LLM chỉ bổ sung c
 from typing import Any, Dict, List, Tuple
 
 from src.knowledge.clinical_criteria import evaluate_glycemia
-from src.schemas.patient_profile import FIELD_SPECS, GLYCEMIC_FIELDS, PatientProfile, format_value, source_vi
+from src.schemas.patient_profile import (LIFESTYLE_FIELDS, FIELD_SPECS, GLYCEMIC_FIELDS, PatientProfile, format_value,
+                                        source_vi)
 
 MAX_QUESTIONS_PER_TURN = 2
 
@@ -79,12 +80,22 @@ def rule_questions(profile: PatientProfile) -> List[Dict[str, Any]]:
     if a1c and (g("egfr") or 999) < 30:
         ask_field("hba1c_interference", "eGFR < 30: bệnh thận nặng làm HbA1c kém tin cậy.", 3)
 
+    # Chưa có xét nghiệm: vẫn dự đoán (ước tính tương đối) nhưng hỏi kèm để lần sau chính xác hơn
+    if not profile.has_glycemic():
+        ask_field("glucose_fasting_mgdl", "Chưa có xét nghiệm đường huyết: kết quả hiện chỉ là ước tính tương đối "
+                                          "từ yếu tố nguy cơ.", 3)
+    # Lối sống có trong dữ liệu huấn luyện (rau/trái cây: BRFSS, giờ ngủ: NHANES) — hỏi dần, mỗi lượt tối đa 2 câu
+    for field in LIFESTYLE_FIELDS:
+        ask_field(field, "Thói quen này ảnh hưởng tới nguy cơ; trả lời giúp kết quả sát với bạn hơn.", 4)
+
     return questions
 
 
 def select_questions(profile: PatientProfile, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Bỏ câu đã hỏi trong phiên và câu trùng; giữ tối đa MAX_QUESTIONS_PER_TURN câu quan trọng nhất."""
     seen, out = set(profile.asked_questions), []
+    if any(q["blocking"] and q["key"] not in seen for q in candidates):
+        candidates = [q for q in candidates if q["blocking"]]  # đang chặn luồng thì chỉ hỏi đúng câu cần thiết
     for q in sorted(candidates, key=lambda q: (not q["blocking"], q["priority"])):
         if q["key"] in seen:
             continue

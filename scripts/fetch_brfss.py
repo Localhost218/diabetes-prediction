@@ -45,8 +45,12 @@ CANDIDATES = {
     "gen_hlth": ["GENHLTH"],
     "race": ["_RACE"],           # 4 = người gốc Á (không Hispanic)
     "imprace": ["_IMPRACE"],     # 3 = người gốc Á (2011 chỉ có biến này)
+    # Module ăn uống (chỉ một số năm, ví dụ 2021; 2023 không có): 1 = ăn ≥ 1 lần/ngày, 2 = ít hơn, 9 = thiếu
+    "fruits_daily": ["_FRTLT1A"],
+    "vegetables_daily": ["_VEGLT1A"],
 }
-OPTIONAL = {"age80", "heavy_alcohol", "heart_disease", "mi", "chd", "race", "imprace"}
+OPTIONAL = {"age80", "heavy_alcohol", "heart_disease", "mi", "chd", "race", "imprace", "fruits_daily", "vegetables_daily"}
+DIET = ["fruits_daily", "vegetables_daily"]  # được phép thiếu (NaN) khi lọc dữ liệu sạch
 # Điểm giữa của 13 nhóm tuổi _AGEG5YR (dùng khi năm đó không có _AGE80)
 AGE_MID = {1: 21, 2: 27, 3: 32, 4: 37, 5: 42, 6: 47, 7: 52, 8: 57, 9: 62, 10: 67, 11: 72, 12: 77, 13: 82}
 
@@ -114,6 +118,7 @@ def read_year(year: int) -> pd.DataFrame:
         "phys_activity": _yes_no(raw["phys_activity"]),
         "heavy_alcohol": _yes_no(raw["heavy_alcohol"], yes=2, no=1) if "heavy_alcohol" in raw else np.nan,
         "gen_hlth": raw["gen_hlth"].where(raw["gen_hlth"].between(1, 5)),
+        **{d: _yes_no(raw[d]) if d in raw else np.nan for d in DIET},
         "asian": (raw["race"] == 4).astype(float) if "race" in raw else (raw["imprace"] == 3).astype(float),
         "diabetes": (diab == 1).astype(int),
         "prediabetes": (diab == 4).astype(int),
@@ -124,7 +129,7 @@ def read_year(year: int) -> pd.DataFrame:
 
 def clean_and_filter(df: pd.DataFrame, max_per_year: int = 60_000) -> pd.DataFrame:
     """Chỉ giữ các bản ghi gần đây (2021–2023), đầy đủ 100% đặc trưng (không khuyết thiếu) và BMI hợp lý."""
-    df = df[df["year"] >= 2021].dropna().copy()
+    df = df[df["year"] >= 2021].dropna(subset=[c for c in df.columns if c not in DIET]).copy()
     df = df[df["bmi"].between(13.0, 55.0) & df["age_years"].between(18, 80)]
     if max_per_year and len(df) > max_per_year * df["year"].nunique():
         parts = []
